@@ -52,6 +52,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.events.PlayerLootReceived;
 import net.runelite.client.game.ItemManager;
@@ -90,6 +91,9 @@ public class LootTrackerPlugin extends Plugin
 
 	@Inject
 	private Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 
 	private LootRecordWriter writer;
@@ -150,7 +154,7 @@ public class LootTrackerPlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
-		writer = new LootRecordWriter(client);
+		writer = new LootRecordWriter();
 	}
 
 	@Override
@@ -333,9 +337,23 @@ public class LootTrackerPlugin extends Plugin
 	@Subscribe
 	protected void onGameStateChanged(GameStateChanged e)
 	{
-		if (e.getGameState() == GameState.LOGGING_IN || e.getGameState() == GameState.LOGGED_IN)
+		if (e.getGameState() == GameState.LOGGED_IN)
 		{
-			writer.updatePlayerFolder();
+			clientThread.invokeLater(() ->
+			{
+				String name = client.getLocalPlayer().getName();
+				if (name != null)
+				{
+					log.debug("Found player name: {}", name);
+					writer.updatePlayerFolder(name);
+					return true;
+				}
+				else
+				{
+					log.debug("Local player name still null");
+					return false;
+				}
+			});
 		}
 	}
 }

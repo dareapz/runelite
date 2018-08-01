@@ -25,7 +25,6 @@
 package net.runelite.client.plugins.loottracker.data;
 
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
 import net.runelite.http.api.RuneLiteAPI;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -47,45 +46,47 @@ public class LootRecordWriter
 {
 	private static final String FILE_EXTENSION = ".log";
 
-	private Client client;
 	// Data is stored in a folder with the players in-game username
 	private File playerFolder;
 	// Record of existing .log files
 	private Map<String, File> fileMap = new HashMap<>();
 
-	public LootRecordWriter(Client client)
+	public LootRecordWriter()
 	{
-		this.client = client;
-
 		LOOT_RECORD_DIR.mkdir();
 
 		// Ensure playerFolder is up to date.
-		updatePlayerFolder();
-
-		// Create fileMap
-		File[] files = playerFolder.listFiles((dir, name) -> name.endsWith(".log"));
-		for (File f : files)
-		{
-
-			fileMap.put(f.getName(), f);
-			log.debug("Found log file: {}", f.getName());
-		}
+		updatePlayerFolder(null);
 	}
 
-	public void updatePlayerFolder()
+	public void updatePlayerFolder(String username)
 	{
-		if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
+		if (username != null)
 		{
-			playerFolder = new File(LOOT_RECORD_DIR, client.getLocalPlayer().getName());
-			fileMap.clear();
+			playerFolder = new File(LOOT_RECORD_DIR, username);
 		}
 		else
 		{
 			playerFolder = LOOT_RECORD_DIR;
-			fileMap.clear();
 		}
 
 		playerFolder.mkdir();
+		updateFileMap();
+	}
+
+	private void updateFileMap()
+	{
+		fileMap.clear();
+		// Create fileMap
+		File[] files = playerFolder.listFiles((dir, name) -> name.endsWith(".log"));
+		if (files != null)
+		{
+			for (File f : files)
+			{
+				fileMap.put(f.getName(), f);
+				log.debug("Found log file: {}", f.getName());
+			}
+		}
 	}
 
 	private File getOrCreateFile(String fileName)
