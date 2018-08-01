@@ -38,6 +38,7 @@ import javax.swing.border.EmptyBorder;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
+import net.runelite.client.plugins.loottracker.data.LootRecord;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
@@ -134,8 +135,12 @@ class LootTrackerPanel extends PluginPanel
 		return String.format(HTML_LABEL_TEMPLATE, ColorUtil.toHexColor(ColorScheme.LIGHT_GRAY_COLOR), key, valueStr);
 	}
 
-	void addLog(final String eventName, final int actorLevel, ItemStack[] items)
+	void addLog(LootRecord r)
 	{
+		final String eventName = r.getName();
+		final int actorLevel = r.getLevel();
+		ItemStack[] items = r.getDrops().toArray(new ItemStack[0]);
+
 		// Remove error and show overall
 		remove(errorPanel);
 		overallPanel.setVisible(true);
