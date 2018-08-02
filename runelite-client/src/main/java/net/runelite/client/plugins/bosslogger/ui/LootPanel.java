@@ -31,11 +31,11 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import com.google.common.collect.Iterators;
 import lombok.Getter;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemID;
@@ -51,12 +51,12 @@ import net.runelite.http.api.item.ItemPrice;
 @Getter
 public class LootPanel extends JPanel
 {
-	private List<LootRecord> records;
+	private Collection<LootRecord> records;
 	private Map<Integer, ArrayList<UniqueItem>> uniqueMap;
 	private Map<Integer, ItemPanelEntry> consolidated;
 	private ItemManager itemManager;
 
-	public LootPanel(List<LootRecord> records, Map<Integer, ArrayList<UniqueItem>> uniqueMap, ItemManager itemManager)
+	public LootPanel(Collection<LootRecord> records, Map<Integer, ArrayList<UniqueItem>> uniqueMap, ItemManager itemManager)
 	{
 		this.records = (records == null ? new ArrayList<>() : records);
 		this.consolidated = new HashMap<>();
@@ -173,7 +173,7 @@ public class LootPanel extends JPanel
 		if (this.records.size() > 0)
 		{
 			int amount = this.records.size();
-			LootRecord entry = this.records.get(amount - 1);
+			LootRecord entry = Iterators.get(this.records.iterator(), (amount - 1));
 			LootRecordPanel p = new LootRecordPanel("Current Killcount:", entry.getKillCount());
 			panel.add(p, c);
 			c.gridy++;
@@ -207,7 +207,7 @@ public class LootPanel extends JPanel
 	}
 
 	// Update Loot Panel with Updated Records
-	void updateRecords(List<LootRecord> records)
+	void updateRecords(Collection<LootRecord> records)
 	{
 		this.records = records;
 		refreshPanel();

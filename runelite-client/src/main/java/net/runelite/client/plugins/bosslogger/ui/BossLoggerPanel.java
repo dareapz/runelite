@@ -36,6 +36,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -347,7 +348,7 @@ public class BossLoggerPanel extends PluginPanel
 	private JPanel createLootPanel(Tab tab)
 	{
 		// Grab Tab Data
-		List<LootRecord> data = bossLoggerPlugin.getData(tab);
+		Collection<LootRecord> data = bossLoggerPlugin.getData(tab);
 
 		// Unique Items Info
 		ArrayList<UniqueItem> list = UniqueItem.getByActivityName(tab.getName());
@@ -393,9 +394,6 @@ public class BossLoggerPanel extends PluginPanel
 	// Refresh the Loot Panel with updated data (requests the data from file)
 	private void refreshLootPanel(LootPanel lootPanel, Tab tab)
 	{
-		// Refresh data for necessary tab
-		bossLoggerPlugin.getData(tab);
-
 		// Recreate the loot panel
 		lootPanel.updateRecords(bossLoggerPlugin.getData(tab));
 

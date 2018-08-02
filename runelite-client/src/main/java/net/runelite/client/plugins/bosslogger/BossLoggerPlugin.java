@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,7 +115,7 @@ public class BossLoggerPlugin extends Plugin
 
 	// Mapping Variables
 	private Map<String, Integer> killCountMap = new HashMap<>();
-	private Map<String, List<LootRecord>> lootMap = new HashMap<>();
+	private Map<String, Collection<LootRecord>> lootMap = new HashMap<>();
 	private boolean gotPet = false;
 	private String eventType;
 
@@ -170,6 +169,7 @@ public class BossLoggerPlugin extends Plugin
 			if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
 			{
 				writer.updatePlayerFolder(client.getLocalPlayer().getName());
+				lootMap.clear();
 			}
 		}
 
@@ -241,10 +241,16 @@ public class BossLoggerPlugin extends Plugin
 	}
 
 	// Returns stored data by tab
-	public List<LootRecord> getData(Tab tab)
+	public Collection<LootRecord> getData(Tab tab)
 	{
 		// Loot Entries are stored on lootMap by boss name (upper cased)
-		return lootMap.get(tab);
+		Collection<LootRecord> recs = lootMap.get(tab.getBossName());
+		if (recs == null)
+		{
+			recs = writer.loadData(tab.getBossName());
+			lootMap.put(tab.getBossName(), recs);
+		}
+		return recs;
 	}
 
 	//
@@ -517,6 +523,7 @@ public class BossLoggerPlugin extends Plugin
 				{
 					log.debug("Found player name: {}", name);
 					writer.updatePlayerFolder(name);
+					lootMap.clear();
 					return true;
 				}
 				else
