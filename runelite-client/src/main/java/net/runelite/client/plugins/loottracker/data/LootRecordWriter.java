@@ -84,7 +84,7 @@ public class LootRecordWriter
 		{
 			for (File f : files)
 			{
-				fileMap.put(f.getName(), f);
+				fileMap.put(f.getName().replace(".log", ""), f);
 				log.debug("Found log file: {}", f.getName());
 			}
 		}
@@ -220,9 +220,8 @@ public class LootRecordWriter
 
 	public Collection<LootRecord> loadAllData()
 	{
-		Set<String> names = fileMap.keySet();
 		List<LootRecord> recs = new ArrayList<>();
-		for (String n : names)
+		for (String n : fileMap.keySet())
 		{
 			recs.addAll(loadLootRecords(n));
 		}

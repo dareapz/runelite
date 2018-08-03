@@ -30,15 +30,17 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import lombok.Getter;
 import net.runelite.client.game.AsyncBufferedImage;
@@ -52,7 +54,7 @@ import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 @Getter
 public class LandingPanel extends JPanel
 {
-	private List<String> names;
+	private Set<String> names;
 	private LootTrackerPanel parent;
 	private ItemManager itemManager;
 
@@ -61,14 +63,14 @@ public class LandingPanel extends JPanel
 	private final static Color BUTTON_COLOR = ColorScheme.DARKER_GRAY_COLOR;
 	private final static Color BUTTON_HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
 
-	public LandingPanel(List<String> names, LootTrackerPanel parent, ItemManager itemManager)
+	public LandingPanel(Set<String> names, LootTrackerPanel parent, ItemManager itemManager)
 	{
-		this.names = names;
+		this.names = names == null ? new HashSet<>() : names;
 		this.parent = parent;
 		this.itemManager = itemManager;
 
-		this.setBorder(new EmptyBorder(0, 8, 0, 0));
 		this.setLayout(new GridBagLayout());
+		this.setBorder(new EmptyBorder(0, 8, 0, 0));
 		this.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		createPanel();
@@ -153,13 +155,28 @@ public class LandingPanel extends JPanel
 			}
 		}
 
+		boolean f = false;
 		for (String name: this.names)
 		{
 			// Only add if not already via code above
 			Tab tab = Tab.getByName(name);
 			if (tab == null)
 			{
-				JLabel p = new JLabel(name);
+				if (!f)
+				{
+					JLabel l = new JLabel("Session");
+					l.setBorder(new EmptyBorder(8, 0, 0, 0));
+					l.setForeground(Color.WHITE);
+					l.setVerticalAlignment(SwingConstants.CENTER);
+					f = true;
+					this.add(l, c);
+					c.gridy++;
+					c.insets = new Insets(10, 0, 0, 0);
+				}
+
+				JPanel p = new JPanel();
+				p.add(new JLabel(name));
+				p.setBackground(BUTTON_COLOR);
 				p.addMouseListener(new MouseAdapter()
 				{
 					@Override
@@ -177,11 +194,11 @@ public class LandingPanel extends JPanel
 					@Override
 					public void mouseClicked(MouseEvent e)
 					{
-						parent.createLootPanel(name);
+						SwingUtilities.invokeLater(() -> parent.createLootPanel(name));
 					}
 				});
 
-				this.add(p);
+				this.add(p, c);
 				c.gridy++;
 			}
 		}

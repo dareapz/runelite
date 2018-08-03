@@ -30,7 +30,9 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -121,6 +123,8 @@ public class LootTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		writer = new LootRecordWriter();
+
 		panel = new LootTrackerPanel(itemManager, this);
 		spriteManager.getSpriteAsync(SpriteID.UNUSED_TAB_INVENTORY, 0, panel::loadHeaderIcon);
 
@@ -138,8 +142,6 @@ public class LootTrackerPlugin extends Plugin
 			.build();
 
 		clientToolbar.addNavigation(navButton);
-
-		writer = new LootRecordWriter();
 	}
 
 	@Override
@@ -254,6 +256,16 @@ public class LootTrackerPlugin extends Plugin
 					break;
 			}
 		}
+	}
+
+	public Set<String> getUniqueNames()
+	{
+		Set<String> n = new HashSet<>();
+		for (LootRecord r : getAllData())
+		{
+			n.add(r.getName());
+		}
+		return n;
 	}
 
 	public Collection<LootRecord> getAllData()

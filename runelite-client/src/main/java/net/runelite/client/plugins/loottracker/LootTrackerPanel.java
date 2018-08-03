@@ -35,7 +35,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -122,6 +123,8 @@ public class LootTrackerPanel extends PluginPanel
 
 	LootTrackerPanel(final ItemManager itemManager, LootTrackerPlugin plugin)
 	{
+		super(false);
+
 		this.itemManager = itemManager;
 		this.plugin = plugin;
 
@@ -242,16 +245,22 @@ public class LootTrackerPanel extends PluginPanel
 
 		errorPanel.setContent("Loot Tracker", "Please select the Activity, Player, or NPC you wish to view loot for");
 
+		// TODO: Figure out how to full this info from plugin without causing errors on initial load
 		// Unique Items Info
 		//landingPanel = new LandingPanel(plugin.getUniqueNames(), this, itemManager);
-		List<String> s = new ArrayList<>();
+		Set<String> s = new HashSet<>();
 		s.add("Barrows");
 		s.add("Zulrah");
 		s.add("Man");
+		s.add("Woman");
+		s.add("Gargoyle");
 		landingPanel = new LandingPanel(s, this, itemManager);
 
 		this.add(errorPanel, BorderLayout.NORTH);
 		this.add(wrapContainer(landingPanel), BorderLayout.CENTER);
+
+		this.repaint();
+		this.revalidate();
 	}
 
 	// Landing page (Boss Selection Screen)
@@ -275,6 +284,9 @@ public class LootTrackerPanel extends PluginPanel
 
 		this.add(title, BorderLayout.NORTH);
 		this.add(wrapContainer(lootPanel), BorderLayout.CENTER);
+
+		this.repaint();
+		this.revalidate();
 	}
 
 	// Creates the title panel for the recorded loot tab
