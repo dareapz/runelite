@@ -110,9 +110,12 @@ public class LootPanel extends JPanel
 		{
 			int amount = this.records.size();
 			LootRecord entry = Iterators.get(this.records.iterator(), (amount - 1));
-			TextPanel p = new TextPanel("Current Killcount:", entry.getKillCount());
-			panel.add(p, c);
-			c.gridy++;
+			if (entry.getKillCount() != -1)
+			{
+				TextPanel p = new TextPanel("Current Killcount:", entry.getKillCount());
+				panel.add(p, c);
+				c.gridy++;
+			}
 			TextPanel p2 = new TextPanel("Kills Logged:", amount);
 			panel.add(p2, c);
 			c.gridy++;

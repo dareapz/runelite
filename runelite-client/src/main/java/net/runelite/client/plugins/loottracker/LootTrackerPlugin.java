@@ -45,7 +45,6 @@ import net.runelite.api.InventoryID;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
-import net.runelite.api.SpriteID;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
@@ -126,7 +125,6 @@ public class LootTrackerPlugin extends Plugin
 		writer = new LootRecordWriter();
 
 		panel = new LootTrackerPanel(itemManager, this);
-		spriteManager.getSpriteAsync(SpriteID.UNUSED_TAB_INVENTORY, 0, panel::loadHeaderIcon);
 
 		final BufferedImage icon;
 		synchronized (ImageIO.class)
@@ -158,7 +156,7 @@ public class LootTrackerPlugin extends Plugin
 		final String name = npc.getName();
 		final int combat = npc.getCombatLevel();
 		final Collection<ItemStack> stackedItems = stack(items);
-		SwingUtilities.invokeLater(() -> panel.addLog(name, combat, stackedItems.toArray(new ItemStack[0])));
+		//SwingUtilities.invokeLater(() -> panel.addLog(name, combat, stackedItems.toArray(new ItemStack[0])));
 	}
 
 	@Subscribe
@@ -169,7 +167,7 @@ public class LootTrackerPlugin extends Plugin
 		final String name = player.getName();
 		final int combat = player.getCombatLevel();
 		final Collection<ItemStack> stackedItems = stack(items);
-		SwingUtilities.invokeLater(() -> panel.addLog(name, combat, stackedItems.toArray(new ItemStack[0])));
+		//SwingUtilities.invokeLater(() -> panel.addLog(name, combat, stackedItems.toArray(new ItemStack[0])));
 	}
 
 	@Subscribe
@@ -216,7 +214,7 @@ public class LootTrackerPlugin extends Plugin
 			{
 				log.debug("Item Received: {}x {}", item.getQuantity(), item.getId());
 			}
-			SwingUtilities.invokeLater(() -> panel.addLog(eventType, -1, items));
+			//SwingUtilities.invokeLater(() -> panel.addLog(eventType, -1, items));
 		}
 		else
 		{

@@ -28,7 +28,6 @@ package net.runelite.client.plugins.loottracker;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -38,31 +37,24 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import javax.imageio.ImageIO;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
 import net.runelite.client.plugins.loottracker.data.Tab;
 import net.runelite.client.plugins.loottracker.data.UniqueItem;
 import net.runelite.client.plugins.loottracker.ui.LandingPanel;
 import net.runelite.client.plugins.loottracker.ui.LootPanel;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.PluginErrorPanel;
-import net.runelite.client.util.ColorUtil;
-import net.runelite.client.util.StackFormatter;
 
 @Slf4j
 public class LootTrackerPanel extends PluginPanel
@@ -104,18 +96,9 @@ public class LootTrackerPanel extends PluginPanel
 	// When there is no loot, display this
 	private final PluginErrorPanel errorPanel = new PluginErrorPanel();
 
-	// Handle loot logs
-	private final JPanel logsContainer = new JPanel();
-
 	// Handle overall session data
-	private final JPanel overallPanel = new JPanel();
-	private final JLabel overallKillsLabel = new JLabel();
-	private final JLabel overallGpLabel = new JLabel();
-	private final JLabel overallIcon = new JLabel();
 	private final ItemManager itemManager;
 	private final LootTrackerPlugin plugin;
-	private int overallKills;
-	private int overallGp;
 
 	private String currentView = null;
 	private LootPanel lootPanel;
@@ -132,110 +115,10 @@ public class LootTrackerPanel extends PluginPanel
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 		setLayout(new BorderLayout());
 
-		// Create layout panel for wrapping
-		final JPanel layoutPanel = new JPanel();
-		layoutPanel.setLayout(new BoxLayout(layoutPanel, BoxLayout.Y_AXIS));
-		add(layoutPanel, BorderLayout.NORTH);
-
-		// Create panel that will contain overall data
-		overallPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-		overallPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		overallPanel.setLayout(new BorderLayout());
-		overallPanel.setVisible(false);
-
-		// Add icon and contents
-		final JPanel overallInfo = new JPanel();
-		overallInfo.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		overallInfo.setLayout(new GridLayout(2, 1));
-		overallInfo.setBorder(new EmptyBorder(0, 10, 0, 0));
-		overallKillsLabel.setFont(FontManager.getRunescapeSmallFont());
-		overallGpLabel.setFont(FontManager.getRunescapeSmallFont());
-		overallInfo.add(overallKillsLabel);
-		overallInfo.add(overallGpLabel);
-		overallPanel.add(overallIcon, BorderLayout.WEST);
-		overallPanel.add(overallInfo, BorderLayout.CENTER);
-
-		// Create reset all menu
-		final JMenuItem reset = new JMenuItem("Reset All");
-		reset.addActionListener(e ->
-		{
-			overallKills = 0;
-			overallGp = 0;
-			updateOverall();
-			logsContainer.removeAll();
-			logsContainer.repaint();
-		});
-
-		// Create popup menu
-		final JPopupMenu popupMenu = new JPopupMenu();
-		popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
-		popupMenu.add(reset);
-		overallPanel.setComponentPopupMenu(popupMenu);
-
-		// Create loot logs wrapper
-		logsContainer.setLayout(new BoxLayout(logsContainer, BoxLayout.Y_AXIS));
-		layoutPanel.add(overallPanel);
-		layoutPanel.add(logsContainer);
-
-		// Add error pane
-		errorPanel.setContent("Loot trackers", "You have not received any loot yet.");
-		add(errorPanel);
+		errorPanel.setBorder(new EmptyBorder(10, 25, 10, 25));
 
 		createLandingPanel();
 	}
-
-	void loadHeaderIcon(BufferedImage img)
-	{
-		overallIcon.setIcon(new ImageIcon(img));
-	}
-
-	private static String htmlLabel(String key, long value)
-	{
-		final String valueStr = StackFormatter.quantityToStackSize(value);
-		return String.format(HTML_LABEL_TEMPLATE, ColorUtil.toHexColor(ColorScheme.LIGHT_GRAY_COLOR), key, valueStr);
-	}
-
-	void addLog(final String eventName, final int actorLevel, ItemStack[] items)
-	{
-		// Remove error and show overall
-		remove(errorPanel);
-		overallPanel.setVisible(true);
-
-		// Create box
-		final String subTitle = actorLevel > -1 ? "(lvl-" + actorLevel + ")" : "";
-		final LootTrackerBox box = new LootTrackerBox(itemManager, eventName, subTitle, items);
-		logsContainer.add(box, 0);
-		logsContainer.repaint();
-
-		// Update overall
-		overallGp += box.getTotalPrice();
-		overallKills += 1;
-		updateOverall();
-
-		// Create reset menu
-		final JMenuItem reset = new JMenuItem("Reset");
-		reset.addActionListener(e ->
-		{
-			overallGp -= box.getTotalPrice();
-			overallKills -= 1;
-			updateOverall();
-			logsContainer.remove(box);
-			logsContainer.repaint();
-		});
-
-		// Create popup menu
-		final JPopupMenu popupMenu = new JPopupMenu();
-		popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
-		popupMenu.add(reset);
-		box.setComponentPopupMenu(popupMenu);
-	}
-
-	private void updateOverall()
-	{
-		overallKillsLabel.setText(htmlLabel("Total count: ", overallKills));
-		overallGpLabel.setText(htmlLabel("Total value: ", overallGp));
-	}
-
 
 	// Wrapper for creating LootPanel
 	private void createLandingPanel()
@@ -376,7 +259,7 @@ public class LootTrackerPanel extends PluginPanel
 		JLabel label = new JLabel();
 		label.setIcon(new ImageIcon(icon));
 		label.setOpaque(true);
-		label.setBackground(BACKGROUND_COLOR);
+		label.setBackground(BUTTON_COLOR);
 
 		label.addMouseListener(new MouseAdapter()
 		{
@@ -389,7 +272,7 @@ public class LootTrackerPanel extends PluginPanel
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				label.setBackground(BACKGROUND_COLOR);
+				label.setBackground(BUTTON_COLOR);
 			}
 		});
 

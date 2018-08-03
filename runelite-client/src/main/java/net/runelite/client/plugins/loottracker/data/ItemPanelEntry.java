@@ -113,7 +113,7 @@ public class ItemPanelEntry
 					// Create new entry
 					boolean shouldStack = item.isStackable() || quantity > 1;
 					AsyncBufferedImage icon = itemManager.getImage(id, quantity, shouldStack);
-					ItemPrice p = itemManager.getItemPrice(id);
+					ItemPrice p = itemManager.getItemPrice(item.getId()); // Unnoted ID for real price
 					int price = id == ItemID.COINS_995 ? 1 : (p == null ? 0 : p.getPrice());
 
 					ItemPanelEntry entry = new ItemPanelEntry(item.getName(), id, quantity, price, icon, item);
