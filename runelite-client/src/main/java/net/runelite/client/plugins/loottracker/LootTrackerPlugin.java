@@ -54,6 +54,8 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.loottracker.data.LootRecord;
+import net.runelite.client.plugins.loottracker.data.LootRecordWriter;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.Text;
@@ -82,6 +84,7 @@ public class LootTrackerPlugin extends Plugin
 	@Inject
 	private Client client;
 
+	private LootRecordWriter writer;
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 	private String eventType;
@@ -118,7 +121,7 @@ public class LootTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		panel = new LootTrackerPanel(itemManager);
+		panel = new LootTrackerPanel(itemManager, this);
 		spriteManager.getSpriteAsync(SpriteID.UNUSED_TAB_INVENTORY, 0, panel::loadHeaderIcon);
 
 		final BufferedImage icon;
@@ -135,6 +138,8 @@ public class LootTrackerPlugin extends Plugin
 			.build();
 
 		clientToolbar.addNavigation(navButton);
+
+		writer = new LootRecordWriter();
 	}
 
 	@Override
@@ -249,5 +254,15 @@ public class LootTrackerPlugin extends Plugin
 					break;
 			}
 		}
+	}
+
+	public Collection<LootRecord> getAllData()
+	{
+		return writer.loadAllData();
+	}
+
+	public Collection<LootRecord> getData(String name)
+	{
+		return writer.loadData(name);
 	}
 }

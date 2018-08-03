@@ -26,18 +26,36 @@
 package net.runelite.client.plugins.loottracker;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
+import net.runelite.client.plugins.loottracker.data.LootRecord;
+import net.runelite.client.plugins.loottracker.data.Tab;
+import net.runelite.client.plugins.loottracker.data.UniqueItem;
+import net.runelite.client.plugins.loottracker.ui.LandingPanel;
+import net.runelite.client.plugins.loottracker.ui.LootPanel;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
@@ -46,10 +64,41 @@ import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.StackFormatter;
 
 @Slf4j
-class LootTrackerPanel extends PluginPanel
+public class LootTrackerPanel extends PluginPanel
 {
 	private static final String HTML_LABEL_TEMPLATE =
-		"<html><body style='color:%s'>%s<span style='color:white'>%s</span></body></html>";
+			"<html><body style='color:%s'>%s<span style='color:white'>%s</span></body></html>";
+	private static final BufferedImage ICON_DELETE;
+	private static final BufferedImage ICON_REFRESH;
+	private static final BufferedImage ICON_BACK;
+
+	// Panel Colors
+	private final static Color BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
+	private final static Color BUTTON_COLOR = ColorScheme.DARKER_GRAY_COLOR;
+	private final static Color BUTTON_HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
+
+	static
+	{
+		BufferedImage i1;
+		BufferedImage i2;
+		BufferedImage i3;
+		try
+		{
+			synchronized (ImageIO.class)
+			{
+				i1 = ImageIO.read(LootTrackerPanel.class.getResourceAsStream("delete-white.png"));
+				i2 = ImageIO.read(LootTrackerPanel.class.getResourceAsStream("refresh-white.png"));
+				i3 = ImageIO.read(LootTrackerPanel.class.getResourceAsStream("back-arrow-white.png"));
+			}
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+		ICON_DELETE = i1;
+		ICON_REFRESH = i2;
+		ICON_BACK = i3;
+	}
 
 	// When there is no loot, display this
 	private final PluginErrorPanel errorPanel = new PluginErrorPanel();
@@ -63,12 +112,19 @@ class LootTrackerPanel extends PluginPanel
 	private final JLabel overallGpLabel = new JLabel();
 	private final JLabel overallIcon = new JLabel();
 	private final ItemManager itemManager;
+	private final LootTrackerPlugin plugin;
 	private int overallKills;
 	private int overallGp;
 
-	LootTrackerPanel(final ItemManager itemManager)
+	private String currentView = null;
+	private LootPanel lootPanel;
+	private LandingPanel landingPanel;
+
+	LootTrackerPanel(final ItemManager itemManager, LootTrackerPlugin plugin)
 	{
 		this.itemManager = itemManager;
+		this.plugin = plugin;
+
 		setBorder(new EmptyBorder(6, 6, 6, 6));
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 		setLayout(new BorderLayout());
@@ -121,6 +177,8 @@ class LootTrackerPanel extends PluginPanel
 		// Add error pane
 		errorPanel.setContent("Loot trackers", "You have not received any loot yet.");
 		add(errorPanel);
+
+		createLandingPanel();
 	}
 
 	void loadHeaderIcon(BufferedImage img)
@@ -173,5 +231,188 @@ class LootTrackerPanel extends PluginPanel
 	{
 		overallKillsLabel.setText(htmlLabel("Total count: ", overallKills));
 		overallGpLabel.setText(htmlLabel("Total value: ", overallGp));
+	}
+
+
+	// Wrapper for creating LootPanel
+	private void createLandingPanel()
+	{
+		this.removeAll();
+		currentView = null;
+
+		errorPanel.setContent("Loot Tracker", "Please select the Activity, Player, or NPC you wish to view loot for");
+
+		// Unique Items Info
+		//landingPanel = new LandingPanel(plugin.getUniqueNames(), this, itemManager);
+		List<String> s = new ArrayList<>();
+		s.add("Barrows");
+		s.add("Zulrah");
+		s.add("Man");
+		landingPanel = new LandingPanel(s, this, itemManager);
+
+		this.add(errorPanel, BorderLayout.NORTH);
+		this.add(wrapContainer(landingPanel), BorderLayout.CENTER);
+	}
+
+	// Landing page (Boss Selection Screen)
+	public void createLootPanel(String name)
+	{
+		this.removeAll();
+		currentView = name;
+
+		Collection<LootRecord> data = plugin.getData(name);
+
+		// Grab all Uniques for this NPC/Activity
+		ArrayList<UniqueItem> uniques = new ArrayList<>();
+		if (Tab.getByName(name) != null)
+		{
+			uniques = UniqueItem.getByActivityName(Tab.getByName(name).getName());
+		}
+
+		JPanel title = createLootTitle(name);
+
+		lootPanel = new LootPanel(data, UniqueItem.createPositionSetMap(uniques),  itemManager);
+
+		this.add(title, BorderLayout.NORTH);
+		this.add(wrapContainer(lootPanel), BorderLayout.CENTER);
+	}
+
+	// Creates the title panel for the recorded loot tab
+	private JPanel createLootTitle(String name)
+	{
+		JPanel title = new JPanel();
+		title.setBorder(new CompoundBorder(
+				new EmptyBorder(10, 8, 8, 8),
+				new MatteBorder(0, 0, 1, 0, Color.GRAY)
+		));
+		title.setLayout(new BorderLayout());
+		title.setBackground(BACKGROUND_COLOR);
+
+		JPanel first = new JPanel();
+		first.setBackground(BACKGROUND_COLOR);
+
+		// Back Button
+		JLabel back = createIconLabel(ICON_BACK);
+		back.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				showLandingPage();
+			}
+		});
+
+		// Plugin Name
+		JLabel text = new JLabel(name);
+		text.setForeground(Color.WHITE);
+
+		first.add(back);
+		first.add(text);
+
+		JPanel second = new JPanel();
+		second.setBackground(BACKGROUND_COLOR);
+
+		// Refresh Data button
+		JLabel refresh = createIconLabel(ICON_REFRESH);
+		refresh.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				log.info("TODO: refresh");
+			}
+		});
+
+		// Clear data button
+		JLabel clear = createIconLabel(ICON_DELETE);
+		clear.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				clearData(name);
+			}
+		});
+
+		second.add(refresh);
+		second.add(clear);
+
+		title.add(first, BorderLayout.WEST);
+		title.add(second, BorderLayout.EAST);
+
+		return title;
+	}
+	private void showLootPage(String name)
+	{
+		createLootPanel(name);
+
+		this.revalidate();
+		this.repaint();
+	}
+
+	private void showLandingPage()
+	{
+		createLandingPanel();
+
+		this.revalidate();
+		this.repaint();
+	}
+
+	// Helper Functions
+	private JLabel createIconLabel(BufferedImage icon)
+	{
+		JLabel label = new JLabel();
+		label.setIcon(new ImageIcon(icon));
+		label.setOpaque(true);
+		label.setBackground(BACKGROUND_COLOR);
+
+		label.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				label.setBackground(BUTTON_HOVER_COLOR);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				label.setBackground(BACKGROUND_COLOR);
+			}
+		});
+
+		return label;
+	}
+
+	// Wrap the panel inside a scroll pane
+	private JScrollPane wrapContainer(JPanel container)
+	{
+		JPanel wrapped = new JPanel(new BorderLayout());
+		wrapped.add(container, BorderLayout.NORTH);
+		wrapped.setBackground(BACKGROUND_COLOR);
+
+		JScrollPane scroller = new JScrollPane(wrapped);
+		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroller.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
+		scroller.setBackground(BACKGROUND_COLOR);
+
+		return scroller;
+	}
+
+	private void clearData(String name)
+	{
+		if (lootPanel.getRecords().size() == 0)
+		{
+			JOptionPane.showMessageDialog(this.getRootPane(), "No data to remove!");
+			return;
+		}
+
+		int delete = JOptionPane.showConfirmDialog(this.getRootPane(), "<html>Are you sure you want to clear all data for this tab?<br/>There is no way to undo this action.</html>", "Warning", JOptionPane.YES_NO_OPTION);
+		if (delete == JOptionPane.YES_OPTION)
+		{
+			//bossLoggerPlugin.clearData(tab);
+			// Refresh current panel
+			//refreshLootPanel(lootPanel, tab);
+		}
 	}
 }
