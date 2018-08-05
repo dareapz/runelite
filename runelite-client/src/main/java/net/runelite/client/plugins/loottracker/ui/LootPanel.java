@@ -28,7 +28,7 @@ import com.google.common.collect.Iterators;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
 import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
-import net.runelite.client.plugins.loottracker.data.UniqueItem;
+import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
 import net.runelite.client.ui.ColorScheme;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -45,11 +45,11 @@ import java.util.stream.Collectors;
 public class LootPanel extends JPanel
 {
 	private Collection<LootRecord> records;
-	private Map<Integer, Collection<UniqueItem>> uniqueMap;
+	private Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap;
 	private ItemManager itemManager;
 	private Map<Integer, LootTrackerItemEntry> consolidated;
 
-	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItem>> uniqueMap, ItemManager itemManager)
+	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap, ItemManager itemManager)
 	{
 		this.records = (records == null ? new ArrayList<>() : records);
 		this.uniqueMap = (uniqueMap == null ? new HashMap<>() : uniqueMap);
@@ -97,6 +97,14 @@ public class LootPanel extends JPanel
 		c.gridx = 0;
 		c.gridy = 0;
 
+		// Attach all the Unique Items first
+		this.uniqueMap.forEach((setPosition, set) ->
+		{
+			UniqueItemPanel p = new UniqueItemPanel(set, this.consolidated, this.itemManager);
+			this.add(p, c);
+			c.gridy++;
+		});
+
 		// Attach Kill Count Panel
 		if (this.records.size() > 0)
 		{
@@ -136,5 +144,18 @@ public class LootPanel extends JPanel
 			TextPanel totalPanel = new TextPanel("Total Value:", totalValue);
 			this.add(totalPanel, c);
 		}
+	}
+
+	public void addRecord(LootRecord r)
+	{
+		this.records.add(r);
+
+		// TODO: Smarter update system so it only repaints necessary Item and Text Panels
+		this.removeAll();
+		this.createConsolidatedArray();
+		this.createPanel();
+
+		this.revalidate();
+		this.repaint();
 	}
 }

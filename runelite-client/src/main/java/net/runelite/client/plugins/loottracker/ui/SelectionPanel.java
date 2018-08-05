@@ -66,7 +66,7 @@ public class SelectionPanel extends JPanel
 		c.gridy = 0;
 		c.insets = new Insets(5, 0, 0, 0);
 
-		this.add(createNamePanel("ALL Session Data"), c);
+		this.add(createNamePanel("Session Data"), c);
 		c.gridy++;
 
 		for (String name : this.names)

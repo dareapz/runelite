@@ -39,9 +39,9 @@ public enum UniqueItem
 {
 	// Shared "Uniques" (Dropped by multiple activities)
 	// God Wars
-	GODSWORD_SHARD_1("Godsword shard 1", ItemID.GODSWORD_SHARD_1, "Armadyl", "Bandos", "Saradomin", "Zammy"),
-	GODSWORD_SHARD_2("Godsword shard 2", ItemID.GODSWORD_SHARD_2, "Armadyl", "Bandos", "Saradomin", "Zammy"),
-	GODSWORD_SHARD_3("Godsword shard 3", ItemID.GODSWORD_SHARD_3, "Armadyl", "Bandos", "Saradomin", "Zammy"),
+	GODSWORD_SHARD_1("Godsword shard 1", ItemID.GODSWORD_SHARD_1, "Soldier", "Armadyl", "Bandos", "Saradomin", "Zammy"),
+	GODSWORD_SHARD_2("Godsword shard 2", ItemID.GODSWORD_SHARD_2, "Soldier", "Armadyl", "Bandos", "Saradomin", "Zammy"),
+	GODSWORD_SHARD_3("Godsword shard 3", ItemID.GODSWORD_SHARD_3, "Soldier", "Armadyl", "Bandos", "Saradomin", "Zammy"),
 	// Wildy
 	PET_CHAOS_ELEMENTAL("Pet chaos elemental", ItemID.PET_CHAOS_ELEMENTAL, "Chaos Elemental", "Chaos Fanatic"),
 	// MYSTERIOUS_EMBLEM("Mysterious emblem", ItemID.MYSTERIOUS_EMBLEM , ""),
@@ -831,19 +831,19 @@ public enum UniqueItem
 		Map<String, ArrayList<UniqueItem>> byName = new HashMap<>();
 		for (UniqueItem item : values())
 		{
-			byName.computeIfAbsent(item.getSetName().toUpperCase(), e -> new ArrayList<UniqueItem>()).add(item);
+			byName.computeIfAbsent(item.getSetName().toUpperCase(), e -> new ArrayList<>()).add(item);
 		}
 
 		return byName;
 	}
 
 	// Takes a list of UniqueItems and maps them by Position to ensure adding in predefined order
-	public static Map<Integer, Collection<UniqueItem>> createPositionSetMap(Collection<UniqueItem> items)
+	public static Map<Integer, Collection<UniqueItemWithLinkedId>> createPositionSetMap(Collection<UniqueItemWithLinkedId> items)
 	{
-		Map<Integer, Collection<UniqueItem>> setNames = new HashMap<>();\
-		for (UniqueItem item : items)
+		Map<Integer, Collection<UniqueItemWithLinkedId>> setNames = new HashMap<>();
+		for (UniqueItemWithLinkedId item : items)
 		{
-			setNames.computeIfAbsent(item.getPosition(), e -> new ArrayList<>()).add(item);
+			setNames.computeIfAbsent(item.getUniqueItem().getPosition(), e -> new ArrayList<>()).add(item);
 		}
 		return setNames;
 	}

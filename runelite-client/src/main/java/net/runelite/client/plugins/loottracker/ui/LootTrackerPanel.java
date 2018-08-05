@@ -29,6 +29,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.LootTrackerPlugin;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
 import net.runelite.client.plugins.loottracker.data.UniqueItem;
+import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.PluginErrorPanel;
@@ -70,9 +71,9 @@ public class LootTrackerPanel extends PluginPanel
 		{
 			synchronized (ImageIO.class)
 			{
-				i1 = ImageIO.read(LootTrackerPanel.class.getResourceAsStream("delete-white.png"));
-				i2 = ImageIO.read(LootTrackerPanel.class.getResourceAsStream("refresh-white.png"));
-				i3 = ImageIO.read(LootTrackerPanel.class.getResourceAsStream("back-arrow-white.png"));
+				i1 = ImageIO.read(LootTrackerPlugin.class.getResourceAsStream("delete-white.png"));
+				i2 = ImageIO.read(LootTrackerPlugin.class.getResourceAsStream("refresh-white.png"));
+				i3 = ImageIO.read(LootTrackerPlugin.class.getResourceAsStream("back-arrow-white.png"));
 			}
 		}
 		catch (IOException e)
@@ -114,8 +115,7 @@ public class LootTrackerPanel extends PluginPanel
 		errorPanel.setBorder(new EmptyBorder(10, 25, 10, 25));
 		errorPanel.setContent("Loot Tracker", "Please select the Activity, Player, or NPC you wish to view loot for");
 
-		// TODO: Figure out how to pull npcNames
-		SelectionPanel selection = new SelectionPanel(null, this);
+		SelectionPanel selection = new SelectionPanel(plugin.getNames(), this);
 
 		this.add(errorPanel, BorderLayout.NORTH);
 		this.add(wrapContainer(selection), BorderLayout.CENTER);
@@ -130,10 +130,20 @@ public class LootTrackerPanel extends PluginPanel
 		this.removeAll();
 		currentView = name;
 
-		Collection<LootRecord> data = plugin.getDataByName(name);
+		Collection<LootRecord> data;
+
+
+		if (name.equals("Session Data"))
+		{
+			data = plugin.getData();
+		}
+		else
+		{
+			data = plugin.getDataByName(name);
+		}
 
 		// Grab all Uniques for this NPC/Activity
-		Collection<UniqueItem> uniques = UniqueItem.getByActivityName(name);
+		Collection<UniqueItemWithLinkedId> uniques = plugin.getUniques(name);
 		if (uniques == null)
 		{
 			uniques = new ArrayList<>();
@@ -192,7 +202,7 @@ public class LootTrackerPanel extends PluginPanel
 			@Override
 			public void mouseClicked(MouseEvent e)
 			{
-				log.info("TODO: refresh");
+				showLootView(name); // Recreate the entire panel
 			}
 		});
 
@@ -266,6 +276,18 @@ public class LootTrackerPanel extends PluginPanel
 			plugin.clearData(name);
 			// Return to selection screen
 			showSelectionView();
+		}
+	}
+
+	public void addLog(LootRecord r)
+	{
+		if (currentView == null)
+		{
+			showLootView(r.getName());
+		}
+		else if (currentView.equals(r.getName()))
+		{
+			lootPanel.addRecord(r);
 		}
 	}
 }
