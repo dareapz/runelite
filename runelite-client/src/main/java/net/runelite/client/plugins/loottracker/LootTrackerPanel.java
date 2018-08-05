@@ -45,6 +45,8 @@ import javax.swing.JScrollPane;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
@@ -104,6 +106,8 @@ public class LootTrackerPanel extends PluginPanel
 	private LootPanel lootPanel;
 	private LandingPanel landingPanel;
 
+	private final Multimap<String, LootRecord> lootMap = ArrayListMultimap.create();
+
 	LootTrackerPanel(final ItemManager itemManager, LootTrackerPlugin plugin)
 	{
 		super(false);
@@ -128,7 +132,7 @@ public class LootTrackerPanel extends PluginPanel
 
 		errorPanel.setContent("Loot Tracker", "Please select the Activity, Player, or NPC you wish to view loot for");
 
-		// TODO: Figure out how to full this info from plugin without causing errors on initial load
+		// TODO: Figure out how to pull this info from plugin without causing errors on initial load
 		// Unique Items Info
 		//landingPanel = new LandingPanel(plugin.getUniqueNames(), this, itemManager);
 		Set<String> s = new HashSet<>();
@@ -141,13 +145,10 @@ public class LootTrackerPanel extends PluginPanel
 
 		this.add(errorPanel, BorderLayout.NORTH);
 		this.add(wrapContainer(landingPanel), BorderLayout.CENTER);
-
-		this.repaint();
-		this.revalidate();
 	}
 
 	// Landing page (Boss Selection Screen)
-	public void createLootPanel(String name)
+	private void createLootPanel(String name)
 	{
 		this.removeAll();
 		currentView = name;
@@ -167,9 +168,6 @@ public class LootTrackerPanel extends PluginPanel
 
 		this.add(title, BorderLayout.NORTH);
 		this.add(wrapContainer(lootPanel), BorderLayout.CENTER);
-
-		this.repaint();
-		this.revalidate();
 	}
 
 	// Creates the title panel for the recorded loot tab
@@ -237,7 +235,8 @@ public class LootTrackerPanel extends PluginPanel
 
 		return title;
 	}
-	private void showLootPage(String name)
+
+	public void showLootPage(String name)
 	{
 		createLootPanel(name);
 
@@ -259,7 +258,7 @@ public class LootTrackerPanel extends PluginPanel
 		JLabel label = new JLabel();
 		label.setIcon(new ImageIcon(icon));
 		label.setOpaque(true);
-		label.setBackground(BUTTON_COLOR);
+		label.setBackground(BACKGROUND_COLOR);
 
 		label.addMouseListener(new MouseAdapter()
 		{
@@ -272,7 +271,7 @@ public class LootTrackerPanel extends PluginPanel
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				label.setBackground(BUTTON_COLOR);
+				label.setBackground(BACKGROUND_COLOR);
 			}
 		});
 
@@ -305,9 +304,30 @@ public class LootTrackerPanel extends PluginPanel
 		int delete = JOptionPane.showConfirmDialog(this.getRootPane(), "<html>Are you sure you want to clear all data for this tab?<br/>There is no way to undo this action.</html>", "Warning", JOptionPane.YES_NO_OPTION);
 		if (delete == JOptionPane.YES_OPTION)
 		{
-			//bossLoggerPlugin.clearData(tab);
-			// Refresh current panel
-			//refreshLootPanel(lootPanel, tab);
+			plugin.clearData(name);
+			// Refresh current panel with empty data
+			lootPanel.updateRecords(new ArrayList<>());
+		}
+	}
+
+	public void addLootRecord(LootRecord r)
+	{
+		String name = r.getName();
+		if (lootMap.containsKey(name))
+		{
+			log.debug("Data already exists");
+		}
+		lootMap.put(name, r);
+
+		// Auto switch to tab if on landing page
+		if (currentView == null)
+		{
+			showLootPage(name);
+		}
+		else if (currentView.equals(name))
+		{
+			// Recreate the page
+			lootPanel.updateRecords(lootMap.get(name));
 		}
 	}
 }

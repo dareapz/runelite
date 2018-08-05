@@ -27,14 +27,13 @@ package net.runelite.client.plugins.loottracker;
 
 import com.google.common.eventbus.Subscribe;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -90,35 +89,6 @@ public class LootTrackerPlugin extends Plugin
 	private NavigationButton navButton;
 	private String eventType;
 
-	private static Collection<ItemStack> stack(Collection<ItemStack> items)
-	{
-		final List<ItemStack> list = new ArrayList<>();
-
-		for (final ItemStack item : items)
-		{
-			int quantity = 0;
-			for (final ItemStack i : list)
-			{
-				if (i.getId() == item.getId())
-				{
-					quantity = i.getQuantity();
-					list.remove(i);
-					break;
-				}
-			}
-			if (quantity > 0)
-			{
-				list.add(new ItemStack(item.getId(), item.getQuantity() + quantity));
-			}
-			else
-			{
-				list.add(item);
-			}
-		}
-
-		return list;
-	}
-
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -155,8 +125,7 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = npcLootReceived.getItems();
 		final String name = npc.getName();
 		final int combat = npc.getCombatLevel();
-		final Collection<ItemStack> stackedItems = stack(items);
-		//SwingUtilities.invokeLater(() -> panel.addLog(name, combat, stackedItems.toArray(new ItemStack[0])));
+		SwingUtilities.invokeLater(() -> panel.addLootRecord(new LootRecord(npc.getId(), name, combat, -1, items)));
 	}
 
 	@Subscribe
@@ -166,8 +135,7 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = playerLootReceived.getItems();
 		final String name = player.getName();
 		final int combat = player.getCombatLevel();
-		final Collection<ItemStack> stackedItems = stack(items);
-		//SwingUtilities.invokeLater(() -> panel.addLog(name, combat, stackedItems.toArray(new ItemStack[0])));
+		SwingUtilities.invokeLater(() -> panel.addLootRecord(new LootRecord(-1, name, combat, -1, items)));
 	}
 
 	@Subscribe
@@ -203,18 +171,19 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		// Convert container items to array of ItemStack
-		final ItemStack[] items = Arrays.stream(container.getItems())
+		final Collection<ItemStack> items = Arrays.stream(container.getItems())
 			.map(item -> new ItemStack(item.getId(), item.getQuantity()))
-			.toArray(ItemStack[]::new);
+			.collect(Collectors.toList());
 
-		if (items.length > 0)
+		if (items.size() > 0)
 		{
 			log.debug("Loot Received from Event: {}", eventType);
 			for (ItemStack item : items)
 			{
 				log.debug("Item Received: {}x {}", item.getQuantity(), item.getId());
 			}
-			//SwingUtilities.invokeLater(() -> panel.addLog(eventType, -1, items));
+
+			SwingUtilities.invokeLater(() -> panel.addLootRecord(new LootRecord(-1, eventType, -1, -1, items)));
 		}
 		else
 		{
@@ -274,5 +243,13 @@ public class LootTrackerPlugin extends Plugin
 	public Collection<LootRecord> getData(String name)
 	{
 		return writer.loadData(name);
+	}
+
+	// Wrapper for writer.clearData so its available elsewhere
+	public void clearData(String name)
+	{
+		log.debug("Clearing data for: " + name);
+		writer.clearData(name);
+
 	}
 }

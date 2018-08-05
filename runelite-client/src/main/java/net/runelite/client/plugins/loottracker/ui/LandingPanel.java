@@ -80,9 +80,7 @@ public class LandingPanel extends JPanel
 	{
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.anchor = GridBagConstraints.NORTHWEST;
 		c.weightx = 1;
-		c.weighty = 0;
 		c.gridx = 0;
 		c.gridy = 0;
 
@@ -137,7 +135,7 @@ public class LandingPanel extends JPanel
 
 				materialTab.setOnSelectEvent(() ->
 				{
-					parent.createLootPanel(tab.getBossName());
+					parent.showLootPage(tab.getBossName());
 					materialTab.unselect();
 					materialTab.setBackground(BACKGROUND_COLOR);
 					return true;
@@ -194,7 +192,7 @@ public class LandingPanel extends JPanel
 					@Override
 					public void mouseClicked(MouseEvent e)
 					{
-						SwingUtilities.invokeLater(() -> parent.createLootPanel(name));
+						SwingUtilities.invokeLater(() -> parent.showLootPage(name));
 					}
 				});
 

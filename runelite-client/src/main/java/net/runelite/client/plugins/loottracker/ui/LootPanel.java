@@ -146,7 +146,7 @@ public class LootPanel extends JPanel
 	}
 
 	// Update Loot Panel with Updated Records
-	void updateRecords(Collection<LootRecord> records)
+	public void updateRecords(Collection<LootRecord> records)
 	{
 		this.records = records;
 		refreshPanel();

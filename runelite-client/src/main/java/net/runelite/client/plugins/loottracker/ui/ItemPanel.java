@@ -98,8 +98,8 @@ class ItemPanel extends JPanel
 
 		this.add(panel, c);
 		this.setToolTipText("<html>" + this.record.getItemName() + " x " + StackFormatter.formatNumber(this.record.getAmount())
-				+ "<br/>Price: " + this.record.getValue()
-				+ "<br/>Total: " + this.record.getTotal() +	"</html");
+				+ "<br/>Price: " + StackFormatter.quantityToStackSize(this.record.getValue())
+				+ "<br/>Total: " + StackFormatter.quantityToStackSize(this.record.getTotal()) +	"</html");
 	}
 
 	private JPanel createPanel()
