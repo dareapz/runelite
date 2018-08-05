@@ -29,10 +29,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,8 +47,10 @@ import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.events.PlayerLootReceived;
 import net.runelite.client.game.ItemManager;
@@ -67,6 +67,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
+import net.runelite.http.api.item.ItemPrice;
 
 @PluginDescriptor(
 	name = "Loot Tracker",
@@ -93,41 +94,16 @@ public class LootTrackerPlugin extends Plugin
 	@Inject
 	private Client client;
 
+	@Inject
+	private ClientThread clientThread;
+
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 	private String eventType;
 
 	private Multimap<String, LootRecord> lootRecordMultimap = ArrayListMultimap.create();
 	private Multimap<String, UniqueItemWithLinkedId> uniques = ArrayListMultimap.create();
-
-	private static Collection<ItemStack> stack(Collection<ItemStack> items)
-	{
-		final List<ItemStack> list = new ArrayList<>();
-
-		for (final ItemStack item : items)
-		{
-			int quantity = 0;
-			for (final ItemStack i : list)
-			{
-				if (i.getId() == item.getId())
-				{
-					quantity = i.getQuantity();
-					list.remove(i);
-					break;
-				}
-			}
-			if (quantity > 0)
-			{
-				list.add(new ItemStack(item.getId(), item.getQuantity() + quantity));
-			}
-			else
-			{
-				list.add(item);
-			}
-		}
-
-		return list;
-	}
+	private boolean loaded = false;
 
 	@Override
 	protected void startUp() throws Exception
@@ -145,11 +121,16 @@ public class LootTrackerPlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
-		createUniqueItemMap();
+		// Create unique item map if player turns it on plugin while logged in
+		if (client.getLocalPlayer() != null)
+		{
+			createUniqueItemMap();
+		}
 	}
 
 	private void createUniqueItemMap()
 	{
+		loaded = true;
 		uniques.clear();
 		for (UniqueItem i : UniqueItem.values())
 		{
@@ -179,10 +160,10 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = npcLootReceived.getItems();
 		final String name = npc.getName();
 		final int combat = npc.getCombatLevel();
-		final LootTrackerItemEntry[] entries = buildEntries(stack(items));
+		final LootTrackerItemEntry[] entries = buildEntries(items);
 		LootRecord rec = new LootRecord(npc.getId(), name, combat, -1, Arrays.asList(entries));
-		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 		lootRecordMultimap.put(name, rec);
+		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
 
 	@Subscribe
@@ -192,10 +173,10 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = playerLootReceived.getItems();
 		final String name = player.getName();
 		final int combat = player.getCombatLevel();
-		final LootTrackerItemEntry[] entries = buildEntries(stack(items));
+		final LootTrackerItemEntry[] entries = buildEntries(items);
 		LootRecord rec = new LootRecord(-1, name, combat, -1, Arrays.asList(entries));
-		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 		lootRecordMultimap.put(name, rec);
+		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
 
 	@Subscribe
@@ -242,10 +223,10 @@ public class LootTrackerPlugin extends Plugin
 
 		if (!items.isEmpty())
 		{
-			final LootTrackerItemEntry[] entries = buildEntries(stack(items));
+			final LootTrackerItemEntry[] entries = buildEntries(items);
 			LootRecord rec =  new LootRecord(-1, eventType, -1, -1, Arrays.asList(entries));
-			SwingUtilities.invokeLater(() -> panel.addLog(rec));
 			lootRecordMultimap.put(eventType, rec);
+			SwingUtilities.invokeLater(() -> panel.addLog(rec));
 		}
 		else
 		{
@@ -293,7 +274,7 @@ public class LootTrackerPlugin extends Plugin
 		{
 			final ItemComposition itemComposition = itemManager.getItemComposition(itemStack.getId());
 			final int realItemId = itemComposition.getNote() != -1 ? itemComposition.getLinkedNoteId() : itemStack.getId();
-			final long price = (long)itemManager.getItemPrice(realItemId) * (long)itemStack.getQuantity();
+			final long price = itemManager.getItemPrice(realItemId);
 
 			return new LootTrackerItemEntry(
 				itemComposition.getName(),
@@ -314,7 +295,12 @@ public class LootTrackerPlugin extends Plugin
 		return lootRecordMultimap.get(name);
 	}
 
-	public void clearData(String name)
+	public void clearData()
+	{
+		lootRecordMultimap.clear();
+	}
+
+	public void clearDataByName(String name)
 	{
 		lootRecordMultimap.removeAll(name);
 	}
@@ -322,5 +308,26 @@ public class LootTrackerPlugin extends Plugin
 	public Set<String> getNames()
 	{
 		return lootRecordMultimap.keySet();
+	}
+
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged c)
+	{
+		if (loaded)
+		{
+			return;
+		}
+
+		switch (c.getGameState())
+		{
+			case CONNECTION_LOST:
+			case HOPPING:
+			case LOADING:
+			case LOGIN_SCREEN:
+			case LOGGED_IN:
+			case LOGGING_IN:
+				clientThread.invoke(this::createUniqueItemMap);
+		}
 	}
 }

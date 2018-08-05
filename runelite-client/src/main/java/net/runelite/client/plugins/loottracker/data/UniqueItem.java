@@ -39,9 +39,9 @@ public enum UniqueItem
 {
 	// Shared "Uniques" (Dropped by multiple activities)
 	// God Wars
-	GODSWORD_SHARD_1("Godsword shard 1", ItemID.GODSWORD_SHARD_1, "Soldier", "Armadyl", "Bandos", "Saradomin", "Zammy"),
-	GODSWORD_SHARD_2("Godsword shard 2", ItemID.GODSWORD_SHARD_2, "Soldier", "Armadyl", "Bandos", "Saradomin", "Zammy"),
-	GODSWORD_SHARD_3("Godsword shard 3", ItemID.GODSWORD_SHARD_3, "Soldier", "Armadyl", "Bandos", "Saradomin", "Zammy"),
+	GODSWORD_SHARD_1("Godsword shard 1", ItemID.GODSWORD_SHARD_1, "Kree'arra", "General graador", "Commander zilyana", "K'ril tsutsaroth"),
+	GODSWORD_SHARD_2("Godsword shard 2", ItemID.GODSWORD_SHARD_2, "Kree'arra", "General graador", "Commander zilyana", "K'ril tsutsaroth"),
+	GODSWORD_SHARD_3("Godsword shard 3", ItemID.GODSWORD_SHARD_3, "Kree'arra", "General graador", "Commander zilyana", "K'ril tsutsaroth"),
 	// Wildy
 	PET_CHAOS_ELEMENTAL("Pet chaos elemental", ItemID.PET_CHAOS_ELEMENTAL, "Chaos Elemental", "Chaos Fanatic"),
 	// MYSTERIOUS_EMBLEM("Mysterious emblem", ItemID.MYSTERIOUS_EMBLEM , ""),
@@ -144,29 +144,29 @@ public enum UniqueItem
 
 	// God Wars Dungeon
 	// Kree'arra (Armadyl)
-	ARMADYL_HELMET("Armadyl helmet", ItemID.ARMADYL_HELMET, "Armadyl", "Uniques", 0),
-	ARMADYL_CHESTPLATE("Armadyl chestplate", ItemID.ARMADYL_CHESTPLATE, "Armadyl", "Uniques", 0),
-	ARMADYL_CHAINSKIRT("Armadyl chainskirt", ItemID.ARMADYL_CHAINSKIRT, "Armadyl", "Uniques", 0),
-	ARMADYL_HILT("Armadyl hilt", ItemID.ARMADYL_HILT, "Armadyl", "Uniques", 0),
-	PET_KREEARRA("Pet Kree'arra", ItemID.PET_KREEARRA, "Armadyl", "Pet", -1),
+	ARMADYL_HELMET("Armadyl helmet", ItemID.ARMADYL_HELMET, "Kree'arra", "Uniques", 0),
+	ARMADYL_CHESTPLATE("Armadyl chestplate", ItemID.ARMADYL_CHESTPLATE, "Kree'arra", "Uniques", 0),
+	ARMADYL_CHAINSKIRT("Armadyl chainskirt", ItemID.ARMADYL_CHAINSKIRT, "Kree'arra", "Uniques", 0),
+	ARMADYL_HILT("Armadyl hilt", ItemID.ARMADYL_HILT, "Kree'arra", "Uniques", 0),
+	PET_KREEARRA("Pet Kree'arra", ItemID.PET_KREEARRA, "Kree'arra", "Pet", -1),
 	// General Graardor (Bandos)
-	BANDOS_CHESTPLATE("Bandos chestplate", ItemID.BANDOS_CHESTPLATE, "Bandos", "Uniques", 0),
-	BANDOS_TASSETS("Bandos tassets", ItemID.BANDOS_TASSETS, "Bandos", "Uniques", 0),
-	BANDOS_BOOTS("Bandos boots", ItemID.BANDOS_BOOTS, "Bandos", "Uniques", 0),
-	BANDOS_HILT("Bandos hilt", ItemID.BANDOS_HILT, "Bandos", "Uniques", 0),
-	PET_GENERAL_GRAARDOR("Pet general graardor", ItemID.PET_GENERAL_GRAARDOR, "Bandos", "Pet", -1),
+	BANDOS_CHESTPLATE("Bandos chestplate", ItemID.BANDOS_CHESTPLATE, "General graador", "Uniques", 0),
+	BANDOS_TASSETS("Bandos tassets", ItemID.BANDOS_TASSETS, "General graador", "Uniques", 0),
+	BANDOS_BOOTS("Bandos boots", ItemID.BANDOS_BOOTS, "General graador", "Uniques", 0),
+	BANDOS_HILT("Bandos hilt", ItemID.BANDOS_HILT, "General graador", "Uniques", 0),
+	PET_GENERAL_GRAARDOR("Pet general graardor", ItemID.PET_GENERAL_GRAARDOR, "General graador", "Pet", -1),
 	// Command Zilyana (Saradomin)
-	SARADOMIN_SWORD("Saradomin sword", ItemID.SARADOMIN_SWORD, "Saradomin", "Uniques", 0),
-	ARMADYL_CROSSBOW("Armadyl crossbow", ItemID.ARMADYL_CROSSBOW, "Saradomin", "Uniques", 0),
-	SARADOMINS_LIGHT("Saradomins light", ItemID.SARADOMINS_LIGHT, "Saradomin", "Uniques", 0),
-	SARADOMIN_HILT("Saradomin hilt", ItemID.SARADOMIN_HILT, "Saradomin", "Uniques", 0),
-	PET_ZILYANA("Pet zilyana", ItemID.PET_ZILYANA, "Saradomin", "Pet", -1),
+	SARADOMIN_SWORD("Saradomin sword", ItemID.SARADOMIN_SWORD, "Commander zilyana", "Uniques", 0),
+	ARMADYL_CROSSBOW("Armadyl crossbow", ItemID.ARMADYL_CROSSBOW, "Commander zilyana", "Uniques", 0),
+	SARADOMINS_LIGHT("Saradomins light", ItemID.SARADOMINS_LIGHT, "Commander zilyana", "Uniques", 0),
+	SARADOMIN_HILT("Saradomin hilt", ItemID.SARADOMIN_HILT, "Commander zilyana", "Uniques", 0),
+	PET_ZILYANA("Pet zilyana", ItemID.PET_ZILYANA, "Commander zilyana", "Pet", -1),
 	// K'ril Tsutsaroth (Zammy)
-	STEAM_BATTLESTAFF("Steam battlestaff", ItemID.STEAM_BATTLESTAFF, "Zammy", "Uniques", 0),
-	STAFF_OF_THE_DEAD("Staff of the dead", ItemID.STAFF_OF_THE_DEAD, "Zammy", "Uniques", 0),
-	ZAMORAKIAN_SPEAR("Zamorakian spear", ItemID.ZAMORAKIAN_SPEAR, "Zammy", "Uniques", 0),
-	ZAMORAK_HILT("Zamorak hilt", ItemID.ZAMORAK_HILT, "Zammy", "Uniques", 0),
-	PET_KRIL_TSUTSAROTH("Pet k'ril tsutsaroth", ItemID.PET_KRIL_TSUTSAROTH, "Zammy", "Pet", -1),
+	STEAM_BATTLESTAFF("Steam battlestaff", ItemID.STEAM_BATTLESTAFF, "K'ril tsutsaroth", "Uniques", 0),
+	STAFF_OF_THE_DEAD("Staff of the dead", ItemID.STAFF_OF_THE_DEAD, "K'ril tsutsaroth", "Uniques", 0),
+	ZAMORAKIAN_SPEAR("Zamorakian spear", ItemID.ZAMORAKIAN_SPEAR, "K'ril tsutsaroth", "Uniques", 0),
+	ZAMORAK_HILT("Zamorak hilt", ItemID.ZAMORAK_HILT, "K'ril tsutsaroth", "Uniques", 0),
+	PET_KRIL_TSUTSAROTH("Pet k'ril tsutsaroth", ItemID.PET_KRIL_TSUTSAROTH, "K'ril tsutsaroth", "Pet", -1),
 
 
 	// Wildy Bosses

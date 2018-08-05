@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.LootTrackerPlugin;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
+import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
 import net.runelite.client.plugins.loottracker.data.UniqueItem;
 import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
 import net.runelite.client.ui.ColorScheme;
@@ -45,6 +46,8 @@ import javax.swing.border.MatteBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -88,6 +91,8 @@ public class LootTrackerPanel extends PluginPanel
 	// NPC name for current view or null if on selection screen
 	private String currentView = null;
 	private LootPanel lootPanel;
+	private JPanel sessionContainer;
+	private GridBagConstraints sessionConstraints;
 
 	private final ItemManager itemManager;
 	private final LootTrackerPlugin plugin;
@@ -100,6 +105,16 @@ public class LootTrackerPanel extends PluginPanel
 
 		this.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		this.setLayout(new BorderLayout());
+
+
+		sessionContainer = new JPanel();
+		sessionContainer.setLayout(new GridBagLayout());
+
+		sessionConstraints = new GridBagConstraints();
+		sessionConstraints.fill = GridBagConstraints.HORIZONTAL;
+		sessionConstraints.weightx = 1;
+		sessionConstraints.gridx = 0;
+		sessionConstraints.gridy = 0;
 
 		showSelectionView();
 	}
@@ -127,20 +142,16 @@ public class LootTrackerPanel extends PluginPanel
 	// Loot breakdown view
 	public void showLootView(String name)
 	{
+		if (name.equals("Session Data"))
+		{
+			showSessionView();
+			return;
+		}
+
 		this.removeAll();
 		currentView = name;
 
-		Collection<LootRecord> data;
-
-
-		if (name.equals("Session Data"))
-		{
-			data = plugin.getData();
-		}
-		else
-		{
-			data = plugin.getDataByName(name);
-		}
+		Collection<LootRecord> data = plugin.getDataByName(name);
 
 		// Grab all Uniques for this NPC/Activity
 		Collection<UniqueItemWithLinkedId> uniques = plugin.getUniques(name);
@@ -159,6 +170,35 @@ public class LootTrackerPanel extends PluginPanel
 		this.repaint();
 	}
 
+	public void showSessionView()
+	{
+		this.removeAll();
+		currentView = "Session";
+		sessionContainer.removeAll();
+		sessionConstraints.gridy = 0;
+
+		Collection<LootRecord> data = plugin.getData();
+		JPanel title = createLootViewTitle("Session Data");
+
+		for (LootRecord i : data)
+		{
+			LootTrackerBox box = createLootTrackerBox(i);
+			sessionContainer.add(box, sessionConstraints);
+			sessionConstraints.gridy++;
+		}
+
+		this.add(title, BorderLayout.NORTH);
+		this.add(wrapContainer(sessionContainer), BorderLayout.CENTER);
+
+		this.revalidate();
+		this.repaint();
+	}
+
+	private LootTrackerBox createLootTrackerBox(LootRecord r)
+	{
+		final String subTitle = r.getLevel() > -1 ? "(lvl-" + r.getLevel() + ")" : "";
+		return new LootTrackerBox(itemManager, r.getName(), subTitle, r.getDrops().toArray(new LootTrackerItemEntry[0]));
+	}
 
 	// Title element for Loot breakdown view
 	private JPanel createLootViewTitle(String name)
@@ -273,7 +313,15 @@ public class LootTrackerPanel extends PluginPanel
 		int delete = JOptionPane.showConfirmDialog(this.getRootPane(), "<html>Are you sure you want to clear all data for this tab?<br/>There is no way to undo this action.</html>", "Warning", JOptionPane.YES_NO_OPTION);
 		if (delete == JOptionPane.YES_OPTION)
 		{
-			plugin.clearData(name);
+			if (name.equals("Session Data"))
+			{
+				plugin.clearData();
+			}
+			else
+			{
+				plugin.clearDataByName(name);
+			}
+
 			// Return to selection screen
 			showSelectionView();
 		}
@@ -285,9 +333,17 @@ public class LootTrackerPanel extends PluginPanel
 		{
 			showLootView(r.getName());
 		}
+		else if (currentView.equals("Session"))
+		{
+			sessionContainer.add(createLootTrackerBox(r), sessionConstraints);
+			sessionConstraints.gridy++;
+
+			sessionContainer.revalidate();
+			sessionContainer.repaint();
+		}
 		else if (currentView.equals(r.getName()))
 		{
-			lootPanel.addRecord(r);
+			lootPanel.addedRecord();
 		}
 	}
 }

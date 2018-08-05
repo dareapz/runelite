@@ -48,8 +48,9 @@ public class LootTrackerItemEntry
 		this.total = price * quantity;
 	}
 
-	public void incrementQuantity(int quantity)
+	@Override
+	public String toString()
 	{
-		this.quantity = this.quantity + quantity;
+		return "LootTrackerItemEntry(name=" + name + ",id=" + id + ",quantity=" + quantity + ",price=" + price + ",total=" + total + ",item=" + item + ")";
 	}
 }

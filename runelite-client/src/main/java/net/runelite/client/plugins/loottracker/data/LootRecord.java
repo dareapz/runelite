@@ -65,19 +65,13 @@ public class LootRecord
 		{
 			for (LootTrackerItemEntry e : r.getDrops())
 			{
-				// Increment quantity
+				int old = 0;
 				if (itemMap.containsKey(e.getId()))
 				{
-					itemMap.compute(e.getId(), (k, v) ->
-					{
-						v.incrementQuantity(e.getQuantity());
-						return v;
-					});
+					old = itemMap.get(e.getId()).getQuantity();
+					itemMap.remove(e.getId());
 				}
-				else
-				{
-					itemMap.put(e.getId(), e);
-				}
+				itemMap.put(e.getId(), new LootTrackerItemEntry(e.getName(), e.getId(), e.getQuantity() + old, e.getPrice(), e.getItem()));
 			}
 		}
 
