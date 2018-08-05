@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018, Tomas Slusny <slusnucky@gmail.com>
+ * Copyright (c) 2018, TheStonedTurtle <www.github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,15 +23,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.loottracker;
+package net.runelite.client.plugins.loottracker.data;
 
-import lombok.Value;
+import lombok.Getter;
+import net.runelite.api.ItemComposition;
 
-@Value
-class LootTrackerItemEntry
+@Getter
+public class LootTrackerItemEntry
 {
-	private final int id;
 	private final String name;
-	private final int quantity;
+	private final int id;
+	private int quantity;
 	private final long price;
+	private long total;
+	private final ItemComposition item;
+
+	public LootTrackerItemEntry(String name, int id, int quantity, long price, ItemComposition item)
+	{
+		this.name = name;
+		this.id = id;
+		this.quantity = quantity;
+		this.price = price;
+		this.item = item;
+		this.total = price * quantity;
+	}
+
+	public void incrementQuantity(int quantity)
+	{
+		this.quantity = this.quantity + quantity;
+	}
 }

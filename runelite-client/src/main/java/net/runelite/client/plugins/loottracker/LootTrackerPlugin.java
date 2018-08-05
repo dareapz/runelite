@@ -25,6 +25,8 @@
  */
 package net.runelite.client.plugins.loottracker;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -56,6 +58,8 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.loottracker.data.LootRecord;
+import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
@@ -89,6 +93,8 @@ public class LootTrackerPlugin extends Plugin
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 	private String eventType;
+
+	private Multimap<String, LootRecord> lootRecordMultimap = ArrayListMultimap.create();
 
 	private static Collection<ItemStack> stack(Collection<ItemStack> items)
 	{
@@ -152,6 +158,7 @@ public class LootTrackerPlugin extends Plugin
 		final int combat = npc.getCombatLevel();
 		final LootTrackerItemEntry[] entries = buildEntries(stack(items));
 		SwingUtilities.invokeLater(() -> panel.addLog(name, combat, entries));
+		lootRecordMultimap.put(name, new LootRecord(npc.getId(), name, combat, -1, Arrays.asList(entries)));
 	}
 
 	@Subscribe
@@ -163,6 +170,7 @@ public class LootTrackerPlugin extends Plugin
 		final int combat = player.getCombatLevel();
 		final LootTrackerItemEntry[] entries = buildEntries(stack(items));
 		SwingUtilities.invokeLater(() -> panel.addLog(name, combat, entries));
+		lootRecordMultimap.put(name, new LootRecord(-1, name, combat, -1, Arrays.asList(entries)));
 	}
 
 	@Subscribe
@@ -211,6 +219,7 @@ public class LootTrackerPlugin extends Plugin
 		{
 			final LootTrackerItemEntry[] entries = buildEntries(stack(items));
 			SwingUtilities.invokeLater(() -> panel.addLog(eventType, -1, entries));
+			lootRecordMultimap.put(eventType, new LootRecord(-1, eventType, -1, -1, Arrays.asList(entries)));
 		}
 		else
 		{
@@ -261,10 +270,21 @@ public class LootTrackerPlugin extends Plugin
 			final long price = (long)itemManager.getItemPrice(realItemId) * (long)itemStack.getQuantity();
 
 			return new LootTrackerItemEntry(
-				itemStack.getId(),
 				itemComposition.getName(),
+				itemStack.getId(),
 				itemStack.getQuantity(),
-				price);
+				price,
+				itemComposition);
 		}).toArray(LootTrackerItemEntry[]::new);
+	}
+
+	public Collection<LootRecord> getDataByName(String name)
+	{
+		return lootRecordMultimap.get(name);
+	}
+
+	public void clearData(String name)
+	{
+		lootRecordMultimap.removeAll(name);
 	}
 }
