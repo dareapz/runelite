@@ -89,38 +89,12 @@ class UniqueItemPanel extends JPanel
 			int id = item.getItemID();
 			ItemComposition comp = itemManager.getItemComposition(id);
 			ItemPanelEntry it = loots.get(id);
-			boolean shouldStack = comp.isStackable();
-			int quantity = 0;
-			float alpha = alphaMissing;
-
-			// If we have a loot entry for this item then update the icon accordingly
-			if (it != null)
-			{
-				quantity += it.getAmount();
-				shouldStack = shouldStack || quantity > 1;
-				if (quantity > 0)
-				{
-					alpha = alphaHas;
-				}
-			}
-
-			// Check for any noted variants as well
 			ItemPanelEntry notedIt = loots.get(comp.getLinkedNoteId());
-			// If we have a loot entry for this item then update the icon accordingly
-			if (notedIt != null)
-			{
-				quantity += notedIt.getAmount();
-				shouldStack = shouldStack || quantity > 1;
-				if (quantity > 0)
-				{
-					alpha = alphaHas;
-				}
-			}
-
-			// Create Image
-			float finalAlpha = alpha;
+			int quantity = (it == null ? 0 : it.getAmount()) + (notedIt == null ? 0 : notedIt.getAmount());
+			boolean shouldStack = comp.isStackable() || quantity > 1;
+			final float alpha = (quantity > 0 ? alphaHas : alphaMissing);
 			AsyncBufferedImage image = itemManager.getImage(id, quantity, shouldStack);
-			BufferedImage opaque = createOpaqueImage(image, finalAlpha);
+			BufferedImage opaque = createOpaqueImage(image, alpha);
 
 			// Attach Image to Label and append label to Panel
 			ImageIcon o = new ImageIcon(opaque);
@@ -132,7 +106,7 @@ class UniqueItemPanel extends JPanel
 			// Should only trigger if image hasn't been added
 			Runnable task = () ->
 			{
-				refreshImage(icon, image, finalAlpha);
+				refreshImage(icon, image, alpha);
 			};
 			image.onChanged(() -> SwingUtilities.invokeLater(task));
 
