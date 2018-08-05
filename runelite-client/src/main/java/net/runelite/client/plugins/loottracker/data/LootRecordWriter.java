@@ -35,9 +35,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static net.runelite.client.RuneLite.LOOT_RECORD_DIR;
@@ -50,7 +49,7 @@ public class LootRecordWriter
 	// Data is stored in a folder with the players in-game username
 	private File playerFolder;
 	// Record of existing .log files
-	private Map<String, File> fileMap = new HashMap<>();
+	private Set<String> filenames = new HashSet<>();
 
 	public LootRecordWriter()
 	{
@@ -77,29 +76,17 @@ public class LootRecordWriter
 
 	private void updateFileMap()
 	{
-		fileMap.clear();
+		filenames.clear();
 		// Create fileMap
 		File[] files = playerFolder.listFiles((dir, name) -> name.endsWith(".log"));
 		if (files != null)
 		{
 			for (File f : files)
 			{
-				fileMap.put(f.getName().replace(".log", ""), f);
+				filenames.add(f.getName());
 				log.debug("Found log file: {}", f.getName());
 			}
 		}
-	}
-
-	private File getOrCreateFile(String fileName)
-	{
-		File req = fileMap.get(fileName);
-		if (req == null)
-		{
-			req = new File(playerFolder, fileName);
-			fileMap.put(fileName, req);
-		}
-
-		return req;
 	}
 
 	private String npcNameToFileName(String npcName)
@@ -110,7 +97,7 @@ public class LootRecordWriter
 	private synchronized Collection<LootRecord> loadLootRecords(String npcName)
 	{
 		String fileName = npcNameToFileName(npcName);
-		File file = getOrCreateFile(fileName);
+		File file = new File(playerFolder, fileName);
 		Collection<LootRecord> data = new ArrayList<>();
 
 		try (BufferedReader br = new BufferedReader(new FileReader(file)))
@@ -147,7 +134,7 @@ public class LootRecordWriter
 
 		// Grab file
 		String fileName = npcNameToFileName(npcName);
-		File lootFile = getOrCreateFile(fileName);
+		File lootFile = new File(playerFolder, fileName);
 
 		// Open File in append mode and write new data
 		try
@@ -169,7 +156,7 @@ public class LootRecordWriter
 	private boolean rewriteLootFile(String npcName, Collection<LootRecord> loots)
 	{
 		String fileName = npcNameToFileName(npcName);
-		File lootFile = getOrCreateFile(fileName);
+		File lootFile = new File(playerFolder, fileName);
 
 		// Rewrite the log file (to update the last loot entry)
 		try
@@ -221,7 +208,7 @@ public class LootRecordWriter
 	public Collection<LootRecord> loadAllData()
 	{
 		List<LootRecord> recs = new ArrayList<>();
-		for (String n : fileMap.keySet())
+		for (String n : filenames)
 		{
 			recs.addAll(loadLootRecords(n));
 		}
@@ -245,6 +232,6 @@ public class LootRecordWriter
 
 	public Set<String> getKnownFileNames()
 	{
-		return fileMap.keySet();
+		return filenames;
 	}
 }

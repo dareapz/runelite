@@ -105,6 +105,7 @@ public class LootTrackerPanel extends PluginPanel
 	private String currentView = null;
 	private LootPanel lootPanel;
 	private LandingPanel landingPanel;
+	private Set<String> names;
 
 	private final Multimap<String, LootRecord> lootMap = ArrayListMultimap.create();
 
@@ -121,7 +122,18 @@ public class LootTrackerPanel extends PluginPanel
 
 		errorPanel.setBorder(new EmptyBorder(10, 25, 10, 25));
 
+		this.names = new HashSet<>();
 		createLandingPanel();
+	}
+
+	public void setNames(Set<String> n)
+	{
+		this.names = n;
+		if (currentView == null)
+		{
+			// Refresh panel if looking at landing page.
+			showLandingPage();
+		}
 	}
 
 	// Wrapper for creating LootPanel
@@ -134,14 +146,8 @@ public class LootTrackerPanel extends PluginPanel
 
 		// TODO: Figure out how to pull this info from plugin without causing errors on initial load
 		// Unique Items Info
-		//landingPanel = new LandingPanel(plugin.getUniqueNames(), this, itemManager);
-		Set<String> s = new HashSet<>();
-		s.add("Barrows");
-		s.add("Zulrah");
-		s.add("Man");
-		s.add("Woman");
-		s.add("Gargoyle");
-		landingPanel = new LandingPanel(s, this, itemManager);
+		log.info("Names: {}", names);
+		landingPanel = new LandingPanel(names, this, itemManager);
 
 		this.add(errorPanel, BorderLayout.NORTH);
 		this.add(wrapContainer(landingPanel), BorderLayout.CENTER);
@@ -154,6 +160,7 @@ public class LootTrackerPanel extends PluginPanel
 		currentView = name;
 
 		Collection<LootRecord> data = plugin.getData(name);
+		lootMap.putAll(name, data);
 
 		// Grab all Uniques for this NPC/Activity
 		ArrayList<UniqueItem> uniques = new ArrayList<>();
@@ -307,17 +314,15 @@ public class LootTrackerPanel extends PluginPanel
 			plugin.clearData(name);
 			// Refresh current panel with empty data
 			lootPanel.updateRecords(new ArrayList<>());
+			lootMap.removeAll(name);
 		}
 	}
 
 	public void addLootRecord(LootRecord r)
 	{
-		String name = r.getName();
-		if (lootMap.containsKey(name))
-		{
-			log.debug("Data already exists");
-		}
+		String name = r.getName().toLowerCase();
 		lootMap.put(name, r);
+		names.add(name);
 
 		// Auto switch to tab if on landing page
 		if (currentView == null)

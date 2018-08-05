@@ -40,13 +40,16 @@ import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.InventoryID;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.events.PlayerLootReceived;
 import net.runelite.client.game.ItemManager;
@@ -83,6 +86,9 @@ public class LootTrackerPlugin extends Plugin
 
 	@Inject
 	private Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 	private LootRecordWriter writer;
 	private LootTrackerPanel panel;
@@ -125,7 +131,9 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = npcLootReceived.getItems();
 		final String name = npc.getName();
 		final int combat = npc.getCombatLevel();
-		SwingUtilities.invokeLater(() -> panel.addLootRecord(new LootRecord(npc.getId(), name, combat, -1, items)));
+		LootRecord r = new LootRecord(npc.getId(), name, combat, -1, items);
+		SwingUtilities.invokeLater(() -> panel.addLootRecord(r));
+		writer.addData(name, r);
 	}
 
 	@Subscribe
@@ -135,7 +143,9 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = playerLootReceived.getItems();
 		final String name = player.getName();
 		final int combat = player.getCombatLevel();
-		SwingUtilities.invokeLater(() -> panel.addLootRecord(new LootRecord(-1, name, combat, -1, items)));
+		LootRecord r = new LootRecord(-1, name, combat, -1, items);
+		SwingUtilities.invokeLater(() -> panel.addLootRecord(r));
+		writer.addData(name, r);
 	}
 
 	@Subscribe
@@ -182,8 +192,9 @@ public class LootTrackerPlugin extends Plugin
 			{
 				log.debug("Item Received: {}x {}", item.getQuantity(), item.getId());
 			}
-
-			SwingUtilities.invokeLater(() -> panel.addLootRecord(new LootRecord(-1, eventType, -1, -1, items)));
+			LootRecord r = new LootRecord(-1, eventType, -1, -1, items);
+			SwingUtilities.invokeLater(() -> panel.addLootRecord(r));
+			writer.addData(eventType, r);
 		}
 		else
 		{
@@ -225,14 +236,19 @@ public class LootTrackerPlugin extends Plugin
 		}
 	}
 
-	public Set<String> getUniqueNames()
+	private Set<String> getUniqueNames()
 	{
-		Set<String> n = new HashSet<>();
-		for (LootRecord r : getAllData())
-		{
-			n.add(r.getName());
-		}
-		return n;
+		Set<String> n = writer.getKnownFileNames();
+		Set<String> fixed = new HashSet<>();
+		log.info("Filenames: {}", n);
+		n.forEach(v -> fixed.add(v.replace(".log", "")));
+		return fixed;
+	}
+
+	private void updatePanelNames()
+	{
+		Set<String> names = getUniqueNames();
+		SwingUtilities.invokeLater(() -> panel.setNames(names));
 	}
 
 	public Collection<LootRecord> getAllData()
@@ -251,5 +267,32 @@ public class LootTrackerPlugin extends Plugin
 		log.debug("Clearing data for: " + name);
 		writer.clearData(name);
 
+	}
+
+	@Subscribe
+	protected void onGameStateChanged(GameStateChanged e)
+	{
+		if (e.getGameState() == GameState.LOGGING_IN || e.getGameState() == GameState.LOGGED_IN)
+		{
+			if (e.getGameState() == GameState.LOGGED_IN)
+			{
+				clientThread.invokeLater(() ->
+				{
+					String name = client.getLocalPlayer().getName();
+					if (name != null)
+					{
+						log.debug("Found player name: {}", name);
+						writer.updatePlayerFolder(name);
+						updatePanelNames();
+						return true;
+					}
+					else
+					{
+						log.debug("Local player name still null");
+						return false;
+					}
+				});
+			}
+		}
 	}
 }
