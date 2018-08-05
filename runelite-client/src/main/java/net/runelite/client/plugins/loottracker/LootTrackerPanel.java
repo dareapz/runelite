@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -147,7 +148,8 @@ public class LootTrackerPanel extends PluginPanel
 		// TODO: Figure out how to pull this info from plugin without causing errors on initial load
 		// Unique Items Info
 		log.info("Names: {}", names);
-		landingPanel = new LandingPanel(names, this, itemManager);
+		Set<String> alphabeticalNames = names.stream().sorted().collect(Collectors.toSet());
+		landingPanel = new LandingPanel(alphabeticalNames, this, itemManager);
 
 		this.add(errorPanel, BorderLayout.NORTH);
 		this.add(wrapContainer(landingPanel), BorderLayout.CENTER);
@@ -315,6 +317,7 @@ public class LootTrackerPanel extends PluginPanel
 			// Refresh current panel with empty data
 			lootPanel.updateRecords(new ArrayList<>());
 			lootMap.removeAll(name);
+			names.remove(name);
 		}
 	}
 

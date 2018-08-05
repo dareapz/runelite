@@ -190,6 +190,7 @@ public class LootRecordWriter
 		if (lootFile.delete())
 		{
 			log.debug("Deleted loot file: {}", fileName);
+			filenames.remove(fileName);
 			return true;
 		}
 		else

@@ -162,7 +162,7 @@ public class LandingPanel extends JPanel
 			{
 				if (!f)
 				{
-					JLabel l = new JLabel("Session");
+					JLabel l = new JLabel("Miscellaneous");
 					l.setBorder(new EmptyBorder(8, 0, 0, 0));
 					l.setForeground(Color.WHITE);
 					l.setVerticalAlignment(SwingConstants.CENTER);

@@ -241,7 +241,10 @@ public class LootTrackerPlugin extends Plugin
 		Set<String> n = writer.getKnownFileNames();
 		Set<String> fixed = new HashSet<>();
 		log.info("Filenames: {}", n);
-		n.forEach(v -> fixed.add(v.replace(".log", "")));
+		for (String name : n)
+		{
+			fixed.add(name.replace(".log", ""));
+		}
 		return fixed;
 	}
 
@@ -266,7 +269,6 @@ public class LootTrackerPlugin extends Plugin
 	{
 		log.debug("Clearing data for: " + name);
 		writer.clearData(name);
-
 	}
 
 	@Subscribe
