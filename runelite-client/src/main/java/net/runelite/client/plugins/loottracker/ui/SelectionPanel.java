@@ -34,21 +34,20 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.TreeSet;
 
 public class SelectionPanel extends JPanel
 {
-	private Set<String> names;
+	private TreeSet<String> names;
 	private LootTrackerPanel parent;
 
 	private final static Color BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
 	private final static Color BUTTON_COLOR = ColorScheme.DARKER_GRAY_COLOR;
 	private final static Color BUTTON_HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
 
-	SelectionPanel(Set<String> names, LootTrackerPanel parent)
+	SelectionPanel(TreeSet<String> names, LootTrackerPanel parent)
 	{
-		this.names = names == null ? new HashSet<>() : names;
+		this.names = names == null ? new TreeSet<>() : names;
 		this.parent = parent;
 
 		this.setLayout(new GridBagLayout());
@@ -105,7 +104,7 @@ public class SelectionPanel extends JPanel
 		return p;
 	}
 
-	public void updateNames(Set<String> names)
+	public void updateNames(TreeSet<String> names)
 	{
 		if (!names.equals(this.names))
 		{

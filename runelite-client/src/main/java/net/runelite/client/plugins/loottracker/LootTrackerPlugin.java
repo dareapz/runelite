@@ -29,10 +29,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -314,9 +313,9 @@ public class LootTrackerPlugin extends Plugin
 		lootRecordMultimap.removeAll(name);
 	}
 
-	public Set<String> getNames()
+	public TreeSet<String> getNames()
 	{
-		return lootRecordMultimap.keySet();
+		return new TreeSet<>(lootRecordMultimap.keySet());
 	}
 
 
@@ -370,31 +369,5 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		SwingUtilities.invokeLater(() -> panel.updateNames());
-	}
-
-
-	private void fixFileFormat()
-	{
-		for (String filename : writer.getKnownFileNames())
-		{
-			String npcName = filename.replace(".log", "");
-			Collection<LootRecord> recs = writer.loadData(npcName);
-			Collection<LootRecord> fixed = new ArrayList<>();
-			for (LootRecord r : recs)
-			{
-				// Create a new loot record and load necessary data from current item manager
-				LootRecord n = new LootRecord(r.getId(), r.getName(), r.getLevel(), r.getKillCount(), null);
-				for (LootTrackerItemEntry e : r.getDrops())
-				{
-					ItemComposition c = itemManager.getItemComposition(e.getId());
-					ItemPrice p = itemManager.getItemPrice(e.getId());
-					int price = e.getId() == ItemID.COINS_995 ? 1 : (p == null ? 0 : p.getPrice());
-					n.addDropEntry(new LootTrackerItemEntry(c.getName(), e.getId(), e.getQuantity(), price, c.isStackable()));
-				}
-				fixed.add(n);
-			}
-
-			writer.rewriteData(npcName, fixed);
-		}
 	}
 }

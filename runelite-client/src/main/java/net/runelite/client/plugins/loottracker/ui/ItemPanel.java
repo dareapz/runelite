@@ -64,7 +64,7 @@ class ItemPanel extends JPanel
 
 		// Item Image Icon
 		JLabel icon = new JLabel();
-		itemManager.getImage(record.getId(), record.getQuantity(), (record.isStackable() || record.getQuantity() > 0)).addTo(icon);
+		itemManager.getImage(record.getId(), record.getQuantity(), (record.isStackable() || record.getQuantity() > 1)).addTo(icon);
 		icon.setHorizontalAlignment(JLabel.CENTER);
 
 		// Container for Info
