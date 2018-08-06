@@ -31,6 +31,7 @@ import com.google.common.eventbus.Subscribe;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -105,8 +106,10 @@ public class LootTrackerPlugin extends Plugin
 	private LootRecordWriter writer;
 
 	private Multimap<String, LootRecord> lootRecordMultimap = ArrayListMultimap.create();
+	private Multimap<String, LootRecord> sessionLootRecordMultimap = ArrayListMultimap.create();
 	private Multimap<String, UniqueItemWithLinkedId> uniques = ArrayListMultimap.create();
 	private boolean loaded = false;
+	private String currentPlayer;
 
 	@Override
 	protected void startUp() throws Exception
@@ -168,6 +171,7 @@ public class LootTrackerPlugin extends Plugin
 		final LootTrackerItemEntry[] entries = buildEntries(items);
 		LootRecord rec = new LootRecord(npc.getId(), name, combat, -1, Arrays.asList(entries));
 		lootRecordMultimap.put(name, rec);
+		sessionLootRecordMultimap.put(name, rec);
 		writer.addData(name, rec);
 		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
@@ -182,6 +186,7 @@ public class LootTrackerPlugin extends Plugin
 		final LootTrackerItemEntry[] entries = buildEntries(items);
 		LootRecord rec = new LootRecord(-1, name, combat, -1, Arrays.asList(entries));
 		lootRecordMultimap.put(name, rec);
+		sessionLootRecordMultimap.put(name, rec);
 		writer.addData(name, rec);
 		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
@@ -233,6 +238,7 @@ public class LootTrackerPlugin extends Plugin
 			final LootTrackerItemEntry[] entries = buildEntries(items);
 			LootRecord rec =  new LootRecord(-1, eventType, -1, -1, Arrays.asList(entries));
 			lootRecordMultimap.put(eventType, rec);
+			sessionLootRecordMultimap.put(eventType, rec);
 			writer.addData(eventType, rec);
 			SwingUtilities.invokeLater(() -> panel.addLog(rec));
 		}
@@ -303,6 +309,11 @@ public class LootTrackerPlugin extends Plugin
 		return lootRecordMultimap.get(name);
 	}
 
+	public Collection<LootRecord> getSessionData()
+	{
+		return sessionLootRecordMultimap.values();
+	}
+
 	public void clearData()
 	{
 		lootRecordMultimap.clear();
@@ -360,6 +371,11 @@ public class LootTrackerPlugin extends Plugin
 
 	private void updatePlayerFolder(String name)
 	{
+		if (Objects.equals(currentPlayer, name))
+		{
+			return;
+		}
+		currentPlayer = name;
 		writer.updatePlayerFolder(name);
 		lootRecordMultimap.clear();
 		Collection<LootRecord> recs = writer.loadAllData();

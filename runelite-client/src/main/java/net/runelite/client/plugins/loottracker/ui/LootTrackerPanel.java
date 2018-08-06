@@ -177,7 +177,7 @@ public class LootTrackerPanel extends PluginPanel
 		sessionContainer.removeAll();
 		sessionConstraints.gridy = 0;
 
-		Collection<LootRecord> data = plugin.getData();
+		Collection<LootRecord> data = plugin.getSessionData();
 		JPanel title = createLootViewTitle("Session Data");
 
 		for (LootRecord i : data)
