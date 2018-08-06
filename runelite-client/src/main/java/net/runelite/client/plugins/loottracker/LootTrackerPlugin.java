@@ -31,6 +31,8 @@ import com.google.common.eventbus.Subscribe;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -69,7 +71,6 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
-import net.runelite.http.api.item.ItemPrice;
 
 @PluginDescriptor(
 	name = "Loot Tracker",
@@ -81,7 +82,9 @@ import net.runelite.http.api.item.ItemPrice;
 public class LootTrackerPlugin extends Plugin
 {
 	// Activity/Event loot handling
-	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed [0-9]+ ([a-z]+) Treasure Trails.");
+	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed ([0-9]+) ([a-z]+) Treasure Trails.");
+	private static final Pattern BOSS_NAME_NUMBER_PATTERN = Pattern.compile("Your (.*) kill count is: ([0-9]*).");
+	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]*)");
 	private static final int THEATRE_OF_BLOOD_REGION = 12867;
 
 	@Inject
@@ -108,6 +111,9 @@ public class LootTrackerPlugin extends Plugin
 	private Multimap<String, LootRecord> lootRecordMultimap = ArrayListMultimap.create();
 	private Multimap<String, LootRecord> sessionLootRecordMultimap = ArrayListMultimap.create();
 	private Multimap<String, UniqueItemWithLinkedId> uniques = ArrayListMultimap.create();
+	private Map<String, Integer> killCountMap = new HashMap<>();
+
+	// key = name, value=current killCount
 	private boolean loaded = false;
 	private String currentPlayer;
 
@@ -168,8 +174,9 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = npcLootReceived.getItems();
 		final String name = npc.getName();
 		final int combat = npc.getCombatLevel();
+		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
 		final LootTrackerItemEntry[] entries = buildEntries(items);
-		LootRecord rec = new LootRecord(npc.getId(), name, combat, -1, Arrays.asList(entries));
+		LootRecord rec = new LootRecord(npc.getId(), name, combat, killCount, Arrays.asList(entries));
 		lootRecordMultimap.put(name, rec);
 		sessionLootRecordMultimap.put(name, rec);
 		writer.addData(name, rec);
@@ -183,8 +190,9 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = playerLootReceived.getItems();
 		final String name = player.getName();
 		final int combat = player.getCombatLevel();
+		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
 		final LootTrackerItemEntry[] entries = buildEntries(items);
-		LootRecord rec = new LootRecord(-1, name, combat, -1, Arrays.asList(entries));
+		LootRecord rec = new LootRecord(-1, name, combat, killCount, Arrays.asList(entries));
 		lootRecordMultimap.put(name, rec);
 		sessionLootRecordMultimap.put(name, rec);
 		writer.addData(name, rec);
@@ -236,7 +244,8 @@ public class LootTrackerPlugin extends Plugin
 		if (!items.isEmpty())
 		{
 			final LootTrackerItemEntry[] entries = buildEntries(items);
-			LootRecord rec =  new LootRecord(-1, eventType, -1, -1, Arrays.asList(entries));
+			final int killCount = killCountMap.getOrDefault(eventType.toUpperCase(), -1);
+			LootRecord rec =  new LootRecord(-1, eventType, -1, killCount, Arrays.asList(entries));
 			lootRecordMultimap.put(eventType, rec);
 			sessionLootRecordMultimap.put(eventType, rec);
 			writer.addData(eventType, rec);
@@ -256,11 +265,13 @@ public class LootTrackerPlugin extends Plugin
 			return;
 		}
 
+		String chatMessage = Text.removeTags(event.getMessage());
+
 		// Check if message is for a clue scroll reward
-		final Matcher m = CLUE_SCROLL_PATTERN.matcher(Text.removeTags(event.getMessage()));
+		final Matcher m = CLUE_SCROLL_PATTERN.matcher(chatMessage);
 		if (m.find())
 		{
-			final String type = m.group(1).toLowerCase();
+			final String type = m.group(2).toLowerCase();
 			switch (type)
 			{
 				case "easy":
@@ -279,6 +290,51 @@ public class LootTrackerPlugin extends Plugin
 					eventType = "Clue Scroll (Master)";
 					break;
 			}
+
+
+			int killCount = Integer.valueOf(m.group(1));
+			killCountMap.put(eventType.toUpperCase(), killCount);
+			return;
+		}
+		// TODO: Figure out better way to handle Barrows and Raids/Raids 2
+		// Barrows KC
+		if (chatMessage.startsWith("Your Barrows chest count is"))
+		{
+			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+			if (n.find())
+			{
+				killCountMap.put("BARROWS", Integer.valueOf(m.group()));
+				return;
+			}
+		}
+
+		// Raids KC
+		if (chatMessage.startsWith("Your completed Chambers of Xeric count is"))
+		{
+			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+			if (n.find())
+			{
+				killCountMap.put("RAIDS", Integer.valueOf(m.group()));
+				return;
+			}
+		}
+		// Raids KC
+		if (chatMessage.startsWith("Your completed Theatre of Blood count is"))
+		{
+			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+			if (n.find())
+			{
+				killCountMap.put("THEATRE OF BLOOD", Integer.valueOf(m.group()));
+				return;
+			}
+		}
+		// Handle all other boss
+		Matcher boss = BOSS_NAME_NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+		if (boss.find())
+		{
+			String bossName = boss.group(1);
+			int killCount = Integer.valueOf(boss.group(2));
+			killCountMap.put(bossName.toUpperCase(), killCount);
 		}
 	}
 
