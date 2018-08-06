@@ -26,7 +26,6 @@
 package net.runelite.client.plugins.loottracker.data;
 
 import lombok.Getter;
-import net.runelite.api.ItemComposition;
 
 @Getter
 public class LootTrackerItemEntry
@@ -36,21 +35,21 @@ public class LootTrackerItemEntry
 	private int quantity;
 	private final long price;
 	private long total;
-	private final ItemComposition item;
+	private final boolean stackable;
 
-	public LootTrackerItemEntry(String name, int id, int quantity, long price, ItemComposition item)
+	public LootTrackerItemEntry(String name, int id, int quantity, long price, boolean stackable)
 	{
 		this.name = name;
 		this.id = id;
 		this.quantity = quantity;
 		this.price = price;
-		this.item = item;
+		this.stackable = stackable;
 		this.total = price * quantity;
 	}
 
 	@Override
 	public String toString()
 	{
-		return "LootTrackerItemEntry(name=" + name + ",id=" + id + ",quantity=" + quantity + ",price=" + price + ",total=" + total + ",item=" + item + ")";
+		return "LootTrackerItemEntry(name=" + name + ",id=" + id + ",quantity=" + quantity + ",price=" + price + ",total=" + total + ",stackable=" + stackable + ")";
 	}
 }

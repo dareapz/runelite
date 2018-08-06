@@ -92,7 +92,7 @@ class UniqueItemPanel extends JPanel
 			LootTrackerItemEntry it = loots.get(id);
 			LootTrackerItemEntry notedIt = loots.get(linkedID);
 			int quantity = (it == null ? 0 : it.getQuantity()) + (notedIt == null ? 0 : notedIt.getQuantity());
-			boolean shouldStack = quantity > 1 || (it != null && it.getItem().isStackable());
+			boolean shouldStack = quantity > 1 || (it != null && it.isStackable());
 			final float alpha = (quantity > 0 ? alphaHas : alphaMissing);
 			AsyncBufferedImage image = itemManager.getImage(id, quantity, shouldStack);
 			BufferedImage opaque = createOpaqueImage(image, alpha);

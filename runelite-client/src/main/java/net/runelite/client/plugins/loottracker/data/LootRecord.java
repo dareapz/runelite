@@ -71,7 +71,7 @@ public class LootRecord
 					old = itemMap.get(e.getId()).getQuantity();
 					itemMap.remove(e.getId());
 				}
-				itemMap.put(e.getId(), new LootTrackerItemEntry(e.getName(), e.getId(), e.getQuantity() + old, e.getPrice(), e.getItem()));
+				itemMap.put(e.getId(), new LootTrackerItemEntry(e.getName(), e.getId(), e.getQuantity() + old, e.getPrice(), e.isStackable()));
 			}
 		}
 

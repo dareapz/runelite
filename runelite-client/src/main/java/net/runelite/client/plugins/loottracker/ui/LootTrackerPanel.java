@@ -346,4 +346,18 @@ public class LootTrackerPanel extends PluginPanel
 			lootPanel.addedRecord();
 		}
 	}
+
+	// Refresh panel when writer playerFolder is updated
+	public void updateNames()
+	{
+		log.debug("Updated session names");
+		if (currentView == null)
+		{
+			showSelectionView();
+		}
+		else
+		{
+			showLootView(currentView);
+		}
+	}
 }

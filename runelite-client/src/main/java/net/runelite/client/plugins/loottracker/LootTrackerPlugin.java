@@ -29,6 +29,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
@@ -59,6 +60,7 @@ import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
+import net.runelite.client.plugins.loottracker.data.LootRecordWriter;
 import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
 import net.runelite.client.plugins.loottracker.data.UniqueItem;
 import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
@@ -101,6 +103,8 @@ public class LootTrackerPlugin extends Plugin
 	private NavigationButton navButton;
 	private String eventType;
 
+	private LootRecordWriter writer;
+
 	private Multimap<String, LootRecord> lootRecordMultimap = ArrayListMultimap.create();
 	private Multimap<String, UniqueItemWithLinkedId> uniques = ArrayListMultimap.create();
 	private boolean loaded = false;
@@ -120,6 +124,8 @@ public class LootTrackerPlugin extends Plugin
 			.build();
 
 		clientToolbar.addNavigation(navButton);
+
+		writer = new LootRecordWriter();
 
 		// Create unique item map if player turns it on plugin while logged in
 		if (client.getLocalPlayer() != null)
@@ -163,6 +169,7 @@ public class LootTrackerPlugin extends Plugin
 		final LootTrackerItemEntry[] entries = buildEntries(items);
 		LootRecord rec = new LootRecord(npc.getId(), name, combat, -1, Arrays.asList(entries));
 		lootRecordMultimap.put(name, rec);
+		writer.addData(name, rec);
 		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
 
@@ -176,6 +183,7 @@ public class LootTrackerPlugin extends Plugin
 		final LootTrackerItemEntry[] entries = buildEntries(items);
 		LootRecord rec = new LootRecord(-1, name, combat, -1, Arrays.asList(entries));
 		lootRecordMultimap.put(name, rec);
+		writer.addData(name, rec);
 		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
 
@@ -226,6 +234,7 @@ public class LootTrackerPlugin extends Plugin
 			final LootTrackerItemEntry[] entries = buildEntries(items);
 			LootRecord rec =  new LootRecord(-1, eventType, -1, -1, Arrays.asList(entries));
 			lootRecordMultimap.put(eventType, rec);
+			writer.addData(eventType, rec);
 			SwingUtilities.invokeLater(() -> panel.addLog(rec));
 		}
 		else
@@ -281,7 +290,7 @@ public class LootTrackerPlugin extends Plugin
 				itemStack.getId(),
 				itemStack.getQuantity(),
 				price,
-				itemComposition);
+				itemComposition.isStackable());
 		}).toArray(LootTrackerItemEntry[]::new);
 	}
 
@@ -314,20 +323,78 @@ public class LootTrackerPlugin extends Plugin
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged c)
 	{
-		if (loaded)
-		{
-			return;
-		}
-
 		switch (c.getGameState())
 		{
 			case CONNECTION_LOST:
 			case HOPPING:
 			case LOADING:
 			case LOGIN_SCREEN:
-			case LOGGED_IN:
 			case LOGGING_IN:
-				clientThread.invoke(this::createUniqueItemMap);
+				if (!loaded)
+				{
+					clientThread.invoke(this::createUniqueItemMap);
+				}
+				break;
+			case LOGGED_IN:
+				if (!loaded)
+				{
+					clientThread.invoke(this::createUniqueItemMap);
+				}
+
+				clientThread.invokeLater(() ->
+				{
+					String name = client.getLocalPlayer().getName();
+					if (name != null)
+					{
+						log.debug("Found player name: {}", name);
+						updatePlayerFolder(name);
+						return true;
+					}
+					else
+					{
+						log.debug("Local player name still null");
+						return false;
+					}
+				});
+		}
+	}
+
+	private void updatePlayerFolder(String name)
+	{
+		writer.updatePlayerFolder(name);
+		lootRecordMultimap.clear();
+		Collection<LootRecord> recs = writer.loadAllData();
+		for (LootRecord r : recs)
+		{
+			lootRecordMultimap.put(r.getName(), r);
+		}
+
+		SwingUtilities.invokeLater(() -> panel.updateNames());
+	}
+
+
+	private void fixFileFormat()
+	{
+		for (String filename : writer.getKnownFileNames())
+		{
+			String npcName = filename.replace(".log", "");
+			Collection<LootRecord> recs = writer.loadData(npcName);
+			Collection<LootRecord> fixed = new ArrayList<>();
+			for (LootRecord r : recs)
+			{
+				// Create a new loot record and load necessary data from current item manager
+				LootRecord n = new LootRecord(r.getId(), r.getName(), r.getLevel(), r.getKillCount(), null);
+				for (LootTrackerItemEntry e : r.getDrops())
+				{
+					ItemComposition c = itemManager.getItemComposition(e.getId());
+					ItemPrice p = itemManager.getItemPrice(e.getId());
+					int price = e.getId() == ItemID.COINS_995 ? 1 : (p == null ? 0 : p.getPrice());
+					n.addDropEntry(new LootTrackerItemEntry(c.getName(), e.getId(), e.getQuantity(), price, c.isStackable()));
+				}
+				fixed.add(n);
+			}
+
+			writer.rewriteData(npcName, fixed);
 		}
 	}
 }
