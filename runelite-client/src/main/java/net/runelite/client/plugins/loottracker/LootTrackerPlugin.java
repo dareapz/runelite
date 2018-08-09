@@ -303,7 +303,7 @@ public class LootTrackerPlugin extends Plugin
 			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
 			if (n.find())
 			{
-				killCountMap.put("BARROWS", Integer.valueOf(m.group()));
+				killCountMap.put("BARROWS", Integer.valueOf(n.group()));
 				return;
 			}
 		}
@@ -314,7 +314,7 @@ public class LootTrackerPlugin extends Plugin
 			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
 			if (n.find())
 			{
-				killCountMap.put("RAIDS", Integer.valueOf(m.group()));
+				killCountMap.put("RAIDS", Integer.valueOf(n.group()));
 				return;
 			}
 		}
@@ -324,7 +324,7 @@ public class LootTrackerPlugin extends Plugin
 			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
 			if (n.find())
 			{
-				killCountMap.put("THEATRE OF BLOOD", Integer.valueOf(m.group()));
+				killCountMap.put("THEATRE OF BLOOD", Integer.valueOf(n.group()));
 				return;
 			}
 		}
