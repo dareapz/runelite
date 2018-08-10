@@ -300,7 +300,7 @@ public class LootTrackerPlugin extends Plugin
 		// Barrows KC
 		if (chatMessage.startsWith("Your Barrows chest count is"))
 		{
-			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
 			if (n.find())
 			{
 				killCountMap.put("BARROWS", Integer.valueOf(n.group()));
@@ -311,7 +311,7 @@ public class LootTrackerPlugin extends Plugin
 		// Raids KC
 		if (chatMessage.startsWith("Your completed Chambers of Xeric count is"))
 		{
-			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
 			if (n.find())
 			{
 				killCountMap.put("RAIDS", Integer.valueOf(n.group()));
@@ -321,7 +321,7 @@ public class LootTrackerPlugin extends Plugin
 		// Raids KC
 		if (chatMessage.startsWith("Your completed Theatre of Blood count is"))
 		{
-			Matcher n = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
 			if (n.find())
 			{
 				killCountMap.put("THEATRE OF BLOOD", Integer.valueOf(n.group()));
@@ -329,7 +329,7 @@ public class LootTrackerPlugin extends Plugin
 			}
 		}
 		// Handle all other boss
-		Matcher boss = BOSS_NAME_NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
+		Matcher boss = BOSS_NAME_NUMBER_PATTERN.matcher(chatMessage);
 		if (boss.find())
 		{
 			String bossName = boss.group(1);
