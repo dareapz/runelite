@@ -37,6 +37,7 @@ import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.UsernameChanged;
@@ -167,8 +168,8 @@ public class SkillCalculatorPlugin extends Plugin
 	{
 		if (skillCalculatorConfig.showBankedXp())
 		{
-
-			Item[] widgetItems = client.getItemContainer(InventoryID.BANK).getItems();
+			ItemContainer c = client.getItemContainer(InventoryID.BANK);
+			Item[] widgetItems = c == null ? new Item[0] : c.getItems();
 
 			if (widgetItems == null || widgetItems.length == 0)
 			{

@@ -732,7 +732,9 @@ class SkillCalculator extends JPanel
 		SkillDataEntry action = slot.getAction();
 
 		if (slot.getValue() > 0)
-			actionCount = slot.getValue();
+		{
+			actionCount = (int) slot.getValue();
+		}
 
 		double xp = (action.isIgnoreBonus()) ? action.getXp() : action.getXp() * xpFactor;
 		int actionXP = (int) (actionCount * xp);
@@ -756,7 +758,7 @@ class SkillCalculator extends JPanel
 			return;
 		}
 		
-		int oldVal = slot.getValue();
+		int oldVal = (int) slot.getValue();
 
 		String result = JOptionPane.showInputDialog(slot, "Requested Action Amount:", oldVal);
 

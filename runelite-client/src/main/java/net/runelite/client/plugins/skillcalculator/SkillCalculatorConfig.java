@@ -28,11 +28,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup(
-		keyName = "skillCalculator",
-		name = "Skill Calculators",
-		description = "Skill Calculator Panel configuration")
-
+@ConfigGroup("skillCalculator")
 public interface  SkillCalculatorConfig extends Config
 {
 	@ConfigItem(
