@@ -151,14 +151,14 @@ public class LootTrackerPlugin extends Plugin
 			int linkedID = itemManager.getItemComposition(i.getItemID()).getLinkedNoteId();
 			for (String s : i.getActivities())
 			{
-				uniques.put(s, new UniqueItemWithLinkedId(linkedID, i));
+				uniques.put(s.toUpperCase(), new UniqueItemWithLinkedId(linkedID, i));
 			}
 		}
 	}
 
 	public Collection<UniqueItemWithLinkedId> getUniques(String name)
 	{
-		return uniques.get(name);
+		return uniques.get(name.toUpperCase());
 	}
 
 	@Override
