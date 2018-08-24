@@ -365,6 +365,24 @@ public class LootTrackerPlugin extends Plugin
 		return lootRecordMultimap.get(name);
 	}
 
+	public void refreshData()
+	{
+		// Pull data from files
+		lootRecordMultimap.clear();
+		Collection<LootRecord> recs = writer.loadAllData();
+		for (LootRecord r : recs)
+		{
+			lootRecordMultimap.put(r.getName(), r);
+		}
+	}
+
+	public void refreshDataByName(String name)
+	{
+		lootRecordMultimap.removeAll(name);
+		Collection<LootRecord> recs = writer.loadData(name);
+		lootRecordMultimap.putAll(name, recs);
+	}
+
 	public Collection<LootRecord> getSessionData()
 	{
 		return sessionLootRecordMultimap.values();

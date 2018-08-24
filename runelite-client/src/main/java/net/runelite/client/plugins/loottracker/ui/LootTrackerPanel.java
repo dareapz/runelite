@@ -242,7 +242,7 @@ public class LootTrackerPanel extends PluginPanel
 			@Override
 			public void mouseClicked(MouseEvent e)
 			{
-				showLootView(name); // Recreate the entire panel
+				refreshLootView(name);
 			}
 		});
 
@@ -359,5 +359,11 @@ public class LootTrackerPanel extends PluginPanel
 		{
 			showLootView(currentView);
 		}
+	}
+
+	private void refreshLootView(String name)
+	{
+		plugin.refreshDataByName(name);
+		showLootView(name); // Recreate the entire panel
 	}
 }
