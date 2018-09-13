@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Tomas Slusny <slusnucky@gmail.com>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,15 +22,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.loottracker;
+package net.runelite.client.plugins.loottracker.data;
 
 import lombok.Value;
 
 @Value
-class LootTrackerItem
+public class UniqueItemWithLinkedId
 {
-	private final int id;
-	private final String name;
-	private final int quantity;
-	private final long price;
+	private int linkedID;
+	private UniqueItem uniqueItem;
 }

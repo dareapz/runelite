@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
+ * Copyright (c) 2018, Tomas Slusny <slusnucky@gmail.com>
+ * Copyright (c) 2018, TheStonedTurtle <www.github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,30 +23,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.loottracker;
+package net.runelite.client.plugins.loottracker.data;
 
-import lombok.Value;
+import lombok.Getter;
 
-@Value
-class LootTrackerRecord
+@Getter
+public class LootTrackerItemEntry
 {
-	private final String title;
-	private final String subTitle;
-	private final LootTrackerItem[] items;
-	private final long timestamp;
+	private final String name;
+	private final int id;
+	private int quantity;
+	private final long price;
+	private long total;
+	private final boolean stackable;
 
-	/**
-	 * Checks if this record matches specified id
-	 * @param id other record id
-	 * @return true if match is made
-	 */
-	boolean matches(final String id)
+	public LootTrackerItemEntry(String name, int id, int quantity, long price, boolean stackable)
 	{
-		if (id == null)
-		{
-			return true;
-		}
+		this.name = name;
+		this.id = id;
+		this.quantity = quantity;
+		this.price = price;
+		this.stackable = stackable;
+		this.total = price * quantity;
+	}
 
-		return title.equals(id);
+	@Override
+	public String toString()
+	{
+		return "LootTrackerItemEntry(name=" + name + ",id=" + id + ",quantity=" + quantity + ",price=" + price + ",total=" + total + ",stackable=" + stackable + ")";
 	}
 }
