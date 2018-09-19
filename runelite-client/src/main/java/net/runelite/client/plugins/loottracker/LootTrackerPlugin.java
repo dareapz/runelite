@@ -28,6 +28,7 @@ package net.runelite.client.plugins.loottracker;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,10 +51,12 @@ import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.events.PlayerLootReceived;
 import net.runelite.client.game.ItemManager;
@@ -100,7 +103,25 @@ public class LootTrackerPlugin extends Plugin
 	private Client client;
 
 	@Inject
+	public LootTrackerConfig config;
+
+	@Inject
 	private ClientThread clientThread;
+
+	@Provides
+	LootTrackerConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(LootTrackerConfig.class);
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (event.getGroup().equals("loottracker"))
+		{
+			panel.refreshUI();
+		}
+	}
 
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;

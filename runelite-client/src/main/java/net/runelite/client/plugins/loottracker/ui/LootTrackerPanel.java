@@ -161,7 +161,7 @@ public class LootTrackerPanel extends PluginPanel
 		}
 
 		JPanel title = createLootViewTitle(name);
-		lootPanel = new LootPanel(data, UniqueItem.createPositionSetMap(uniques),  itemManager);
+		lootPanel = new LootPanel(data, UniqueItem.createPositionSetMap(uniques), plugin.config.hideUniques(),  itemManager);
 
 		this.add(title, BorderLayout.NORTH);
 		this.add(wrapContainer(lootPanel), BorderLayout.CENTER);
@@ -351,6 +351,20 @@ public class LootTrackerPanel extends PluginPanel
 	public void updateNames()
 	{
 		log.debug("Updated session names");
+		if (currentView == null)
+		{
+			showSelectionView();
+		}
+		else
+		{
+			showLootView(currentView);
+		}
+	}
+
+	// Refresh panel when config options are changed
+	public void refreshUI()
+	{
+		log.debug("Refreshing UI");
 		if (currentView == null)
 		{
 			showSelectionView();

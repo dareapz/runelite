@@ -25,6 +25,8 @@
 package net.runelite.client.plugins.loottracker.ui;
 
 import com.google.common.collect.Iterators;
+import java.util.HashSet;
+import java.util.Set;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
 import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
@@ -46,13 +48,15 @@ public class LootPanel extends JPanel
 {
 	private Collection<LootRecord> records;
 	private Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap;
+	private boolean hideUniques;
 	private ItemManager itemManager;
 	private Map<Integer, LootTrackerItemEntry> consolidated;
 
-	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap, ItemManager itemManager)
+	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap, boolean hideUnqiues, ItemManager itemManager)
 	{
 		this.records = (records == null ? new ArrayList<>() : records);
 		this.uniqueMap = (uniqueMap == null ? new HashMap<>() : uniqueMap);
+		this.hideUniques = hideUnqiues;
 		this.itemManager = itemManager;
 
 		setLayout(new GridBagLayout());
@@ -97,12 +101,20 @@ public class LootPanel extends JPanel
 		c.gridx = 0;
 		c.gridy = 0;
 
+		Set<Integer> uniqueIds = new HashSet<>();
+
 		// Attach all the Unique Items first
 		this.uniqueMap.forEach((setPosition, set) ->
 		{
 			UniqueItemPanel p = new UniqueItemPanel(set, this.consolidated, this.itemManager);
 			this.add(p, c);
 			c.gridy++;
+
+			for (UniqueItemWithLinkedId i : set)
+			{
+				uniqueIds.add(i.getLinkedID());
+				uniqueIds.add(i.getUniqueItem().getItemID());
+			}
 		});
 
 		// Attach Kill Count Panel
@@ -131,9 +143,12 @@ public class LootPanel extends JPanel
 		for ( Map.Entry<Integer, LootTrackerItemEntry> entry : this.consolidated.entrySet())
 		{
 			LootTrackerItemEntry item = entry.getValue();
-			ItemPanel p = new ItemPanel(item, itemManager);
-			this.add(p, c);
-			c.gridy++;
+			if (!hideUniques || !(hideUniques && uniqueIds.contains(item.getId())))
+			{
+				ItemPanel p = new ItemPanel(item, itemManager);
+				this.add(p, c);
+				c.gridy++;
+			}
 			totalValue = totalValue + item.getTotal();
 		}
 
