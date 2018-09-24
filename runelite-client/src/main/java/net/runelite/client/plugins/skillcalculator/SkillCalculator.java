@@ -326,7 +326,7 @@ class SkillCalculator extends JPanel
 			{
 				// Right-Click Menu
 				JPopupMenu menu = new JPopupMenu("");
-				JMenuItem item = new JMenuItem("Input Amount");
+				JMenuItem item = new JMenuItem("Input");
 				item.setBorder(POPUP_MENU_BORDER);
 				item.addActionListener(new ActionListener()
 				{
@@ -336,7 +336,7 @@ class SkillCalculator extends JPanel
 						specifyPlannerSlotAmount(slot);
 					}
 				});
-				JMenuItem clearItem = new JMenuItem("Clear Amount");
+				JMenuItem clearItem = new JMenuItem("Reset");
 				clearItem.setBorder(POPUP_MENU_BORDER);
 				clearItem.addActionListener(new ActionListener()
 				{
@@ -346,7 +346,7 @@ class SkillCalculator extends JPanel
 						clearSlot(slot);
 					}
 				});
-				JMenuItem clearAllItem = new JMenuItem("Clear All Amounts");
+				JMenuItem clearAllItem = new JMenuItem("Reset All");
 				clearAllItem.setBorder(POPUP_MENU_BORDER);
 				clearAllItem.addActionListener(new ActionListener()
 				{

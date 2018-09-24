@@ -29,24 +29,31 @@ package net.runelite.client.plugins.skillcalculator;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.plugins.skillcalculator.beans.SkillDataEntry;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.components.shadowlabel.JShadowedLabel;
+import net.runelite.client.util.StackFormatter;
 
+@Slf4j
 class UIActionSlot extends JPanel
 {
 	private static final Border GREEN_BORDER = new CompoundBorder(
@@ -62,6 +69,8 @@ class UIActionSlot extends JPanel
 		BorderFactory.createEmptyBorder(7, 12, 7, 7));
 
 	private static final Dimension ICON_SIZE = new Dimension(35, 35);
+	private static final int TEXT_HEIGHT_OFFSET = 12;
+	private static final int TEXT_WIDTH_OFFSET = 6;
 
 	@Getter(AccessLevel.PACKAGE)
 	private final SkillDataEntry action;
@@ -176,8 +185,47 @@ class UIActionSlot extends JPanel
 		}
 		else if (action.getSprite() != null)
 		{
-			// TODO: Find way to overlay amount on icon
-			SkillCalculator.spriteManager.addSpriteTo(uiIcon, action.getSprite(), 0);
+			if (amount == 0)
+			{
+				SkillCalculator.spriteManager.addSpriteTo(uiIcon, action.getSprite(), 0);
+				return;
+			}
+
+			SkillCalculator.spriteManager.getSpriteAsync(action.getSprite(), 0, i ->
+			{
+				BufferedImage img = new BufferedImage( ICON_SIZE.width, ICON_SIZE.height, BufferedImage.TYPE_INT_ARGB);
+				Graphics g = img.getGraphics();
+				// Center sprite in icon
+				int x = (ICON_SIZE.width - i.getWidth()) / 2;
+				int y = (ICON_SIZE.height - i.getHeight()) / 2;
+
+				// Prevent negative values
+				x = (x > 0 ? x : 0);
+				y = (y > 0 ? y : 0);
+
+				// Draw sprite to new image
+				g.drawImage(i, x, y, null);
+				g.setFont(FontManager.getRunescapeSmallFont());
+
+				// Draw amount quantity onto image
+				String amountString = StackFormatter.quantityToRSStackSize(amount);
+				// qty offset math
+				int stringX = (x - TEXT_WIDTH_OFFSET > 0 ? x - TEXT_WIDTH_OFFSET : 0);
+				int stringY = (y < TEXT_HEIGHT_OFFSET ? TEXT_HEIGHT_OFFSET : y);
+
+				// Font Shadow
+				g.setColor(Color.BLACK);
+				g.drawString(amountString, stringX + 1, stringY + 1);
+
+				// Actual Font
+				g.setColor(amount >= 10000000 ? Color.green : (amount >= 1000000 ? Color.WHITE : Color.YELLOW));
+				g.drawString(amountString, stringX, stringY);
+
+				SwingUtilities.invokeLater(() ->
+				{
+					uiIcon.setIcon(new ImageIcon(img));
+				});
+			});
 		}
 
 	}
