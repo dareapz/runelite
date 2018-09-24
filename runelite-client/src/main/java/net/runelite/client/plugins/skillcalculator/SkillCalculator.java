@@ -28,19 +28,34 @@ package net.runelite.client.plugins.skillcalculator;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.border.MatteBorder;
 import net.runelite.api.Client;
 import net.runelite.api.Experience;
+import net.runelite.api.Skill;
+import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.skillcalculator.beans.SkillData;
@@ -51,11 +66,15 @@ import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
+import net.runelite.client.ui.components.materialtabs.MaterialTab;
+import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
 class SkillCalculator extends JPanel
 {
 	private static final int MAX_XP = 200_000_000;
 	private static final DecimalFormat XP_FORMAT = new DecimalFormat("#.#");
+	private static final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
+	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
 
 	private final UICalculatorInputArea uiInput;
 	private final Client client;
@@ -74,6 +93,18 @@ class SkillCalculator extends JPanel
 	private int targetLevel = currentLevel + 1;
 	private int targetXP = Experience.getXpForLevel(targetLevel);
 	private float xpFactor = 1.0f;
+	private String currentTab;
+	private Skill skill;
+
+	// Banked Experience Variables
+	private Map<Integer, Integer> bankMap = new HashMap<>();
+	private Map<String, Boolean> categoryMap = new HashMap<>();
+	private float totalBankedXp = 0.0f;
+	private JLabel totalLabel = new JLabel();
+	private JPanel detailConfigContainer;
+	private JPanel detailContainer;
+	// Ignore item ids for banked experience
+	private Map<Integer, Boolean> ignoreMap = new HashMap<>();
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput, SpriteManager spriteManager, ItemManager itemManager)
 	{
@@ -107,24 +138,23 @@ class SkillCalculator extends JPanel
 
 		uiInput.getUiFieldTargetLevel().addActionListener(e -> onFieldTargetLevelUpdated());
 		uiInput.getUiFieldTargetXP().addActionListener(e -> onFieldTargetXPUpdated());
+
+		detailContainer = new JPanel();
+		detailContainer.setLayout(new BoxLayout(detailContainer, BoxLayout.Y_AXIS));
+
+		detailConfigContainer = new JPanel();
+		detailConfigContainer.setLayout(new BoxLayout(detailConfigContainer, BoxLayout.Y_AXIS));
 	}
 
+
+	// Opens the Calculator tab for the current Skill
 	void openCalculator(CalculatorType calculatorType)
 	{
-		// Load the skill data.
-		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
+		currentTab = "Calculator";
 
-		// Reset the XP factor, removing bonuses.
-		xpFactor = 1.0f;
-
-		// Update internal skill/XP values.
-		currentXP = client.getSkillExperience(calculatorType.getSkill());
-		currentLevel = Experience.getLevelForXp(currentXP);
-		targetLevel = enforceSkillBounds(currentLevel + 1);
-		targetXP = Experience.getXpForLevel(targetLevel);
-
-		// Remove all components (action slots) from this panel.
+		// clean slate for creating the required panel
 		removeAll();
+		updateData(calculatorType);
 
 		// Add in checkboxes for available skill bonuses.
 		renderBonusOptions();
@@ -332,17 +362,43 @@ class SkillCalculator extends JPanel
 			targetXP = Experience.getXpForLevel(targetLevel);
 		}
 
+		syncInputFields();
+	}
+
+	private void syncInputFields()
+	{
 		uiInput.setCurrentLevelInput(currentLevel);
 		uiInput.setCurrentXPInput(currentXP);
 		uiInput.setTargetLevelInput(targetLevel);
 		uiInput.setTargetXPInput(targetXP);
-		calculate();
+
+		// Can only edit input fields when on Calculator tab
+		if (currentTab.equals("Calculator"))
+		{
+			calculate();
+		}
 	}
 
 	private void adjustXPBonus(float value)
 	{
 		xpFactor = 1f + value;
-		calculate();
+		switch (currentTab)
+		{
+			case "Calculator":
+				calculate();
+				break;
+			case "Banked Xp":
+				calculateBankedExpTotal();
+				refreshBankedExpDetails();
+				break;
+		}
+	}
+
+	private void adjustBankedXp(boolean removeBonus, String category)
+	{
+		categoryMap.put(category, removeBonus);
+		calculateBankedExpTotal();
+		refreshBankedExpDetails();
 	}
 
 	private void onFieldCurrentLevelUpdated()
@@ -404,6 +460,380 @@ class SkillCalculator extends JPanel
 	private boolean slotContainsText(UIActionSlot slot, String text)
 	{
 		return slot.getAction().getName().toLowerCase().contains(text.toLowerCase());
+	}
+
+	void setBankMap(Map<Integer, Integer> map)
+	{
+		boolean oldMapFlag = (bankMap.size() <= 0);
+		bankMap = map;
+
+		if (currentTab.equals("Banked Xp"))
+		{
+			// Refresh entire panel if old map was empty
+			if (oldMapFlag)
+			{
+				CalculatorType calc = CalculatorType.getBySkill(skill);
+				SwingUtilities.invokeLater(() -> openBanked(calc));
+				return;
+			}
+
+			// Otherwise just update the Total XP banked and the details panel
+			SwingUtilities.invokeLater(this::calculateBankedExpTotal);
+			SwingUtilities.invokeLater(this::refreshBankedExpDetails);
+		}
+	}
+
+	private void updateData(CalculatorType calculatorType)
+	{
+		// Load the skill data.
+		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
+
+		// Store the current skill
+		skill = calculatorType.getSkill();
+		//bankMap = plugin.getBankMap();
+
+		// Reset the XP factor, removing bonuses.
+		xpFactor = 1.0f;
+		totalBankedXp = 0.0f;
+
+		// Update internal skill/XP values.
+		currentXP = client.getSkillExperience(skill);
+		currentLevel = Experience.getLevelForXp(currentXP);
+		targetLevel = enforceSkillBounds(currentLevel + 1);
+		targetXP = Experience.getXpForLevel(targetLevel);
+
+		if (currentTab.equals("Banked Xp"))
+		{
+			uiInput.getUiFieldTargetLevel().setEditable(false);
+			uiInput.getUiFieldTargetXP().setEditable(false);
+		}
+		else
+		{
+			uiInput.getUiFieldTargetLevel().setEditable(true);
+			uiInput.getUiFieldTargetXP().setEditable(true);
+		}
+
+	}
+
+
+
+	// Calculates Total Banked XP for this Skill Category
+	private int getSkillCategoryTotal(Skill skill, String category)
+	{
+		ArrayList<BankedItems> items = BankedItems.getItemsForSkillCategories(skill, category);
+		int total = 0;
+
+		for (BankedItems item : items)
+		{
+			Integer amount = bankMap.get(item.getItemID());
+			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
+			if ((amount != null && amount > 0) && !ignoreFlag)
+			{
+				// Find out xp for this stack (including any xp factors that should be applied)
+				double xp = item.getBasexp();
+				if (!item.isBonusExempt())
+				{
+					xp = xp * xpFactor;
+				}
+				total += amount * xp;
+			}
+		}
+
+		return total;
+	}
+
+	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
+	private Map<BankedItems, Integer> getBankedExpBreakdown()
+	{
+		Map<BankedItems, Integer> map = new LinkedHashMap<>();
+
+		for (String category : BankedItems.getSkillCategories(skill))
+		{
+			ArrayList<BankedItems> items = BankedItems.getItemsForSkillCategories(skill, category);
+			for (BankedItems item : items)
+			{
+				Integer amount = bankMap.get(item.getItemID());
+				if (amount != null && amount > 0)
+				{
+					map.put(item, amount);
+				}
+			}
+		}
+
+		return map;
+	}
+
+
+
+	// Calculate the total banked experience and display it in the panel
+	private void calculateBankedExpTotal()
+	{
+		if (!currentTab.equals("Banked Xp"))
+			return;
+
+		totalBankedXp = 0.0f;
+
+		Set<String> categories = BankedItems.getSkillCategories(skill);
+		if (categories == null)
+			return;
+
+		for (String category : categories)
+		{
+			Boolean flag = categoryMap.get(category);
+			if (flag != null && flag)
+			{
+				totalBankedXp += getSkillCategoryTotal(skill, category);
+			}
+		}
+
+		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
+
+		// Update Target XP & Level to include total banked xp
+		targetXP = (int) (currentXP + totalBankedXp);
+		targetLevel = Experience.getLevelForXp(targetXP);
+		syncInputFields();
+
+		revalidate();
+		repaint();
+	}
+
+
+	// Recreates the Banked Experience Detail container
+	private void refreshBankedExpDetails()
+	{
+		detailContainer.removeAll();
+
+		Map<BankedItems, Integer> map = getBankedExpBreakdown();
+		for (Map.Entry<BankedItems, Integer> entry : map.entrySet())
+		{
+			BankedItems item = entry.getKey();
+			Boolean flag = categoryMap.get(item.getCategory());
+			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
+			// Category Included and Not ignoring this item ID?
+			if ((flag != null && flag) && (!ignoreFlag))
+			{
+				double xp = item.getBasexp();
+				if (!item.isBonusExempt())
+					xp = xp * xpFactor;
+				double total = entry.getValue() * xp;
+
+				// Right-Click Menu
+				JPopupMenu menu = new JPopupMenu("");
+				JMenuItem ignore = new JMenuItem("Ignore Item");
+				ignore.addActionListener(e -> ignoreItemID(item.getItemID()));
+				menu.add(ignore);
+
+				// Exp panel
+				BankedExpPanel panel = new BankedExpPanel(itemManager, item, entry.getValue(), total);
+				panel.setComponentPopupMenu(menu);
+
+				detailContainer.add(panel);
+			}
+		}
+
+		detailContainer.revalidate();
+		detailContainer.repaint();
+	}
+	// Creates the Options for changing xp rates
+	private JPanel createBankedOptionDropdown(Map.Entry<Integer, ArrayList<BankedItemOptions>> entry)
+	{
+		ArrayList<BankedItemOptions> options = entry.getValue();
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+
+		JLabel label = new JLabel(String.valueOf(entry.getKey()));
+
+		MaterialTabGroup group = new MaterialTabGroup();
+		group.setLayout(new GridLayout(0, 3, 0, 2));
+		group.setBorder(new MatteBorder(1, 1, 1, 1, Color.BLACK));
+
+		for (BankedItemOptions option : options)
+		{
+			final double newxp = option.getBasexp();
+			final int[] itemIds = option.getItemOption().getItems();
+
+			// If all items this effects are ignored or not available in bank map don't add this option
+			boolean dontAddFlag = true;
+			for (int itemID : itemIds)
+			{
+				Integer amount = bankMap.get(itemID);
+				if ((amount != null && amount > 0) && (!ignoreMap.containsKey(itemID)))
+				{
+					dontAddFlag = false;
+					break;
+				}
+			}
+			if (dontAddFlag)
+				continue;
+
+			AsyncBufferedImage icon = itemManager.getImage(option.getItemID());
+			MaterialTab matTab = new MaterialTab("", group, null);
+			matTab.setHorizontalAlignment(SwingUtilities.RIGHT);
+			matTab.setToolTipText(option.getName());
+
+			matTab.setOnSelectEvent(() ->
+			{
+				newBankedXpValue(newxp, itemIds);
+				return true;
+			});
+
+			Runnable resize = () ->
+				matTab.setIcon(new ImageIcon(icon.getScaledInstance(24, 21, Image.SCALE_SMOOTH)));
+			icon.onChanged(resize);
+			resize.run();
+
+			group.addTab(matTab);
+		}
+
+		if (group.getComponentCount() > 0)
+		{
+			group.select(group.getTab(0)); // Select first option;
+
+			panel.add(label, BorderLayout.WEST);
+			panel.add(group, BorderLayout.EAST);
+
+			return panel;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	// Used to adjust base xp rate for certain item ids
+	private void newBankedXpValue(double xp, int[] itemIDs)
+	{
+		for (int id : itemIDs)
+		{
+			BankedItems item = BankedItems.getByItemId(id);
+			if (item != null)
+			{
+				item.setBasexp(xp);
+			}
+		}
+
+		// Only recalculate if banked experience has already been calculated
+		if (totalBankedXp > 0.0f)
+		{
+			calculateBankedExpTotal();
+			refreshBankedExpDetails();
+		}
+	}
+
+	// Opens the Banked XP tab for the current Skill
+	void openBanked(CalculatorType calculatorType)
+	{
+		currentTab = "Banked Xp";
+
+		// clean slate for creating the required panel
+		removeAll();
+		updateData(calculatorType);
+
+		// Only adds Banked Experience portion if enabled for this SkillCalc and have seen their bank
+		if (!calculatorType.isBankedXpFlag())
+		{
+			add(new JLabel("<html><div style='text-align: center;'>Banked Experience is not enabled for this skill.</div></html>", JLabel.CENTER));
+			revalidate();
+			repaint();
+		}
+		else if (bankMap.size() <= 0)
+		{
+			add(new JLabel( "Please visit a bank!", JLabel.CENTER));
+			revalidate();
+			repaint();
+		}
+		else
+		{
+			// Now we can actually show the Banked Experience Panel
+			// Adds Config Options for this panel
+			renderBankedExpOptions();
+
+			// Adds in checkboxes for available skill bonuses, same as Skill Calc
+			renderBonusOptions();
+
+			// Adds in the Detail Container config options
+			renderBankedConfigOptions();
+
+			// Total banked experience
+			calculateBankedExpTotal();
+
+			// Create the banked experience details container
+			detailContainer.removeAll();
+			refreshBankedExpDetails();
+
+			add(detailConfigContainer);
+			add(totalLabel);
+			add(detailContainer);
+		}
+
+		// Update the input fields.
+		syncInputFields();
+	}
+	// Adds the Configuration options for Banked Experience to the panel
+	private void renderBankedExpOptions()
+	{
+		Set<String> categories = BankedItems.getSkillCategories(skill);
+		if (categories == null)
+			return;
+
+		add(new JLabel("Banked Experience Configuration:"));
+
+		for (String category : categories)
+		{
+			JPanel uiOption = new JPanel(new BorderLayout());
+			JLabel uiLabel = new JLabel(category);
+			JCheckBox uiCheckbox = new JCheckBox();
+
+			uiLabel.setForeground(Color.WHITE);
+			uiLabel.setFont(FontManager.getRunescapeSmallFont());
+
+			uiOption.setBorder(BorderFactory.createEmptyBorder(3, 7, 3, 0));
+			uiOption.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+			// Everything is enabled by default
+			uiCheckbox.setSelected(true);
+			categoryMap.put(category, true);
+
+			// Adjust Total Banked XP check-state of the box.
+			uiCheckbox.addActionListener(e -> adjustBankedXp(uiCheckbox.isSelected(), category));
+			uiCheckbox.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
+
+			uiOption.add(uiLabel, BorderLayout.WEST);
+			uiOption.add(uiCheckbox, BorderLayout.EAST);
+
+			add(uiOption);
+			add(Box.createRigidArea(new Dimension(0, 5)));
+		}
+	}
+
+
+	private void renderBankedConfigOptions()
+	{
+		detailConfigContainer.removeAll();
+
+		ArrayList<BankedItemOptions> options = BankedItemOptions.getBySkill(skill);
+		if (options != null)
+		{
+			Map<Integer, ArrayList<BankedItemOptions>> dropdown = BankedItemOptions.resourceSetMap(options);
+			for (Map.Entry<Integer, ArrayList<BankedItemOptions>> entry : dropdown.entrySet())
+			{
+				JPanel panel = createBankedOptionDropdown(entry);
+
+				if (panel != null)
+					detailConfigContainer.add(panel);
+			}
+		}
+	}
+
+	private void ignoreItemID(int id)
+	{
+		ignoreMap.put(id, true);
+
+		// Update bonus experience calculations
+		renderBankedConfigOptions();
+		calculateBankedExpTotal();
+		refreshBankedExpDetails();
 	}
 
 }

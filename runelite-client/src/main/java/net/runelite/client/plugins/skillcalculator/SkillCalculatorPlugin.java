@@ -26,15 +26,34 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Provides;
+import lombok.Getter;
 import net.runelite.api.Client;
+import net.runelite.api.InventoryID;
+import net.runelite.api.Item;
+import net.runelite.api.ItemContainer;
+import net.runelite.api.events.ConfigChanged;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.plugins.skillcalculator.beans.SkillDataEntry;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.util.ImageUtil;
 
 @PluginDescriptor(
@@ -59,13 +78,29 @@ public class SkillCalculatorPlugin extends Plugin
 	@Inject
 	private ClientToolbar clientToolbar;
 
+	@Inject
+	private SkillCalculatorConfig skillCalculatorConfig;
+
 	private NavigationButton uiNavigationButton;
+	private SkillCalculatorPanel uiPanel;
+
+	@Getter
+	private Map<Integer, Integer> bankMap = new HashMap<>();
+
+	// Used to check if the bankMap has changed (sends new bank map to panel)
+	private int itemsHash;
+
+	@Provides
+	SkillCalculatorConfig getConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(SkillCalculatorConfig.class);
+	}
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "calc.png");
-		final SkillCalculatorPanel uiPanel = new SkillCalculatorPanel(skillIconManager, client, spriteManager, itemManager);
+		uiPanel = new SkillCalculatorPanel(skillIconManager, client, skillCalculatorConfig, spriteManager, itemManager);
 
 		uiNavigationButton = NavigationButton.builder()
 			.tooltip("Skill Calculator")
@@ -81,5 +116,97 @@ public class SkillCalculatorPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		clientToolbar.removeNavigation(uiNavigationButton);
+		bankMap.clear();
+		itemsHash = -1;
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (event.getGroup().equals("skillCalculator"))
+		{
+			if (event.getKey().equals("showBankedXp"))
+			{
+				bankMap.clear();
+				itemsHash = -1;
+			}
+
+			SwingUtilities.invokeLater(() -> uiPanel.refreshPanel());
+		}
+	}
+
+	// Pulled from bankvalue plugin to check if bank is open
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		Widget widgetBankTitleBar = client.getWidget(WidgetInfo.BANK_TITLE_BAR);
+
+		// Don't update on a search because rs seems to constantly update the title
+		if (widgetBankTitleBar == null || widgetBankTitleBar.isHidden() || widgetBankTitleBar.getText().contains("Showing"))
+		{
+			return;
+		}
+
+		updateBankItems();
+	}
+
+	// Recreates the bankMap hashmap and sends it to the panel if its changed
+	private void updateBankItems()
+	{
+		if (skillCalculatorConfig.showBankedXp())
+		{
+			ItemContainer c = client.getItemContainer(InventoryID.BANK);
+			Item[] widgetItems = (c == null ? new Item[0] : c.getItems());
+
+			// Check for changes in bank content before doing anything
+			if (widgetItems == null || widgetItems.length == 0)
+			{
+				return;
+			}
+
+			int curHash = Arrays.hashCode(widgetItems);
+			if (curHash == itemsHash)
+			{
+				return;
+			}
+
+			Map<Integer, Integer> map = new HashMap<>();
+
+			for (Item widgetItem : widgetItems)
+			{
+				map.put(widgetItem.getId(), widgetItem.getQuantity());
+			}
+
+			bankMap = map;
+			itemsHash = curHash;
+			// send updated bank map to ui
+			uiPanel.updateBankMap(bankMap);
+		}
+	}
+
+
+
+	// 2 + 2 is 4 minus 1 is 3 quick maths
+	private void quickMaths(int level, SkillDataEntry[] items)
+	{
+		List<SkillDataEntry> filteredItems = new ArrayList<>();
+		for (SkillDataEntry i : items)
+		{
+			if (i.getLevel() <= level)
+			{
+				filteredItems.add(i);
+			}
+		}
+
+		// Sort by level in descending order.
+		filteredItems.sort(new Comparator<SkillDataEntry>()
+		{
+			@Override
+			public int compare(SkillDataEntry o1, SkillDataEntry o2)
+			{
+				return o2.getLevel() - o1.getLevel();
+			}
+		});
+
 	}
 }
