@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Kruithne <kruithne@gmail.com>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,30 +22,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.skillcalculator;
+package net.runelite.client.plugins.skillcalculator.banked.beans;
 
-import com.google.gson.Gson;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
-import net.runelite.client.plugins.skillcalculator.beans.SkillData;
+import lombok.Getter;
 
-class CacheSkillData
+@Getter
+public class SecondaryItem
 {
-	private final Map<String, SkillData> cache = new HashMap<>();
+	private final int id;
+	private final int qty;
 
-	SkillData getSkillData(String dataFile)
+	public SecondaryItem(int id)
 	{
-		if (cache.containsKey(dataFile))
-		{
-			return cache.get(dataFile);
-		}
+		this.id = id;
+		this.qty = 1;
+	}
 
-		InputStream skillDataFile = SkillCalculator.class.getResourceAsStream(dataFile);
-		SkillData skillData = new Gson().fromJson(new InputStreamReader(skillDataFile), SkillData.class);
-
-		cache.put(dataFile, skillData);
-		return skillData;
+	public SecondaryItem(int id, int qty)
+	{
+		this.id = id;
+		this.qty = qty;
 	}
 }

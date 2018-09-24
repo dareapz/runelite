@@ -26,7 +26,10 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -49,6 +52,7 @@ import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.skillcalculator.beans.SkillDataEntry;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.ClientToolbar;
@@ -195,5 +199,31 @@ public class SkillCalculatorPlugin extends Plugin
 				uiPanel.updateBankMap(bankMap);
 			}
 		}
+	}
+
+
+
+	// 2 + 2 is 4 minus 1 is 3 quick maths
+	private void quickMaths(int level, SkillDataEntry[] items)
+	{
+		List<SkillDataEntry> filteredItems = new ArrayList<>();
+		for (SkillDataEntry i : items)
+		{
+			if (i.getLevel() <= level)
+			{
+				filteredItems.add(i);
+			}
+		}
+
+		// Sort by level in descending order.
+		filteredItems.sort(new Comparator<SkillDataEntry>()
+		{
+			@Override
+			public int compare(SkillDataEntry o1, SkillDataEntry o2)
+			{
+				return o2.getLevel() - o1.getLevel();
+			}
+		});
+
 	}
 }

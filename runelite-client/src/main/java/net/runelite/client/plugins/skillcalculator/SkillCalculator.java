@@ -408,7 +408,7 @@ class SkillCalculator extends JPanel
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 
-		JLabel label = new JLabel(itemManager.getItemComposition(entry.getKey()).getName());
+		JLabel label = new JLabel(String.valueOf(entry.getKey()));
 
 		MaterialTabGroup group = new MaterialTabGroup();
 		group.setLayout(new GridLayout(0, 3, 0, 2));

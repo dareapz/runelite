@@ -27,6 +27,7 @@ package net.runelite.client.plugins.skillcalculator;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.ItemID;
+import net.runelite.api.MessageNode;
 import net.runelite.api.Skill;
 
 import java.util.ArrayList;
