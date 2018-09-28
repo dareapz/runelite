@@ -28,8 +28,6 @@ package net.runelite.client.plugins.skillcalculator;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
@@ -44,20 +42,22 @@ import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
-import javax.swing.border.MatteBorder;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Experience;
+import net.runelite.api.ItemID;
 import net.runelite.api.Skill;
-import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
+import net.runelite.client.plugins.skillcalculator.banked.CriticalItem;
+import net.runelite.client.plugins.skillcalculator.banked.beans.Activity;
+import net.runelite.client.plugins.skillcalculator.banked.ui.ItemPanel;
 import net.runelite.client.plugins.skillcalculator.beans.SkillData;
 import net.runelite.client.plugins.skillcalculator.beans.SkillDataBonus;
 import net.runelite.client.plugins.skillcalculator.beans.SkillDataEntry;
@@ -66,10 +66,9 @@ import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
-import net.runelite.client.ui.components.materialtabs.MaterialTab;
-import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
-class SkillCalculator extends JPanel
+@Slf4j
+public class SkillCalculator extends JPanel
 {
 	private static final int MAX_XP = 200_000_000;
 	private static final DecimalFormat XP_FORMAT = new DecimalFormat("#.#");
@@ -99,12 +98,17 @@ class SkillCalculator extends JPanel
 	// Banked Experience Variables
 	private Map<Integer, Integer> bankMap = new HashMap<>();
 	private Map<String, Boolean> categoryMap = new HashMap<>();
-	private float totalBankedXp = 0.0f;
+	private double totalBankedXp = 0.0f;
 	private JLabel totalLabel = new JLabel();
 	private JPanel detailConfigContainer;
 	private JPanel detailContainer;
 	// Ignore item ids for banked experience
 	private Map<Integer, Boolean> ignoreMap = new HashMap<>();
+	// Activity Magic
+	private Map<CriticalItem, Integer> criticalMap = new HashMap<>();
+	private Map<CriticalItem, List<Activity>> activityMap = new HashMap<>();
+	private Map<CriticalItem, Activity> indexMap = new HashMap<>();
+	private Map<CriticalItem, Integer> linkedMap = new HashMap<>();
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput, SpriteManager spriteManager, ItemManager itemManager)
 	{
@@ -462,6 +466,38 @@ class SkillCalculator extends JPanel
 		return slot.getAction().getName().toLowerCase().contains(text.toLowerCase());
 	}
 
+	private void reset()
+	{
+		ignoreMap.clear();
+		categoryMap.clear();
+		criticalMap.clear();
+		activityMap.clear();
+		indexMap.clear();
+		linkedMap.clear();
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// Bank map changed so recreate the banked xp panel if they are currently viewing it
 	void setBankMap(Map<Integer, Integer> map)
 	{
 		boolean oldMapFlag = (bankMap.size() <= 0);
@@ -483,8 +519,11 @@ class SkillCalculator extends JPanel
 		}
 	}
 
+	// Update UI panel for new skill data
 	private void updateData(CalculatorType calculatorType)
 	{
+		reset();
+
 		// Load the skill data.
 		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
 
@@ -515,211 +554,102 @@ class SkillCalculator extends JPanel
 
 	}
 
-
-
-	// Calculates Total Banked XP for this Skill Category
-	private int getSkillCategoryTotal(Skill skill, String category)
+	// Critical Item Activity Selected
+	public void activitySelected(CriticalItem i, Activity a)
 	{
-		ArrayList<BankedItems> items = BankedItems.getItemsForSkillCategories(skill, category);
-		int total = 0;
+		indexMap.put(i, a);
 
-		for (BankedItems item : items)
-		{
-			Integer amount = bankMap.get(item.getItemID());
-			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
-			if ((amount != null && amount > 0) && !ignoreFlag)
-			{
-				// Find out xp for this stack (including any xp factors that should be applied)
-				double xp = item.getBasexp();
-				if (!item.isBonusExempt())
-				{
-					xp = xp * xpFactor;
-				}
-				total += amount * xp;
-			}
-		}
+		// Total banked experience
+		calculateBankedExpTotal();
 
-		return total;
+		// Create the banked experience details container
+		refreshBankedExpDetails();
 	}
 
-	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
-	private Map<BankedItems, Integer> getBankedExpBreakdown()
+	// Ignore an item in banked xp
+	private void ignoreItemID(int id)
 	{
-		Map<BankedItems, Integer> map = new LinkedHashMap<>();
+		ignoreMap.put(id, true);
 
-		for (String category : BankedItems.getSkillCategories(skill))
-		{
-			ArrayList<BankedItems> items = BankedItems.getItemsForSkillCategories(skill, category);
-			for (BankedItems item : items)
-			{
-				Integer amount = bankMap.get(item.getItemID());
-				if (amount != null && amount > 0)
-				{
-					map.put(item, amount);
-				}
-			}
-		}
-
-		return map;
+		// Update bonus experience calculations
+		calculateBankedExpTotal();
+		refreshBankedExpDetails();
 	}
 
 
 
-	// Calculate the total banked experience and display it in the panel
-	private void calculateBankedExpTotal()
-	{
-		if (!currentTab.equals("Banked Xp"))
-			return;
-
-		totalBankedXp = 0.0f;
-
-		Set<String> categories = BankedItems.getSkillCategories(skill);
-		if (categories == null)
-			return;
-
-		for (String category : categories)
-		{
-			Boolean flag = categoryMap.get(category);
-			if (flag != null && flag)
-			{
-				totalBankedXp += getSkillCategoryTotal(skill, category);
-			}
-		}
-
-		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
-
-		// Update Target XP & Level to include total banked xp
-		targetXP = (int) (currentXP + totalBankedXp);
-		targetLevel = Experience.getLevelForXp(targetXP);
-		syncInputFields();
-
-		revalidate();
-		repaint();
-	}
 
 
-	// Recreates the Banked Experience Detail container
-	private void refreshBankedExpDetails()
-	{
-		detailContainer.removeAll();
 
-		Map<BankedItems, Integer> map = getBankedExpBreakdown();
-		for (Map.Entry<BankedItems, Integer> entry : map.entrySet())
-		{
-			BankedItems item = entry.getKey();
-			Boolean flag = categoryMap.get(item.getCategory());
-			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
-			// Category Included and Not ignoring this item ID?
-			if ((flag != null && flag) && (!ignoreFlag))
-			{
-				double xp = item.getBasexp();
-				if (!item.isBonusExempt())
-					xp = xp * xpFactor;
-				double total = entry.getValue() * xp;
 
-				// Right-Click Menu
-				JPopupMenu menu = new JPopupMenu("");
-				JMenuItem ignore = new JMenuItem("Ignore Item");
-				ignore.addActionListener(e -> ignoreItemID(item.getItemID()));
-				menu.add(ignore);
 
-				// Exp panel
-				BankedExpPanel panel = new BankedExpPanel(itemManager, item, entry.getValue(), total);
-				panel.setComponentPopupMenu(menu);
 
-				detailContainer.add(panel);
-			}
-		}
 
-		detailContainer.revalidate();
-		detailContainer.repaint();
-	}
-	// Creates the Options for changing xp rates
-	private JPanel createBankedOptionDropdown(Map.Entry<Integer, ArrayList<BankedItemOptions>> entry)
-	{
-		ArrayList<BankedItemOptions> options = entry.getValue();
 
-		JPanel panel = new JPanel();
-		panel.setLayout(new BorderLayout());
 
-		JLabel label = new JLabel(String.valueOf(entry.getKey()));
 
-		MaterialTabGroup group = new MaterialTabGroup();
-		group.setLayout(new GridLayout(0, 3, 0, 2));
-		group.setBorder(new MatteBorder(1, 1, 1, 1, Color.BLACK));
 
-		for (BankedItemOptions option : options)
-		{
-			final double newxp = option.getBasexp();
-			final int[] itemIds = option.getItemOption().getItems();
 
-			// If all items this effects are ignored or not available in bank map don't add this option
-			boolean dontAddFlag = true;
-			for (int itemID : itemIds)
-			{
-				Integer amount = bankMap.get(itemID);
-				if ((amount != null && amount > 0) && (!ignoreMap.containsKey(itemID)))
-				{
-					dontAddFlag = false;
-					break;
-				}
-			}
-			if (dontAddFlag)
-				continue;
 
-			AsyncBufferedImage icon = itemManager.getImage(option.getItemID());
-			MaterialTab matTab = new MaterialTab("", group, null);
-			matTab.setHorizontalAlignment(SwingUtilities.RIGHT);
-			matTab.setToolTipText(option.getName());
 
-			matTab.setOnSelectEvent(() ->
-			{
-				newBankedXpValue(newxp, itemIds);
-				return true;
-			});
 
-			Runnable resize = () ->
-				matTab.setIcon(new ImageIcon(icon.getScaledInstance(24, 21, Image.SCALE_SMOOTH)));
-			icon.onChanged(resize);
-			resize.run();
 
-			group.addTab(matTab);
-		}
 
-		if (group.getComponentCount() > 0)
-		{
-			group.select(group.getTab(0)); // Select first option;
 
-			panel.add(label, BorderLayout.WEST);
-			panel.add(group, BorderLayout.EAST);
 
-			return panel;
-		}
-		else
-		{
-			return null;
-		}
-	}
 
-	// Used to adjust base xp rate for certain item ids
-	private void newBankedXpValue(double xp, int[] itemIDs)
-	{
-		for (int id : itemIDs)
-		{
-			BankedItems item = BankedItems.getByItemId(id);
-			if (item != null)
-			{
-				item.setBasexp(xp);
-			}
-		}
 
-		// Only recalculate if banked experience has already been calculated
-		if (totalBankedXp > 0.0f)
-		{
-			calculateBankedExpTotal();
-			refreshBankedExpDetails();
-		}
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// Opens the Banked XP tab for the current Skill
 	void openBanked(CalculatorType calculatorType)
@@ -739,21 +669,36 @@ class SkillCalculator extends JPanel
 		}
 		else if (bankMap.size() <= 0)
 		{
-			add(new JLabel( "Please visit a bank!", JLabel.CENTER));
-			revalidate();
-			repaint();
+			// Test Data
+			/*
+			bankMap.put(ItemID.TORSTOL, 25);
+			bankMap.put(ItemID.TORSTOL_POTION_UNF, 50);
+			bankMap.put(ItemID.GRIMY_TOADFLAX, 100);
+			bankMap.put(ItemID.TOADFLAX, 100);
+			bankMap.put(ItemID.TOADFLAX_POTION_UNF, 100);
+			bankMap.put(ItemID.GRIMY_MARRENTILL, 100);
+			bankMap.put(ItemID.MARRENTILL, 100);
+			bankMap.put(ItemID.MARRENTILL_POTION_UNF, 100);
+			 */
+			bankMap.put(ItemID.GRIMY_TOADFLAX, 100);
+			bankMap.put(ItemID.TOADFLAX, 100);
+			bankMap.put(ItemID.TOADFLAX_POTION_UNF, 100);
+			openBanked(calculatorType);
+			return;
+			//add(new JLabel( "Please visit a bank!", JLabel.CENTER));
+			//revalidate();
+			//repaint();
 		}
 		else
 		{
+			banked();
+
 			// Now we can actually show the Banked Experience Panel
 			// Adds Config Options for this panel
 			renderBankedExpOptions();
 
-			// Adds in checkboxes for available skill bonuses, same as Skill Calc
+			// Adds in checkboxes for available skill bon uses, same as Skill Calc
 			renderBonusOptions();
-
-			// Adds in the Detail Container config options
-			renderBankedConfigOptions();
 
 			// Total banked experience
 			calculateBankedExpTotal();
@@ -770,10 +715,11 @@ class SkillCalculator extends JPanel
 		// Update the input fields.
 		syncInputFields();
 	}
-	// Adds the Configuration options for Banked Experience to the panel
+
+	// Adds the Configuration checkboxes to the panel
 	private void renderBankedExpOptions()
 	{
-		Set<String> categories = BankedItems.getSkillCategories(skill);
+		Set<String> categories = CriticalItem.getSkillCategories(skill);
 		if (categories == null)
 			return;
 
@@ -807,33 +753,260 @@ class SkillCalculator extends JPanel
 		}
 	}
 
-
-	private void renderBankedConfigOptions()
+	// Calculate the total banked experience and display it in the panel
+	private void calculateBankedExpTotal()
 	{
-		detailConfigContainer.removeAll();
+		if (!currentTab.equals("Banked Xp"))
+			return;
 
-		ArrayList<BankedItemOptions> options = BankedItemOptions.getBySkill(skill);
-		if (options != null)
+		totalBankedXp = calculateBankedTotal();
+
+		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
+
+		// Update Target XP & Level to include total banked xp
+		targetXP = (int) (currentXP + totalBankedXp);
+		targetLevel = Experience.getLevelForXp(targetXP);
+		syncInputFields();
+
+		revalidate();
+		repaint();
+	}
+
+	// Calculates Total Banked XP for this Skill
+	private double calculateBankedTotal()
+	{
+		double total = 0;
+		for (Map.Entry<CriticalItem, Integer> e : criticalMap.entrySet())
 		{
-			Map<Integer, ArrayList<BankedItemOptions>> dropdown = BankedItemOptions.resourceSetMap(options);
-			for (Map.Entry<Integer, ArrayList<BankedItemOptions>> entry : dropdown.entrySet())
+			CriticalItem i = e.getKey();
+			if (ignoreMap.containsKey(i.getItemID()))
 			{
-				JPanel panel = createBankedOptionDropdown(entry);
-
-				if (panel != null)
-					detailConfigContainer.add(panel);
+				continue;
 			}
+
+			// Ignore certain categories.
+			boolean flag = categoryMap.get(i.getCategory());
+			if (!flag)
+			{
+				continue;
+			}
+
+			if (e.getValue() > 0)
+			{
+				total += e.getValue() * getItemXpRate(i);
+			}
+		}
+
+		return total;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private void banked()
+	{
+		// Grab all CriticalItems for this skill
+		ArrayList<CriticalItem> items = CriticalItem.getBySkillName(skill);
+
+		// Loop over all Critical Items for this skill and determine how many are in the bank
+		for (CriticalItem item : items)
+		{
+			Integer qty = bankMap.get(item.getItemID());
+			if (qty != null && qty > 0)
+			{
+				if (criticalMap.containsKey(item))
+				{
+					criticalMap.put(item, criticalMap.get(item) + qty);
+				}
+				else
+				{
+					criticalMap.put(item, qty);
+				}
+
+				if (!activityMap.containsKey(item))
+				{
+					ArrayList<Activity> x = Activity.getByCriticalItem(item);
+					if (x != null)
+					{
+						activityMap.put(item, x);
+					}
+				}
+
+				// Convert all Critical Items to their final form.
+				if (item.getLinkedItemId() != -1)
+				{
+					finalForm(item);
+				}
+			}
+		}
+		log.info("Critical Map: {}", criticalMap);
+		log.info("Activity Map: {}", activityMap);
+		log.info("Linked Map: {}", linkedMap);
+	}
+
+	//
+	private void finalForm(CriticalItem item)
+	{
+		CriticalItem i = CriticalItem.getByItemId(item.getLinkedItemId());
+		if (i != null)
+		{
+
+			int id = item.getItemID();
+			Integer qty = bankMap.get(id);
+			linkedMap.put(i, id);
+
+			// Update quantity in critical map
+			if (criticalMap.containsKey(i))
+			{
+				criticalMap.put(i, criticalMap.get(i) + qty);
+			}
+			else
+			{
+				criticalMap.put(i, qty);
+			}
+
+			if (!activityMap.containsKey(i))
+			{
+				ArrayList<Activity> x = Activity.getByCriticalItem(i);
+				if (x != null)
+				{
+					activityMap.put(i, x);
+				}
+			}
+
+			if (i.getLinkedItemId() != -1)
+			{
+				finalForm(i);
+			}
+
 		}
 	}
 
-	private void ignoreItemID(int id)
+	private double getItemXpRate(CriticalItem i)
 	{
-		ignoreMap.put(id, true);
+		List<Activity> activities = activityMap.get(i);
+		if (activities != null)
+		{
+			Activity selected;
+			if (activities.size() > 1)
+			{
+				Activity stored = indexMap.get(i);
+				selected = (stored == null) ? activities.get(0) : stored;
+			}
+			else
+			{
+				selected = activities.get(0);
+			}
 
-		// Update bonus experience calculations
-		renderBankedConfigOptions();
-		calculateBankedExpTotal();
-		refreshBankedExpDetails();
+			return selected.getXp();
+		}
+		else
+		{
+			if (i.getLinkedItemId() == -1)
+			{
+				return 0;
+			}
+			else
+			{
+				return getItemXpRate(CriticalItem.getByItemId(i.getLinkedItemId()));
+			}
+
+		}
 	}
 
+	// Recreates the Banked Experience Detail container
+	private void refreshBankedExpDetails()
+	{
+		detailContainer.removeAll();
+
+		Map<CriticalItem, Integer> map = getBankedExpBreakdown();
+		for (Map.Entry<CriticalItem, Integer> entry : map.entrySet())
+		{
+			CriticalItem item = entry.getKey();
+			boolean flag = categoryMap.get(item.getCategory());
+			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
+			// Category Included and Not ignoring this item ID?
+			if (flag && !ignoreFlag)
+			{
+				double xp = getItemXpRate(item);
+				double total = entry.getValue() * xp;
+
+				// Right-Click Menu
+				JPopupMenu menu = new JPopupMenu("");
+				JMenuItem ignore = new JMenuItem("Ignore Item");
+				ignore.addActionListener(e -> ignoreItemID(item.getItemID()));
+				menu.add(ignore);
+
+				// Exp panel
+				ItemPanel panel = new ItemPanel(this, itemManager, item, xp, entry.getValue(), total);
+				panel.setComponentPopupMenu(menu);
+
+				detailContainer.add(panel);
+			}
+		}
+
+		detailContainer.revalidate();
+		detailContainer.repaint();
+	}
+
+	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
+	private Map<CriticalItem, Integer> getBankedExpBreakdown()
+	{
+		Map<CriticalItem, Integer> map = new LinkedHashMap<>();
+
+		for (String category : CriticalItem.getSkillCategories(skill))
+		{
+			ArrayList<CriticalItem> items = CriticalItem.getItemsForSkillCategories(skill, category);
+			for (CriticalItem item : items)
+			{
+				Integer amount = bankMap.get(item.getItemID());
+				if (amount != null && amount > 0)
+				{
+					map.put(item, amount);
+				}
+			}
+		}
+
+		return map;
+	}
 }

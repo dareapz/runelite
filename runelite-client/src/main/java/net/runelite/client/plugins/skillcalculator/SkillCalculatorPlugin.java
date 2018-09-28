@@ -26,11 +26,8 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -38,20 +35,23 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import lombok.Getter;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.events.ConfigChanged;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.skillcalculator.beans.SkillDataEntry;
+import net.runelite.client.plugins.skillcalculator.banked.CriticalItem;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.util.ImageUtil;
@@ -65,6 +65,9 @@ public class SkillCalculatorPlugin extends Plugin
 {
 	@Inject
 	private Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private SkillIconManager skillIconManager;
@@ -89,6 +92,8 @@ public class SkillCalculatorPlugin extends Plugin
 
 	// Used to check if the bankMap has changed (sends new bank map to panel)
 	private int itemsHash;
+	// Append ItemComposition to CriticalItems
+	private boolean prepared = false;
 
 	@Provides
 	SkillCalculatorConfig getConfig(ConfigManager configManager)
@@ -184,29 +189,19 @@ public class SkillCalculatorPlugin extends Plugin
 		}
 	}
 
-
-
-	// 2 + 2 is 4 minus 1 is 3 quick maths
-	private void quickMaths(int level, SkillDataEntry[] items)
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged c)
 	{
-		List<SkillDataEntry> filteredItems = new ArrayList<>();
-		for (SkillDataEntry i : items)
+		if (prepared)
+			return;
+
+		if (c.getGameState().equals(GameState.LOGIN_SCREEN))
 		{
-			if (i.getLevel() <= level)
+			clientThread.invokeLater(() ->
 			{
-				filteredItems.add(i);
-			}
+				CriticalItem.prepareItemCompositions(itemManager);
+				prepared = true;
+			});
 		}
-
-		// Sort by level in descending order.
-		filteredItems.sort(new Comparator<SkillDataEntry>()
-		{
-			@Override
-			public int compare(SkillDataEntry o1, SkillDataEntry o2)
-			{
-				return o2.getLevel() - o1.getLevel();
-			}
-		});
-
 	}
 }
