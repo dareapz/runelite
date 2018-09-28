@@ -31,6 +31,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
@@ -92,15 +93,23 @@ public class ItemPanel extends JPanel
 	private final SkillCalculator calc;
 	private final CriticalItem item;
 	private final ItemManager itemManager;
-	private final JPanel infoContainer;
+	private double xp;
+	private int amount;
+	private double total;
+	private Map<CriticalItem, Integer> linkedMap;
 
+	private final JPanel infoContainer;
 	private boolean infoVisibility = false;
 
-	public ItemPanel(SkillCalculator calc, ItemManager itemManager, CriticalItem item, double xp, int amount, double total)
+	public ItemPanel(SkillCalculator calc, ItemManager itemManager, CriticalItem item, double xp, int amount, double total, Map<CriticalItem, Integer> linkedMap)
 	{
-		this.item = item;
-		this.itemManager = itemManager;
 		this.calc = calc;
+		this.item = item;
+		this.xp = xp;
+		this.amount = amount;
+		this.total = total;
+		this.itemManager = itemManager;
+		this.linkedMap = linkedMap;
 
 		this.setLayout(new GridBagLayout());
 		this.setBorder(PANEL_BORDER);
@@ -118,7 +127,7 @@ public class ItemPanel extends JPanel
 		image.setMinimumSize(ICON_SIZE);
 		image.setMaximumSize(ICON_SIZE);
 		image.setPreferredSize(ICON_SIZE);
-		image.setHorizontalAlignment(SwingConstants.LEFT);
+		image.setHorizontalAlignment(SwingConstants.CENTER);
 		image.setBorder(new EmptyBorder(0, 8, 0, 0));
 
 		Runnable resize = () ->
@@ -245,7 +254,46 @@ public class ItemPanel extends JPanel
 		if (p != null)
 		{
 			infoContainer.add(p, c);
+			c.gridy++;
 		}
+
+
+		if (linkedMap.size() > 0)
+		{
+			log.info("Linked: {}", linkedMap);
+			JLabel l = new JLabel("Linked Item Breakdown:");
+			l.setBorder(new EmptyBorder(3, 0, 3, 0));
+			infoContainer.add(l, c);
+			c.gridy++;
+
+			JPanel con = new JPanel();
+			con.setLayout(new GridBagLayout());
+			con.setBackground(BACKGROUND_COLOR);
+			for (Map.Entry<CriticalItem, Integer> e : linkedMap.entrySet())
+			{
+				// Icon
+				AsyncBufferedImage icon = itemManager.getImage(e.getKey().getItemID(), e.getValue(), e.getKey().getComposition().isStackable() || e.getValue() > 1);
+				JLabel image = new JLabel();
+				image.setMinimumSize(ICON_SIZE);
+				image.setMaximumSize(ICON_SIZE);
+				image.setPreferredSize(ICON_SIZE);
+				image.setHorizontalAlignment(SwingConstants.CENTER);
+				image.setBorder(new EmptyBorder(0, 8, 0, 0));
+
+				Runnable resize = () ->
+					image.setIcon(new ImageIcon(icon.getScaledInstance((int)ICON_SIZE.getWidth(), (int)ICON_SIZE.getHeight(), Image.SCALE_SMOOTH)));
+				icon.onChanged(resize);
+				resize.run();
+
+				image.setToolTipText(e.getKey().getComposition().getName());
+
+				con.add(image, c);
+				c.gridx++;
+			}
+			c.gridx = 0;
+			infoContainer.add(con, c);
+		}
+
 	}
 
 

@@ -427,14 +427,16 @@ public class SkillCalculator extends JPanel
 		}
 		else
 		{
-			banked();
-
 			// Now we can actually show the Banked Experience Panel
 			// Adds Config Options for this panel
 			renderBankedExpOptions();
 
 			// Adds in checkboxes for available skill bon uses, same as Skill Calc
 			renderBonusOptions();
+
+			// two plus two is four, minus one that's three
+			calculatedBankedMaps();
+
 
 			// Total banked experience
 			calculateBankedExpTotal();
@@ -489,6 +491,52 @@ public class SkillCalculator extends JPanel
 		}
 	}
 
+	// Creates maps for use when creating/calculating the Banked Xp UI
+	private void calculatedBankedMaps()
+	{
+		// Grab all CriticalItems for this skill
+		ArrayList<CriticalItem> items = CriticalItem.getBySkillName(skill);
+
+		// Loop over all Critical Items for this skill and determine how many are in the bank
+		for (CriticalItem item : items)
+		{
+			Integer qty = bankMap.get(item.getItemID());
+			if (qty != null && qty > 0)
+			{
+				if (criticalMap.containsKey(item))
+				{
+					criticalMap.put(item, criticalMap.get(item) + qty);
+				}
+				else
+				{
+					criticalMap.put(item, qty);
+				}
+
+				if (!activityMap.containsKey(item))
+				{
+					ArrayList<Activity> x = Activity.getByCriticalItem(item);
+					if (x != null)
+					{
+						activityMap.put(item, x);
+					}
+				}
+
+				// Ensure the item this is linked to maps back to us.
+				if (item.getLinkedItemId() != -1)
+				{
+					CriticalItem i = CriticalItem.getByItemId(item.getLinkedItemId());
+					if (i != null)
+					{
+						linkedMap.put(i, item.getItemID());
+					}
+				}
+			}
+		}
+		log.info("Critical Map: {}", criticalMap);
+		log.info("Activity Map: {}", activityMap);
+		log.info("Linked Map: {}", linkedMap);
+	}
+
 	// Calculate the total banked experience and display it in the panel
 	private void calculateBankedExpTotal()
 	{
@@ -537,9 +585,16 @@ public class SkillCalculator extends JPanel
 		return total;
 	}
 
-	// Determine what the XP value for this item should be
+	// Determine what the XP value for this item should be based off possible activities and known selections
 	private double getItemXpRate(CriticalItem i)
 	{
+		// Pull from memory if available
+		Activity a = indexMap.get(i);
+		if (a != null)
+		{
+			return a.getXp();
+		}
+
 		List<Activity> activities = activityMap.get(i);
 		if (activities != null)
 		{
@@ -553,7 +608,8 @@ public class SkillCalculator extends JPanel
 			{
 				selected = activities.get(0);
 			}
-
+			// Set default values
+			indexMap.put(i, selected);
 			return selected.getXp();
 		}
 		else
@@ -584,8 +640,28 @@ public class SkillCalculator extends JPanel
 			// Category Included and Not ignoring this item ID?
 			if (flag && !ignoreFlag)
 			{
-				double xp = getItemXpRate(item);
-				double total = entry.getValue() * xp;
+				// Check if this should count as another item.
+				if (item.getLinkedItemId() != -1)
+				{
+					Activity selected = indexMap.get(item);
+					// If no activity or selected activity doesn't preventing links
+					if (selected == null)
+					{
+						continue;
+					}
+				}
+
+				double xp = getItemXpRate(item) * xpFactor;
+				int amount = 0; // links will always contain this item at least.
+				Map<CriticalItem, Integer> links = getLinkedTotalMap(item);
+
+				// If it has linked items figure out the working total.
+				for (Integer num : links.values())
+				{
+					amount += num;
+				}
+
+				double total = amount * xp;
 
 				// Right-Click Menu
 				JPopupMenu menu = new JPopupMenu("");
@@ -594,7 +670,7 @@ public class SkillCalculator extends JPanel
 				menu.add(ignore);
 
 				// Exp panel
-				ItemPanel panel = new ItemPanel(this, itemManager, item, xp, entry.getValue(), total);
+				ItemPanel panel = new ItemPanel(this, itemManager, item, xp, amount, total, links);
 				panel.setComponentPopupMenu(menu);
 
 				detailContainer.add(panel);
@@ -674,8 +750,40 @@ public class SkillCalculator extends JPanel
 		refreshBankedExpDetails();
 	}
 
+	private Map<CriticalItem, Integer> getLinkedTotalMap(CriticalItem i)
+	{
+		log.info("Critical Item: {}", i);
+		Map<CriticalItem, Integer> map = new LinkedHashMap<>();
 
+		// This item has an activity selected and its preventing linked functionality, return empty map.
+		Activity selected = indexMap.get(i);
+		if (selected != null && selected.isPreventLinked())
+		{
+			return map;
+		}
 
+		// Add this item to the map and check for any links
+		map.put(i, criticalMap.getOrDefault(i, 0));
+
+		// This item doesn't link to anything, all done.
+		if (linkedMap.get(i) == null)
+		{
+			return map;
+		}
+
+		CriticalItem item = CriticalItem.getByItemId(linkedMap.get(i));
+		if (item == null)
+		{
+			log.warn("Error finding Critical Item for Item ID: {}", linkedMap.get(i));
+			return map;
+		}
+
+		map.putAll(getLinkedTotalMap(item));
+
+		log.info("Map: {}", map);
+
+		return map;
+	}
 
 
 
@@ -697,6 +805,10 @@ public class SkillCalculator extends JPanel
 	private void updateData(CalculatorType calculatorType)
 	{
 		reset();
+		if (skill != calculatorType.getSkill())
+		{
+			indexMap.clear();
+		}
 
 		// Load the skill data.
 		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
@@ -819,7 +931,6 @@ public class SkillCalculator extends JPanel
 		categoryMap.clear();
 		criticalMap.clear();
 		activityMap.clear();
-		indexMap.clear();
 		linkedMap.clear();
 	}
 
@@ -933,53 +1044,6 @@ public class SkillCalculator extends JPanel
 
 
 
-
-
-
-
-
-
-
-	private void banked()
-	{
-		// Grab all CriticalItems for this skill
-		ArrayList<CriticalItem> items = CriticalItem.getBySkillName(skill);
-
-		// Loop over all Critical Items for this skill and determine how many are in the bank
-		for (CriticalItem item : items)
-		{
-			Integer qty = bankMap.get(item.getItemID());
-			if (qty != null && qty > 0)
-			{
-				if (criticalMap.containsKey(item))
-				{
-					criticalMap.put(item, criticalMap.get(item) + qty);
-				}
-				else
-				{
-					criticalMap.put(item, qty);
-				}
-
-				if (!activityMap.containsKey(item))
-				{
-					ArrayList<Activity> x = Activity.getByCriticalItem(item);
-					if (x != null)
-					{
-						activityMap.put(item, x);
-					}
-				}
-
-				// Convert all Critical Items to their final form.
-				if (item.getLinkedItemId() != -1)
-				{
-					finalForm(item);
-				}
-			}
-		}
-		log.info("Critical Map: {}", criticalMap);
-		log.info("Activity Map: {}", activityMap);
-		log.info("Linked Map: {}", linkedMap);
-	}
 
 	//
 	private void finalForm(CriticalItem item)
