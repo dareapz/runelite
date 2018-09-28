@@ -75,6 +75,8 @@ class TextPanel extends JPanel
 		c.gridy = 0;
 		c.ipady = 20;
 
+		panel.setToolTipText(StackFormatter.formatNumber(totalValue));
+
 		this.add(panel, c);
 	}
 

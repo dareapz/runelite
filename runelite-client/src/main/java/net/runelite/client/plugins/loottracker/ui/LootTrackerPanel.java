@@ -24,6 +24,9 @@
  */
 package net.runelite.client.plugins.loottracker.ui;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.LootTrackerPlugin;
@@ -61,6 +64,7 @@ public class LootTrackerPanel extends PluginPanel
 	private static final BufferedImage ICON_DELETE;
 	private static final BufferedImage ICON_REFRESH;
 	private static final BufferedImage ICON_BACK;
+	private static final BufferedImage ICON_REPLAY;
 
 	private final static Color BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
 	private final static Color BUTTON_HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
@@ -70,6 +74,7 @@ public class LootTrackerPanel extends PluginPanel
 		BufferedImage i1;
 		BufferedImage i2;
 		BufferedImage i3;
+		BufferedImage i4;
 		try
 		{
 			synchronized (ImageIO.class)
@@ -77,6 +82,7 @@ public class LootTrackerPanel extends PluginPanel
 				i1 = ImageIO.read(LootTrackerPlugin.class.getResourceAsStream("delete-white.png"));
 				i2 = ImageIO.read(LootTrackerPlugin.class.getResourceAsStream("refresh-white.png"));
 				i3 = ImageIO.read(LootTrackerPlugin.class.getResourceAsStream("back-arrow-white.png"));
+				i4 = ImageIO.read(LootTrackerPlugin.class.getResourceAsStream("replay-white.png"));
 			}
 		}
 		catch (IOException e)
@@ -86,6 +92,7 @@ public class LootTrackerPanel extends PluginPanel
 		ICON_DELETE = i1;
 		ICON_REFRESH = i2;
 		ICON_BACK = i3;
+		ICON_REPLAY = i4;
 	}
 
 	// NPC name for current view or null if on selection screen
@@ -245,6 +252,7 @@ public class LootTrackerPanel extends PluginPanel
 				refreshLootView(name);
 			}
 		});
+		refresh.setToolTipText("Refresh panel");
 
 		// Clear data button
 		JLabel clear = createIconLabel(ICON_DELETE);
@@ -256,9 +264,23 @@ public class LootTrackerPanel extends PluginPanel
 				clearData(name);
 			}
 		});
+		clear.setToolTipText("Clear stored data");
+
+		// Clear data button
+		JLabel replay = createIconLabel(ICON_REPLAY);
+		replay.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				playbackLoot();
+			}
+		});
+		replay.setToolTipText("Replay Loot");
 
 		second.add(refresh);
 		second.add(clear);
+		second.add(replay);
 
 		title.add(first, BorderLayout.WEST);
 		title.add(second, BorderLayout.EAST);
@@ -379,5 +401,20 @@ public class LootTrackerPanel extends PluginPanel
 	{
 		plugin.refreshDataByName(name);
 		showLootView(name); // Recreate the entire panel
+	}
+
+	private void playbackLoot()
+	{
+		if (lootPanel.isPlaybackPlaying())
+		{
+			lootPanel.cancelPlayback();
+			return;
+		}
+
+		ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
+		if (currentView != null && !currentView.equals("Session"))
+		{
+			ex.schedule(lootPanel::playback, 0, TimeUnit.SECONDS);
+		}
 	}
 }
