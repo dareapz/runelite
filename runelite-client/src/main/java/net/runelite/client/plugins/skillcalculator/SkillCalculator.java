@@ -150,6 +150,9 @@ public class SkillCalculator extends JPanel
 		detailConfigContainer.setLayout(new BoxLayout(detailConfigContainer, BoxLayout.Y_AXIS));
 	}
 
+	/*
+	 * Calculator Logic
+	 */
 
 	// Opens the Calculator tab for the current Skill
 	void openCalculator(CalculatorType calculatorType)
@@ -358,146 +361,11 @@ public class SkillCalculator extends JPanel
 		return XP_FORMAT.format(xp) + expExpression + NumberFormat.getIntegerInstance().format(actionCount) + (actionCount > 1 ? " actions" : " action");
 	}
 
-	private void updateInputFields()
-	{
-		if (targetXP < currentXP)
-		{
-			targetLevel = enforceSkillBounds(currentLevel + 1);
-			targetXP = Experience.getXpForLevel(targetLevel);
-		}
+	/*
+	 * Banked Experience Logic
+	 */
 
-		syncInputFields();
-	}
-
-	private void syncInputFields()
-	{
-		uiInput.setCurrentLevelInput(currentLevel);
-		uiInput.setCurrentXPInput(currentXP);
-		uiInput.setTargetLevelInput(targetLevel);
-		uiInput.setTargetXPInput(targetXP);
-
-		// Can only edit input fields when on Calculator tab
-		if (currentTab.equals("Calculator"))
-		{
-			calculate();
-		}
-	}
-
-	private void adjustXPBonus(float value)
-	{
-		xpFactor = 1f + value;
-		switch (currentTab)
-		{
-			case "Calculator":
-				calculate();
-				break;
-			case "Banked Xp":
-				calculateBankedExpTotal();
-				refreshBankedExpDetails();
-				break;
-		}
-	}
-
-	private void adjustBankedXp(boolean removeBonus, String category)
-	{
-		categoryMap.put(category, removeBonus);
-		calculateBankedExpTotal();
-		refreshBankedExpDetails();
-	}
-
-	private void onFieldCurrentLevelUpdated()
-	{
-		currentLevel = enforceSkillBounds(uiInput.getCurrentLevelInput());
-		currentXP = Experience.getXpForLevel(currentLevel);
-		updateInputFields();
-	}
-
-	private void onFieldCurrentXPUpdated()
-	{
-		currentXP = enforceXPBounds(uiInput.getCurrentXPInput());
-		currentLevel = Experience.getLevelForXp(currentXP);
-		updateInputFields();
-	}
-
-	private void onFieldTargetLevelUpdated()
-	{
-		targetLevel = enforceSkillBounds(uiInput.getTargetLevelInput());
-		targetXP = Experience.getXpForLevel(targetLevel);
-		updateInputFields();
-	}
-
-	private void onFieldTargetXPUpdated()
-	{
-		targetXP = enforceXPBounds(uiInput.getTargetXPInput());
-		targetLevel = Experience.getLevelForXp(targetXP);
-		updateInputFields();
-	}
-
-	private static int enforceSkillBounds(int input)
-	{
-		return Math.min(Experience.MAX_VIRT_LEVEL, Math.max(1, input));
-	}
-
-	private static int enforceXPBounds(int input)
-	{
-		return Math.min(MAX_XP, Math.max(0, input));
-	}
-
-	private void onSearch()
-	{
-		//only show slots that match our search text
-		uiActionSlots.forEach(slot ->
-		{
-			if (slotContainsText(slot, searchBar.getText()))
-			{
-				super.add(slot);
-			}
-			else
-			{
-				super.remove(slot);
-			}
-
-			revalidate();
-		});
-	}
-
-	private boolean slotContainsText(UIActionSlot slot, String text)
-	{
-		return slot.getAction().getName().toLowerCase().contains(text.toLowerCase());
-	}
-
-	private void reset()
-	{
-		ignoreMap.clear();
-		categoryMap.clear();
-		criticalMap.clear();
-		activityMap.clear();
-		indexMap.clear();
-		linkedMap.clear();
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// Bank map changed so recreate the banked xp panel if they are currently viewing it
+	// Plugin passes Bank content to Panel which forwards here whenever the content changes
 	void setBankMap(Map<Integer, Integer> map)
 	{
 		boolean oldMapFlag = (bankMap.size() <= 0);
@@ -518,138 +386,6 @@ public class SkillCalculator extends JPanel
 			SwingUtilities.invokeLater(this::refreshBankedExpDetails);
 		}
 	}
-
-	// Update UI panel for new skill data
-	private void updateData(CalculatorType calculatorType)
-	{
-		reset();
-
-		// Load the skill data.
-		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
-
-		// Store the current skill
-		skill = calculatorType.getSkill();
-		//bankMap = plugin.getBankMap();
-
-		// Reset the XP factor, removing bonuses.
-		xpFactor = 1.0f;
-		totalBankedXp = 0.0f;
-
-		// Update internal skill/XP values.
-		currentXP = client.getSkillExperience(skill);
-		currentLevel = Experience.getLevelForXp(currentXP);
-		targetLevel = enforceSkillBounds(currentLevel + 1);
-		targetXP = Experience.getXpForLevel(targetLevel);
-
-		if (currentTab.equals("Banked Xp"))
-		{
-			uiInput.getUiFieldTargetLevel().setEditable(false);
-			uiInput.getUiFieldTargetXP().setEditable(false);
-		}
-		else
-		{
-			uiInput.getUiFieldTargetLevel().setEditable(true);
-			uiInput.getUiFieldTargetXP().setEditable(true);
-		}
-
-	}
-
-	// Critical Item Activity Selected
-	public void activitySelected(CriticalItem i, Activity a)
-	{
-		indexMap.put(i, a);
-
-		// Total banked experience
-		calculateBankedExpTotal();
-
-		// Create the banked experience details container
-		refreshBankedExpDetails();
-	}
-
-	// Ignore an item in banked xp
-	private void ignoreItemID(int id)
-	{
-		ignoreMap.put(id, true);
-
-		// Update bonus experience calculations
-		calculateBankedExpTotal();
-		refreshBankedExpDetails();
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	// Opens the Banked XP tab for the current Skill
 	void openBanked(CalculatorType calculatorType)
@@ -761,7 +497,7 @@ public class SkillCalculator extends JPanel
 
 		totalBankedXp = calculateBankedTotal();
 
-		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
+		totalLabel.setText("Total Banked xp: " + XP_FORMAT_COMMA.format(totalBankedXp));
 
 		// Update Target XP & Level to include total banked xp
 		targetXP = (int) (currentXP + totalBankedXp);
@@ -771,6 +507,7 @@ public class SkillCalculator extends JPanel
 		revalidate();
 		repaint();
 	}
+
 
 	// Calculates Total Banked XP for this Skill
 	private double calculateBankedTotal()
@@ -799,6 +536,366 @@ public class SkillCalculator extends JPanel
 
 		return total;
 	}
+
+	// Determine what the XP value for this item should be
+	private double getItemXpRate(CriticalItem i)
+	{
+		List<Activity> activities = activityMap.get(i);
+		if (activities != null)
+		{
+			Activity selected;
+			if (activities.size() > 1)
+			{
+				Activity stored = indexMap.get(i);
+				selected = (stored == null) ? activities.get(0) : stored;
+			}
+			else
+			{
+				selected = activities.get(0);
+			}
+
+			return selected.getXp();
+		}
+		else
+		{
+			if (i.getLinkedItemId() == -1)
+			{
+				return 0;
+			}
+			else
+			{
+				return getItemXpRate(CriticalItem.getByItemId(i.getLinkedItemId()));
+			}
+
+		}
+	}
+
+	// Recreates the Banked Experience Detail container
+	private void refreshBankedExpDetails()
+	{
+		detailContainer.removeAll();
+
+		Map<CriticalItem, Integer> map = getBankedExpBreakdown();
+		for (Map.Entry<CriticalItem, Integer> entry : map.entrySet())
+		{
+			CriticalItem item = entry.getKey();
+			boolean flag = categoryMap.get(item.getCategory());
+			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
+			// Category Included and Not ignoring this item ID?
+			if (flag && !ignoreFlag)
+			{
+				double xp = getItemXpRate(item);
+				double total = entry.getValue() * xp;
+
+				// Right-Click Menu
+				JPopupMenu menu = new JPopupMenu("");
+				JMenuItem ignore = new JMenuItem("Ignore Item");
+				ignore.addActionListener(e -> ignoreItemID(item.getItemID()));
+				menu.add(ignore);
+
+				// Exp panel
+				ItemPanel panel = new ItemPanel(this, itemManager, item, xp, entry.getValue(), total);
+				panel.setComponentPopupMenu(menu);
+
+				detailContainer.add(panel);
+			}
+		}
+
+		detailContainer.revalidate();
+		detailContainer.repaint();
+	}
+
+	private void onSearch()
+	{
+		//only show slots that match our search text
+		uiActionSlots.forEach(slot ->
+		{
+			if (slotContainsText(slot, searchBar.getText()))
+			{
+				super.add(slot);
+			}
+			else
+			{
+				super.remove(slot);
+			}
+
+			revalidate();
+		});
+	}
+
+	private boolean slotContainsText(UIActionSlot slot, String text)
+	{
+		return slot.getAction().getName().toLowerCase().contains(text.toLowerCase());
+	}
+
+	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
+	private Map<CriticalItem, Integer> getBankedExpBreakdown()
+	{
+		Map<CriticalItem, Integer> map = new LinkedHashMap<>();
+
+		for (String category : CriticalItem.getSkillCategories(skill))
+		{
+			ArrayList<CriticalItem> items = CriticalItem.getItemsForSkillCategories(skill, category);
+			for (CriticalItem item : items)
+			{
+				Integer amount = bankMap.get(item.getItemID());
+				if (amount != null && amount > 0)
+				{
+					map.put(item, amount);
+				}
+			}
+		}
+
+		return map;
+	}
+
+
+
+
+	// CriticalItem Activity Selected
+	public void activitySelected(CriticalItem i, Activity a)
+	{
+		indexMap.put(i, a);
+
+		// Total banked experience
+		calculateBankedExpTotal();
+
+		// Create the banked experience details container
+		refreshBankedExpDetails();
+	}
+
+	// Ignore an item in banked xp calculations
+	private void ignoreItemID(int id)
+	{
+		ignoreMap.put(id, true);
+
+		// Update bonus experience calculations
+		calculateBankedExpTotal();
+		refreshBankedExpDetails();
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
+	 * Global Helpers
+	 */
+
+	// Update UI panel for new skill/tab data
+	private void updateData(CalculatorType calculatorType)
+	{
+		reset();
+
+		// Load the skill data.
+		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
+
+		// Store the current skill
+		skill = calculatorType.getSkill();
+		//bankMap = plugin.getBankMap();
+
+		// Reset the XP factor, removing bonuses.
+		xpFactor = 1.0f;
+		totalBankedXp = 0.0f;
+
+		// Update internal skill/XP values.
+		currentXP = client.getSkillExperience(skill);
+		currentLevel = Experience.getLevelForXp(currentXP);
+		targetLevel = enforceSkillBounds(currentLevel + 1);
+		targetXP = Experience.getXpForLevel(targetLevel);
+
+		if (currentTab.equals("Banked Xp"))
+		{
+			uiInput.getUiFieldTargetLevel().setEditable(false);
+			uiInput.getUiFieldTargetXP().setEditable(false);
+		}
+		else
+		{
+			uiInput.getUiFieldTargetLevel().setEditable(true);
+			uiInput.getUiFieldTargetXP().setEditable(true);
+		}
+
+	}
+
+	private void updateInputFields()
+	{
+		if (targetXP < currentXP)
+		{
+			targetLevel = enforceSkillBounds(currentLevel + 1);
+			targetXP = Experience.getXpForLevel(targetLevel);
+		}
+
+		syncInputFields();
+	}
+
+	private void syncInputFields()
+	{
+		uiInput.setCurrentLevelInput(currentLevel);
+		uiInput.setCurrentXPInput(currentXP);
+		uiInput.setTargetLevelInput(targetLevel);
+		uiInput.setTargetXPInput(targetXP);
+
+		// Can only edit input fields when on Calculator tab
+		if (currentTab.equals("Calculator"))
+		{
+			calculate();
+		}
+	}
+
+	private void adjustXPBonus(float value)
+	{
+		xpFactor = 1f + value;
+		switch (currentTab)
+		{
+			case "Calculator":
+				calculate();
+				break;
+			case "Banked Xp":
+				calculateBankedExpTotal();
+				refreshBankedExpDetails();
+				break;
+		}
+	}
+
+	private void adjustBankedXp(boolean removeBonus, String category)
+	{
+		categoryMap.put(category, removeBonus);
+		calculateBankedExpTotal();
+		refreshBankedExpDetails();
+	}
+
+	private void onFieldCurrentLevelUpdated()
+	{
+		currentLevel = enforceSkillBounds(uiInput.getCurrentLevelInput());
+		currentXP = Experience.getXpForLevel(currentLevel);
+		updateInputFields();
+	}
+
+	private void onFieldCurrentXPUpdated()
+	{
+		currentXP = enforceXPBounds(uiInput.getCurrentXPInput());
+		currentLevel = Experience.getLevelForXp(currentXP);
+		updateInputFields();
+	}
+
+	private void onFieldTargetLevelUpdated()
+	{
+		targetLevel = enforceSkillBounds(uiInput.getTargetLevelInput());
+		targetXP = Experience.getXpForLevel(targetLevel);
+		updateInputFields();
+	}
+
+	private void onFieldTargetXPUpdated()
+	{
+		targetXP = enforceXPBounds(uiInput.getTargetXPInput());
+		targetLevel = Experience.getLevelForXp(targetXP);
+		updateInputFields();
+	}
+
+	private static int enforceSkillBounds(int input)
+	{
+		return Math.min(Experience.MAX_VIRT_LEVEL, Math.max(1, input));
+	}
+
+	private static int enforceXPBounds(int input)
+	{
+		return Math.min(MAX_XP, Math.max(0, input));
+	}
+
+	private void reset()
+	{
+		ignoreMap.clear();
+		categoryMap.clear();
+		criticalMap.clear();
+		activityMap.clear();
+		indexMap.clear();
+		linkedMap.clear();
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -920,93 +1017,5 @@ public class SkillCalculator extends JPanel
 			}
 
 		}
-	}
-
-	private double getItemXpRate(CriticalItem i)
-	{
-		List<Activity> activities = activityMap.get(i);
-		if (activities != null)
-		{
-			Activity selected;
-			if (activities.size() > 1)
-			{
-				Activity stored = indexMap.get(i);
-				selected = (stored == null) ? activities.get(0) : stored;
-			}
-			else
-			{
-				selected = activities.get(0);
-			}
-
-			return selected.getXp();
-		}
-		else
-		{
-			if (i.getLinkedItemId() == -1)
-			{
-				return 0;
-			}
-			else
-			{
-				return getItemXpRate(CriticalItem.getByItemId(i.getLinkedItemId()));
-			}
-
-		}
-	}
-
-	// Recreates the Banked Experience Detail container
-	private void refreshBankedExpDetails()
-	{
-		detailContainer.removeAll();
-
-		Map<CriticalItem, Integer> map = getBankedExpBreakdown();
-		for (Map.Entry<CriticalItem, Integer> entry : map.entrySet())
-		{
-			CriticalItem item = entry.getKey();
-			boolean flag = categoryMap.get(item.getCategory());
-			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
-			// Category Included and Not ignoring this item ID?
-			if (flag && !ignoreFlag)
-			{
-				double xp = getItemXpRate(item);
-				double total = entry.getValue() * xp;
-
-				// Right-Click Menu
-				JPopupMenu menu = new JPopupMenu("");
-				JMenuItem ignore = new JMenuItem("Ignore Item");
-				ignore.addActionListener(e -> ignoreItemID(item.getItemID()));
-				menu.add(ignore);
-
-				// Exp panel
-				ItemPanel panel = new ItemPanel(this, itemManager, item, xp, entry.getValue(), total);
-				panel.setComponentPopupMenu(menu);
-
-				detailContainer.add(panel);
-			}
-		}
-
-		detailContainer.revalidate();
-		detailContainer.repaint();
-	}
-
-	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
-	private Map<CriticalItem, Integer> getBankedExpBreakdown()
-	{
-		Map<CriticalItem, Integer> map = new LinkedHashMap<>();
-
-		for (String category : CriticalItem.getSkillCategories(skill))
-		{
-			ArrayList<CriticalItem> items = CriticalItem.getItemsForSkillCategories(skill, category);
-			for (CriticalItem item : items)
-			{
-				Integer amount = bankMap.get(item.getItemID());
-				if (amount != null && amount > 0)
-				{
-					map.put(item, amount);
-				}
-			}
-		}
-
-		return map;
 	}
 }
