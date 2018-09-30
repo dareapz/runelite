@@ -410,14 +410,16 @@ public class LootTrackerPlugin extends Plugin
 		return sessionLootRecordMultimap.values();
 	}
 
+	// Clear all data from this session
 	public void clearData()
 	{
-		lootRecordMultimap.clear();
+		sessionLootRecordMultimap.clear();
 	}
 
 	public void clearDataByName(String name)
 	{
 		lootRecordMultimap.removeAll(name);
+		writer.clearData(name);
 	}
 
 	public TreeSet<String> getNames()
