@@ -120,7 +120,7 @@ class LootTrackerBox extends JPanel
 		long total = 0;
 		for (LootTrackerItemEntry itemStack : itemStacks)
 		{
-			total += itemStack.getPrice();
+			total += itemStack.getTotal();
 		}
 		return total;
 	}
