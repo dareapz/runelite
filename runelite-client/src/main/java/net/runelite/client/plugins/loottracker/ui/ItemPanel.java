@@ -24,6 +24,7 @@
  */
 package net.runelite.client.plugins.loottracker.ui;
 
+import java.awt.Dimension;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -46,6 +47,7 @@ import java.awt.GridLayout;
 class ItemPanel extends JPanel
 {
 	private static final GridBagLayout LAYOUT = new GridBagLayout();
+	private static final Dimension PANEL_SIZE = new Dimension(215, 60);
 
 	private static final Border PANEL_BORDER = new EmptyBorder(3, 0, 3, 0);
 	private static final Color PANEL_BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
@@ -61,6 +63,7 @@ class ItemPanel extends JPanel
 		this.setLayout(LAYOUT);
 		this.setBorder(PANEL_BORDER);
 		this.setBackground(PANEL_BACKGROUND_COLOR);
+		this.setPreferredSize(PANEL_SIZE);
 
 		// Item Image Icon
 		JLabel icon = new JLabel();
