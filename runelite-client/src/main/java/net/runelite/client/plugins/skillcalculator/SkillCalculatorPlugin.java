@@ -44,6 +44,7 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.WidgetItem;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
@@ -169,24 +170,38 @@ public class SkillCalculatorPlugin extends Plugin
 				return;
 			}
 
-			int curHash = Arrays.hashCode(widgetItems);
-			if (curHash == itemsHash)
+			Map<Integer, Integer> newBankMap = getBankMapIfDiff(widgetItems);
+
+			// Bank didn't change
+			if (newBankMap.size() == 0)
 			{
 				return;
 			}
 
-			Map<Integer, Integer> map = new HashMap<>();
-
-			for (Item widgetItem : widgetItems)
-			{
-				map.put(widgetItem.getId(), widgetItem.getQuantity());
-			}
-
-			bankMap = map;
-			itemsHash = curHash;
+			bankMap = newBankMap;
 			// send updated bank map to ui
 			uiPanel.updateBankMap(bankMap);
 		}
+	}
+
+	private Map<Integer, Integer> getBankMapIfDiff(Item[] widgetItems)
+	{
+		Map<Integer, Integer> mapCheck = new HashMap<>();
+
+		for (Item widgetItem : widgetItems)
+		{
+			mapCheck.put(widgetItem.getId(), widgetItem.getQuantity());
+		}
+
+		int curHash = mapCheck.hashCode();
+
+		if (curHash != itemsHash)
+		{
+			itemsHash = curHash;
+			return mapCheck;
+		}
+
+		return new HashMap<>();
 	}
 
 	@Subscribe
