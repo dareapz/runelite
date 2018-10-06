@@ -31,6 +31,7 @@ import net.runelite.api.ItemID;
 public enum ActivitySecondaries
 {
 	// Herblore Creations
+	UNFINISHED_POTION(new SecondaryItem(ItemID.VIAL_OF_WATER, 1)),
 
 	// Guam
 	ATTACK_POTION(new SecondaryItem(ItemID.EYE_OF_NEWT)),

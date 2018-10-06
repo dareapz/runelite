@@ -40,21 +40,29 @@ public enum Activity
 	 */
 	// Creating Potions
 	// Guam
+	GUAM_POTION_UNF(ItemID.GUAM_POTION_UNF, "Unfinished Potion", Skill.HERBLORE, 1, 0, CriticalItem.GUAM_LEAF, ActivitySecondaries.UNFINISHED_POTION),
+	GUAM_TAR(ItemID.GUAM_TAR, "Guam tar", Skill.HERBLORE, 19, 30, CriticalItem.GUAM_LEAF, ActivitySecondaries.GUAM_TAR, true),
+
 	ATTACK_POTION(ItemID.ATTACK_POTION4, "Attack Potion", Skill.HERBLORE, 3, 25, CriticalItem.GUAM_LEAF_POTION_UNF, ActivitySecondaries.ATTACK_POTION),
-	GUAM_TAR(ItemID.GUAM_TAR, "Guam tar", Skill.HERBLORE, 19, 30, CriticalItem.GUAM_LEAF_POTION_UNF, ActivitySecondaries.GUAM_TAR),
 	// Marrentil
-	ANTIPOISON(ItemID.ANTIPOISON4, "Antipoison", Skill.HERBLORE, 5, 37.5, CriticalItem.MARRENTILL_POTION_UNF, ActivitySecondaries.ANTIPOISON),
+	MARRENTILL_POTION_UNF(ItemID.MARRENTILL_POTION_UNF, "Unfinished Potion", Skill.HERBLORE, 1, 0, CriticalItem.MARRENTILL, ActivitySecondaries.UNFINISHED_POTION),
 	MARRENTILL_TAR(ItemID.MARRENTILL_TAR, "Marrentill tar", Skill.HERBLORE, 31, 42.5, CriticalItem.MARRENTILL, ActivitySecondaries.MARRENTILL_TAR, true),
+
+	ANTIPOISON(ItemID.ANTIPOISON4, "Antipoison", Skill.HERBLORE, 5, 37.5, CriticalItem.MARRENTILL_POTION_UNF, ActivitySecondaries.ANTIPOISON),
 	// Tarromin
+	TARROMIN_POTION_UNF(ItemID.TARROMIN_POTION_UNF, "Unfinished Potion", Skill.HERBLORE, 1, 0, CriticalItem.TARROMIN, ActivitySecondaries.UNFINISHED_POTION),
+	TARROMIN_TAR(ItemID.TARROMIN_TAR, "Tarromin tar", Skill.HERBLORE, 39, 55, CriticalItem.TARROMIN, ActivitySecondaries.TARROMIN_TAR, true),
+
 	STRENGTH_POTION(ItemID.STRENGTH_POTION4, "Strength potion", Skill.HERBLORE, 12, 50, CriticalItem.TARROMIN_POTION_UNF, ActivitySecondaries.STRENGTH_POTION),
 	SERUM_207(ItemID.SERUM_207_4, "Serum 207", Skill.HERBLORE, 15, 50, CriticalItem.TARROMIN_POTION_UNF, ActivitySecondaries.SERUM_207),
-	TARROMIN_TAR(ItemID.TARROMIN_TAR, "Tarromin tar", Skill.HERBLORE, 39, 55, CriticalItem.TARROMIN, ActivitySecondaries.TARROMIN_TAR, true),
 	// Harralander
+	HARRALANDER_POTION_UNF(ItemID.HARRALANDER_POTION_UNF, "Unfinished Potion", Skill.HERBLORE, 1, 0, CriticalItem.HARRALANDER, ActivitySecondaries.UNFINISHED_POTION),
+	HARRALANDER_TAR(ItemID.HARRALANDER_TAR, "Harralander tar", Skill.HERBLORE, 44, 72.5, CriticalItem.HARRALANDER, ActivitySecondaries.HARRALANDER_TAR, true),
+
 	COMPOST_POTION(ItemID.COMPOST_POTION4, "Compost potion", Skill.HERBLORE, 21, 60, CriticalItem.HARRALANDER_POTION_UNF, ActivitySecondaries.COMPOST_POTION),
 	RESTORE_POTION(ItemID.RESTORE_POTION4, "Restore potion", Skill.HERBLORE, 22, 62.5, CriticalItem.HARRALANDER_POTION_UNF, ActivitySecondaries.RESTORE_POTION),
 	ENERGY_POTION(ItemID.ENERGY_POTION4, "Energy potion", Skill.HERBLORE, 26, 67.5, CriticalItem.HARRALANDER_POTION_UNF, ActivitySecondaries.ENERGY_POTION),
 	COMBAT_POTION(ItemID.COMBAT_POTION4, "Combat potion", Skill.HERBLORE, 36, 84, CriticalItem.HARRALANDER_POTION_UNF, ActivitySecondaries.COMBAT_POTION),
-	HARRALANDER_TAR(ItemID.HARRALANDER_TAR, "Harralander tar", Skill.HERBLORE, 44, 72.5, CriticalItem.HARRALANDER, ActivitySecondaries.HARRALANDER_TAR, true),
 	// Ranarr Weed
 	DEFENCE_POTION(ItemID.DEFENCE_POTION4, "Defence potion", Skill.HERBLORE, 30, 75, CriticalItem.RANARR_POTION_UNF, ActivitySecondaries.DEFENCE_POTION),
 	PRAYER_POTION(ItemID.PRAYER_POTION4, "Prayer potion", Skill.HERBLORE, 38, 87.5, CriticalItem.RANARR_POTION_UNF, ActivitySecondaries.PRAYER_POTION),
