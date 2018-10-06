@@ -38,15 +38,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -73,7 +70,6 @@ public class SkillCalculator extends JPanel
 	private static final int MAX_XP = 200_000_000;
 	private static final DecimalFormat XP_FORMAT = new DecimalFormat("#.#");
 	private static final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
-	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
 
 	private final UICalculatorInputArea uiInput;
 	private final Client client;
@@ -98,6 +94,7 @@ public class SkillCalculator extends JPanel
 	// Banked Experience Variables
 	private Map<Integer, Integer> bankMap = new HashMap<>();
 	private Map<String, Boolean> categoryMap = new HashMap<>();
+	private Map<CriticalItem, ItemPanel> panelMap = new HashMap<>();
 	private double totalBankedXp = 0.0f;
 	private JLabel totalLabel = new JLabel();
 	private JPanel detailConfigContainer;
@@ -107,7 +104,7 @@ public class SkillCalculator extends JPanel
 	// Activity Magic
 	private Map<CriticalItem, Integer> criticalMap = new HashMap<>();
 	private Map<CriticalItem, List<Activity>> activityMap = new HashMap<>();
-	private Map<CriticalItem, Activity> indexMap = new HashMap<>();
+	public Map<CriticalItem, Activity> indexMap = new HashMap<>();
 	private Map<CriticalItem, Integer> linkedMap = new HashMap<>();
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput, SpriteManager spriteManager, ItemManager itemManager)
@@ -361,6 +358,47 @@ public class SkillCalculator extends JPanel
 		return XP_FORMAT.format(xp) + expExpression + NumberFormat.getIntegerInstance().format(actionCount) + (actionCount > 1 ? " actions" : " action");
 	}
 
+	private boolean slotContainsText(UIActionSlot slot, String text)
+	{
+		return slot.getAction().getName().toLowerCase().contains(text.toLowerCase());
+	}
+
+	private void onSearch()
+	{
+		//only show slots that match our search text
+		uiActionSlots.forEach(slot ->
+		{
+			if (slotContainsText(slot, searchBar.getText()))
+			{
+				super.add(slot);
+			}
+			else
+			{
+				super.remove(slot);
+			}
+
+			revalidate();
+		});
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	/*
 	 * Banked Experience Logic
 	 */
@@ -382,8 +420,8 @@ public class SkillCalculator extends JPanel
 			}
 
 			// Otherwise just update the Total XP banked and the details panel
-			SwingUtilities.invokeLater(this::calculateBankedExpTotal);
 			SwingUtilities.invokeLater(this::refreshBankedExpDetails);
+			SwingUtilities.invokeLater(this::calculateBankedExpTotal);
 		}
 	}
 
@@ -416,9 +454,14 @@ public class SkillCalculator extends JPanel
 			bankMap.put(ItemID.MARRENTILL, 100);
 			bankMap.put(ItemID.MARRENTILL_POTION_UNF, 100);
 			 */
-			bankMap.put(ItemID.GRIMY_TOADFLAX, 100);
-			bankMap.put(ItemID.TOADFLAX, 100);
-			bankMap.put(ItemID.TOADFLAX_POTION_UNF, 100);
+			bankMap.put(ItemID.PLANK, 100);
+			bankMap.put(ItemID.LOGS, 100);
+			bankMap.put(ItemID.TEAK_PLANK, 100);
+			bankMap.put(ItemID.TEAK_LOGS, 100);
+
+			bankMap.put(ItemID.GRIMY_MARRENTILL, 100);
+			bankMap.put(ItemID.MARRENTILL, 100);
+			bankMap.put(ItemID.MARRENTILL_POTION_UNF, 100);
 			openBanked(calculatorType);
 			return;
 			//add(new JLabel( "Please visit a bank!", JLabel.CENTER));
@@ -437,13 +480,9 @@ public class SkillCalculator extends JPanel
 			// two plus two is four, minus one that's three
 			calculatedBankedMaps();
 
-
-			// Total banked experience
-			calculateBankedExpTotal();
-
-			// Create the banked experience details container
-			detailContainer.removeAll();
+			// Calculate total banked experience and create detail container
 			refreshBankedExpDetails();
+			calculateBankedExpTotal();
 
 			add(detailConfigContainer);
 			add(totalLabel);
@@ -459,9 +498,11 @@ public class SkillCalculator extends JPanel
 	{
 		Set<String> categories = CriticalItem.getSkillCategories(skill);
 		if (categories == null)
+		{
 			return;
+		}
 
-		add(new JLabel("Banked Experience Configuration:"));
+		add(new JLabel("Configs:"));
 
 		for (String category : categories)
 		{
@@ -532,6 +573,7 @@ public class SkillCalculator extends JPanel
 				}
 			}
 		}
+
 		log.info("Critical Map: {}", criticalMap);
 		log.info("Activity Map: {}", activityMap);
 		log.info("Linked Map: {}", linkedMap);
@@ -541,10 +583,23 @@ public class SkillCalculator extends JPanel
 	private void calculateBankedExpTotal()
 	{
 		if (!currentTab.equals("Banked Xp"))
+		{
 			return;
+		}
 
-		totalBankedXp = calculateBankedTotal();
+		double total = 0.0;
+		for (ItemPanel p : panelMap.values())
+		{
+			total += p.getTotal();
+		}
 
+		totalBankedXp = total;
+
+		syncBankedXpLabel();
+	}
+
+	private void syncBankedXpLabel()
+	{
 		totalLabel.setText("Total Banked xp: " + XP_FORMAT_COMMA.format(totalBankedXp));
 
 		// Update Target XP & Level to include total banked xp
@@ -557,32 +612,79 @@ public class SkillCalculator extends JPanel
 	}
 
 
-	// Calculates Total Banked XP for this Skill
-	private double calculateBankedTotal()
+	// Recreates the Banked Experience Detail container
+	private void refreshBankedExpDetails()
 	{
-		double total = 0;
-		for (Map.Entry<CriticalItem, Integer> e : criticalMap.entrySet())
+		detailContainer.removeAll();
+		panelMap.clear();
+
+		Map<CriticalItem, Integer> map = getBankedExpBreakdown();
+		for (Map.Entry<CriticalItem, Integer> entry : map.entrySet())
 		{
-			CriticalItem i = e.getKey();
-			if (ignoreMap.containsKey(i.getItemID()))
-			{
-				continue;
-			}
-
-			// Ignore certain categories.
-			boolean flag = categoryMap.get(i.getCategory());
-			if (!flag)
-			{
-				continue;
-			}
-
-			if (e.getValue() > 0)
-			{
-				total += e.getValue() * getItemXpRate(i);
-			}
+			CriticalItem item = entry.getKey();
+			createItemPanel(item);
 		}
 
-		return total;
+		detailContainer.revalidate();
+		detailContainer.repaint();
+	}
+
+	private void createItemPanel(CriticalItem item)
+	{
+		boolean flag = categoryMap.get(item.getCategory());
+		boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
+
+		// Category Included and Not ignoring this item ID?
+		if (flag && !ignoreFlag)
+		{
+			// Check if this should count as another item.
+			if (item.getLinkedItemId() != -1)
+			{
+				// Ensure the linked item panel is created even though none are in bank.
+				CriticalItem linked = CriticalItem.getByItemId(item.getLinkedItemId());
+				if (!criticalMap.containsKey(linked))
+				{
+					createItemPanel(linked);
+				}
+
+				// If it doesn't have any activities ignore it in the breakdown.
+				List<Activity> activities = activityMap.get(item);
+				if (activities == null || activities.size() <= 0)
+				{
+					return;
+				}
+
+				// One activity and rewards no xp ignore.
+				if (activities.size() == 1)
+				{
+					if (activities.get(0).getXp() <= 0)
+					{
+						return;
+					}
+				}
+
+				// Either this item has multiple activities or the single activity rewards xp, create a panel below.
+			}
+
+			// Determine xp rate for this item
+			double xp = getItemXpRate(item) * xpFactor;
+			int amount = 0;
+			Map<CriticalItem, Integer> links = getLinkedTotalMap(item);
+
+			// If it has linked items figure out the working total.
+			for (Integer num : links.values())
+			{
+				amount += num;
+			}
+
+			// Exp panel
+			ItemPanel panel = new ItemPanel(this, itemManager, item, xp, amount, links);
+
+			panelMap.put(item, panel);
+
+			detailContainer.add(panel);
+		}
+
 	}
 
 	// Determine what the XP value for this item should be based off possible activities and known selections
@@ -595,7 +697,7 @@ public class SkillCalculator extends JPanel
 			return a.getXp();
 		}
 
-		List<Activity> activities = activityMap.get(i);
+		List<Activity> activities = Activity.getByCriticalItem(i);
 		if (activities != null)
 		{
 			Activity selected;
@@ -626,84 +728,6 @@ public class SkillCalculator extends JPanel
 		}
 	}
 
-	// Recreates the Banked Experience Detail container
-	private void refreshBankedExpDetails()
-	{
-		detailContainer.removeAll();
-
-		Map<CriticalItem, Integer> map = getBankedExpBreakdown();
-		for (Map.Entry<CriticalItem, Integer> entry : map.entrySet())
-		{
-			CriticalItem item = entry.getKey();
-			boolean flag = categoryMap.get(item.getCategory());
-			boolean ignoreFlag = ignoreMap.containsKey(item.getItemID());
-			// Category Included and Not ignoring this item ID?
-			if (flag && !ignoreFlag)
-			{
-				// Check if this should count as another item.
-				if (item.getLinkedItemId() != -1)
-				{
-					Activity selected = indexMap.get(item);
-					// If no activity or selected activity doesn't preventing links
-					if (selected == null)
-					{
-						continue;
-					}
-				}
-
-				double xp = getItemXpRate(item) * xpFactor;
-				int amount = 0; // links will always contain this item at least.
-				Map<CriticalItem, Integer> links = getLinkedTotalMap(item);
-
-				// If it has linked items figure out the working total.
-				for (Integer num : links.values())
-				{
-					amount += num;
-				}
-
-				double total = amount * xp;
-
-				// Right-Click Menu
-				JPopupMenu menu = new JPopupMenu("");
-				JMenuItem ignore = new JMenuItem("Ignore Item");
-				ignore.addActionListener(e -> ignoreItemID(item.getItemID()));
-				menu.add(ignore);
-
-				// Exp panel
-				ItemPanel panel = new ItemPanel(this, itemManager, item, xp, amount, total, links);
-				panel.setComponentPopupMenu(menu);
-
-				detailContainer.add(panel);
-			}
-		}
-
-		detailContainer.revalidate();
-		detailContainer.repaint();
-	}
-
-	private void onSearch()
-	{
-		//only show slots that match our search text
-		uiActionSlots.forEach(slot ->
-		{
-			if (slotContainsText(slot, searchBar.getText()))
-			{
-				super.add(slot);
-			}
-			else
-			{
-				super.remove(slot);
-			}
-
-			revalidate();
-		});
-	}
-
-	private boolean slotContainsText(UIActionSlot slot, String text)
-	{
-		return slot.getAction().getName().toLowerCase().contains(text.toLowerCase());
-	}
-
 	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
 	private Map<CriticalItem, Integer> getBankedExpBreakdown()
 	{
@@ -731,13 +755,37 @@ public class SkillCalculator extends JPanel
 	// CriticalItem Activity Selected
 	public void activitySelected(CriticalItem i, Activity a)
 	{
+		// Only update if selected activity changes stuff
+		Activity cur = indexMap.get(i);
+		if (cur == a)
+		{
+			return;
+		}
+
+		// Update index map
 		indexMap.put(i, a);
 
-		// Total banked experience
-		calculateBankedExpTotal();
+		if (cur != null && i.getLinkedItemId() != -1)
+		{
+			// Linked item prevention change
+			if (cur.isPreventLinked() != a.isPreventLinked())
+			{
+				// Need to update linked item panel.
+				CriticalItem linked = CriticalItem.getByItemId(i.getLinkedItemId());
+				ItemPanel l = panelMap.get(linked);
+				l.updateLinkedMap(getLinkedTotalMap(linked));
+			}
+		}
 
-		// Create the banked experience details container
-		refreshBankedExpDetails();
+		// Total banked experience
+		ItemPanel p = panelMap.get(i);
+		if (p != null)
+		{
+			p.updateXp(a.getXp() * xpFactor);
+		}
+
+		// Update total banked exp value based on updated panels
+		calculateBankedExpTotal();
 	}
 
 	// Ignore an item in banked xp calculations
@@ -746,24 +794,45 @@ public class SkillCalculator extends JPanel
 		ignoreMap.put(id, true);
 
 		// Update bonus experience calculations
-		calculateBankedExpTotal();
 		refreshBankedExpDetails();
+		calculateBankedExpTotal();
 	}
 
 	private Map<CriticalItem, Integer> getLinkedTotalMap(CriticalItem i)
 	{
-		log.info("Critical Item: {}", i);
+		return getLinkedTotalMap(i, true);
+	}
+
+	private Map<CriticalItem, Integer> getLinkedTotalMap(CriticalItem i, boolean first)
+	{
 		Map<CriticalItem, Integer> map = new LinkedHashMap<>();
 
-		// This item has an activity selected and its preventing linked functionality, return empty map.
-		Activity selected = indexMap.get(i);
-		if (selected != null && selected.isPreventLinked())
+		boolean flag = categoryMap.get(i.getCategory());
+		boolean ignoreFlag = ignoreMap.containsKey(i.getItemID());
+
+		// Item is ignored or the category is turned off
+		if (ignoreFlag || !flag)
 		{
 			return map;
 		}
 
-		// Add this item to the map and check for any links
-		map.put(i, criticalMap.getOrDefault(i, 0));
+		// This item has an activity selected and its preventing linked functionality
+		Activity selected = indexMap.get(i);
+		if (selected != null && selected.isPreventLinked())
+		{
+			// If initial request is for this item
+			if (!first)
+			{
+				return map;
+			}
+		}
+
+		// Add self to map
+		int amount = criticalMap.getOrDefault(i, 0);
+		if (amount > 0)
+		{
+			map.put(i, amount);
+		}
 
 		// This item doesn't link to anything, all done.
 		if (linkedMap.get(i) == null)
@@ -778,9 +847,7 @@ public class SkillCalculator extends JPanel
 			return map;
 		}
 
-		map.putAll(getLinkedTotalMap(item));
-
-		log.info("Map: {}", map);
+		map.putAll(getLinkedTotalMap(item, false));
 
 		return map;
 	}
@@ -874,8 +941,8 @@ public class SkillCalculator extends JPanel
 				calculate();
 				break;
 			case "Banked Xp":
-				calculateBankedExpTotal();
 				refreshBankedExpDetails();
+				calculateBankedExpTotal();
 				break;
 		}
 	}
@@ -883,8 +950,8 @@ public class SkillCalculator extends JPanel
 	private void adjustBankedXp(boolean removeBonus, String category)
 	{
 		categoryMap.put(category, removeBonus);
-		calculateBankedExpTotal();
 		refreshBankedExpDetails();
+		calculateBankedExpTotal();
 	}
 
 	private void onFieldCurrentLevelUpdated()
@@ -932,154 +999,5 @@ public class SkillCalculator extends JPanel
 		criticalMap.clear();
 		activityMap.clear();
 		linkedMap.clear();
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	//
-	private void finalForm(CriticalItem item)
-	{
-		CriticalItem i = CriticalItem.getByItemId(item.getLinkedItemId());
-		if (i != null)
-		{
-
-			int id = item.getItemID();
-			Integer qty = bankMap.get(id);
-			linkedMap.put(i, id);
-
-			// Update quantity in critical map
-			if (criticalMap.containsKey(i))
-			{
-				criticalMap.put(i, criticalMap.get(i) + qty);
-			}
-			else
-			{
-				criticalMap.put(i, qty);
-			}
-
-			if (!activityMap.containsKey(i))
-			{
-				ArrayList<Activity> x = Activity.getByCriticalItem(i);
-				if (x != null)
-				{
-					activityMap.put(i, x);
-				}
-			}
-
-			if (i.getLinkedItemId() != -1)
-			{
-				finalForm(i);
-			}
-
-		}
 	}
 }

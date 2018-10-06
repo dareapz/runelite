@@ -31,6 +31,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
@@ -97,17 +98,19 @@ public class ItemPanel extends JPanel
 	private int amount;
 	private double total;
 	private Map<CriticalItem, Integer> linkedMap;
+	private JShadowedLabel labelValue;
 
 	private final JPanel infoContainer;
+	private final JLabel image;
 	private boolean infoVisibility = false;
 
-	public ItemPanel(SkillCalculator calc, ItemManager itemManager, CriticalItem item, double xp, int amount, double total, Map<CriticalItem, Integer> linkedMap)
+	public ItemPanel(SkillCalculator calc, ItemManager itemManager, CriticalItem item, double xp, int amount, Map<CriticalItem, Integer> linkedMap)
 	{
 		this.calc = calc;
 		this.item = item;
 		this.xp = xp;
 		this.amount = amount;
-		this.total = total;
+		this.total = xp * amount;
 		this.itemManager = itemManager;
 		this.linkedMap = linkedMap;
 
@@ -123,7 +126,7 @@ public class ItemPanel extends JPanel
 
 		// Icon
 		AsyncBufferedImage icon = itemManager.getImage(item.getItemID(), amount, item.getComposition().isStackable() || amount > 1);
-		JLabel image = new JLabel();
+		image = new JLabel();
 		image.setMinimumSize(ICON_SIZE);
 		image.setMaximumSize(ICON_SIZE);
 		image.setPreferredSize(ICON_SIZE);
@@ -144,9 +147,10 @@ public class ItemPanel extends JPanel
 		labelName.setForeground(Color.WHITE);
 		labelName.setVerticalAlignment(SwingUtilities.BOTTOM);
 
-		JShadowedLabel labelValue = new JShadowedLabel(FORMAT_COMMA.format(total) + "xp");
+		labelValue = new JShadowedLabel();
 		labelValue.setFont(FontManager.getRunescapeSmallFont());
 		labelValue.setVerticalAlignment(SwingUtilities.TOP);
+		updateXp(xp);
 
 		uiInfo.add(labelName);
 		uiInfo.add(labelValue);
@@ -179,7 +183,6 @@ public class ItemPanel extends JPanel
 			}
 		});
 
-
 		// Create and append elements to container panel
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
@@ -188,8 +191,9 @@ public class ItemPanel extends JPanel
 		panel.add(image, BorderLayout.LINE_START);
 		panel.add(uiInfo, BorderLayout.CENTER);
 
-		// Only add button if something more to display.
-		if (item.getLinkedItemId() != -1 || Activity.getByCriticalItem(item) != null)
+		// Only add button if has activity selection options or linked items
+		List<Activity> activities = Activity.getByCriticalItem(item);
+		if (linkedMap.size() > 1 || (activities != null && activities.size() > 1))
 		{
 			panel.add(settingsButton, BorderLayout.LINE_END);
 		}
@@ -240,16 +244,6 @@ public class ItemPanel extends JPanel
 		c.gridy = 0;
 		c.ipady = 0;
 
-		if (item.getLinkedItemId() != -1)
-		{
-			CriticalItem linked = CriticalItem.getByItemId(item.getLinkedItemId());
-			if (linked != null)
-			{
-				infoContainer.add(new JLabel("Turns into: " + linked.getComposition().getName()), c);
-				c.gridy++;
-			}
-		}
-
 		JPanel p = createActivitiesPanel();
 		if (p != null)
 		{
@@ -257,12 +251,12 @@ public class ItemPanel extends JPanel
 			c.gridy++;
 		}
 
-
+		// Show linked item breakdown, including own items
 		if (linkedMap.size() > 0)
 		{
-			log.info("Linked: {}", linkedMap);
-			JLabel l = new JLabel("Linked Item Breakdown:");
+			JLabel l = new JLabel("Item Breakdown");
 			l.setBorder(new EmptyBorder(3, 0, 3, 0));
+			l.setHorizontalAlignment(JLabel.CENTER);
 			infoContainer.add(l, c);
 			c.gridy++;
 
@@ -296,11 +290,10 @@ public class ItemPanel extends JPanel
 
 	}
 
-
 	private JPanel createActivitiesPanel()
 	{
 		ArrayList<Activity> activities = Activity.getByCriticalItem(item);
-		if (activities == null)
+		if (activities == null || activities.size() == 1)
 		{
 			return null;
 		}
@@ -315,6 +308,9 @@ public class ItemPanel extends JPanel
 		group.setLayout(new GridLayout(0, 6, 0, 2));
 		group.setBorder(new MatteBorder(1, 1, 1, 1, Color.BLACK));
 
+		Activity selected = this.calc.indexMap.get(this.item);
+		boolean s = false;
+
 		for (Activity option : activities)
 		{
 			AsyncBufferedImage icon = itemManager.getImage(option.getIcon());
@@ -322,26 +318,81 @@ public class ItemPanel extends JPanel
 			matTab.setHorizontalAlignment(SwingUtilities.RIGHT);
 			matTab.setToolTipText(option.getName());
 
-			matTab.setOnSelectEvent(() ->
-			{
-				log.info("Changed to option: {}", option);
-				//calc.activitySelected(item, option);
-				return true;
-			});
-
 			Runnable resize = () ->
 				matTab.setIcon(new ImageIcon(icon.getScaledInstance(24, 24, Image.SCALE_SMOOTH)));
 			icon.onChanged(resize);
 			resize.run();
 
 			group.addTab(matTab);
-		}
 
-		group.select(group.getTab(0)); // Select first option;
+			// Select first option by default
+			if (!s)
+			{
+				s = true;
+				group.select(matTab);
+			}
+
+			// Select the option if its their selected activity
+			if (option.equals(selected))
+			{
+				group.select(matTab);
+			}
+
+			// Add click event handler now to prevent above code from triggering it.
+			matTab.setOnSelectEvent(() ->
+			{
+				log.info("Changed to option: {}", option);
+				calc.activitySelected(item, option);
+				return true;
+			});
+		}
 
 		p.add(label, BorderLayout.NORTH);
 		p.add(group, BorderLayout.SOUTH);
 
 		return p;
+	}
+
+	public void updateXp(double newXpRate)
+	{
+		xp = newXpRate;
+		total = xp * amount;
+		labelValue.setText(FORMAT_COMMA.format(total) + "xp");
+	}
+
+	private void updateAmount(int newAmount)
+	{
+		this.setVisible(newAmount > 0);
+		this.amount = newAmount;
+		AsyncBufferedImage icon = itemManager.getImage(item.getItemID(), amount, item.getComposition().isStackable() || amount > 1);
+		Runnable resize = () ->
+			image.setIcon(new ImageIcon(icon.getScaledInstance((int)ICON_SIZE.getWidth(), (int)ICON_SIZE.getHeight(), Image.SCALE_SMOOTH)));
+		icon.onChanged(resize);
+		resize.run();
+	}
+
+	public void updateLinkedMap(Map<CriticalItem, Integer> newLinkedMap)
+	{
+		this.linkedMap = newLinkedMap;
+
+		int sum = 0;
+		for (Integer v : newLinkedMap.values())
+		{
+			sum += v;
+		}
+		this.updateAmount(sum);
+
+		this.updateXp(xp);
+
+		// Refresh info panel if visible
+		if (infoVisibility)
+		{
+			createInfoPanel();
+		}
+	}
+
+	public double getTotal()
+	{
+		return total;
 	}
 }
