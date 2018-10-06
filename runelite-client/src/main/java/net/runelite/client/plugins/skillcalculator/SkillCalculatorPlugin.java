@@ -26,7 +26,6 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
@@ -44,7 +43,6 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
-import net.runelite.api.widgets.WidgetItem;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
