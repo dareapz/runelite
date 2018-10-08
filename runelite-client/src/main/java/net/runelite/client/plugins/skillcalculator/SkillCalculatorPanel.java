@@ -238,8 +238,6 @@ class SkillCalculatorPanel extends PluginPanel
 	// Wrapper function for updating SkillCalculator's bankMap
 	void updateBankMap(Map<Integer, Integer> bank)
 	{
-		if (currentCalc == null)
-			return;
 		uiCalculator.setBankMap(bank);
 	}
 }
