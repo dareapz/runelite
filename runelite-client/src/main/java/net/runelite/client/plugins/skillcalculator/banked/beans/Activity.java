@@ -89,7 +89,7 @@ public enum Activity
 	// Dwarf Weed
 	RANGING_POTION(ItemID.RANGING_POTION4, "Ranging potion", Skill.HERBLORE, 72, 162.5, CriticalItem.DWARF_WEED_POTION_UNF, ActivitySecondaries.RANGING_POTION),
 	// Torstol
-	TORSTOL_POTION_UNF(ItemID.TORSTOL_POTION_UNF, "Unfinished Potion", Skill.HERBLORE, 78, 1, CriticalItem.TORSTOL, ActivitySecondaries.UNFINISHED_POTION, true),
+	TORSTOL_POTION_UNF(ItemID.TORSTOL_POTION_UNF, "Unfinished Potion", Skill.HERBLORE, 78, 1, CriticalItem.TORSTOL, ActivitySecondaries.UNFINISHED_POTION),
 	SUPER_COMBAT_POTION(ItemID.SUPER_COMBAT_POTION4, "Super combat", Skill.HERBLORE, 90, 150, CriticalItem.TORSTOL, ActivitySecondaries.SUPER_COMBAT_POTION, true),
 
 	ZAMORAK_BREW(ItemID.ZAMORAK_BREW4, "Zamorak brew", Skill.HERBLORE, 78, 175, CriticalItem.TORSTOL_POTION_UNF, ActivitySecondaries.ZAMORAK_BREW),

@@ -408,7 +408,7 @@ public class SkillCalculator extends JPanel
 		boolean oldMapFlag = (bankMap.size() <= 0);
 		bankMap = map;
 
-		if (currentTab.equals("Banked Xp"))
+		if (currentTab != null && currentTab.equals("Banked Xp"))
 		{
 			// Refresh entire panel if old map was empty
 			if (oldMapFlag)
@@ -767,7 +767,10 @@ public class SkillCalculator extends JPanel
 				// Need to update linked item panel.
 				CriticalItem linked = CriticalItem.getByItemId(i.getLinkedItemId());
 				ItemPanel l = panelMap.get(linked);
-				l.updateLinkedMap(getLinkedTotalMap(linked));
+				if (l != null)
+				{
+					l.updateLinkedMap(getLinkedTotalMap(linked));
+				}
 			}
 		}
 
