@@ -103,7 +103,6 @@ public class SkillCalculator extends JPanel
 	private Map<Integer, Boolean> ignoreMap = new HashMap<>();
 	// Activity Magic
 	private Map<CriticalItem, Integer> criticalMap = new HashMap<>();
-	private Map<CriticalItem, List<Activity>> activityMap = new HashMap<>();
 	public Map<CriticalItem, Activity> indexMap = new HashMap<>();
 	private Map<CriticalItem, Integer> linkedMap = new HashMap<>();
 
@@ -419,6 +418,11 @@ public class SkillCalculator extends JPanel
 				return;
 			}
 
+			criticalMap.clear();
+			linkedMap.clear();
+
+			calculatedBankedMaps();
+
 			// Otherwise just update the Total XP banked and the details panel
 			SwingUtilities.invokeLater(this::refreshBankedExpDetails);
 			SwingUtilities.invokeLater(this::calculateBankedExpTotal);
@@ -553,15 +557,6 @@ public class SkillCalculator extends JPanel
 					criticalMap.put(item, qty);
 				}
 
-				if (!activityMap.containsKey(item))
-				{
-					ArrayList<Activity> x = Activity.getByCriticalItem(item);
-					if (x != null)
-					{
-						activityMap.put(item, x);
-					}
-				}
-
 				// Ensure the item this is linked to maps back to us.
 				if (item.getLinkedItemId() != -1)
 				{
@@ -575,7 +570,6 @@ public class SkillCalculator extends JPanel
 		}
 
 		log.info("Critical Map: {}", criticalMap);
-		log.info("Activity Map: {}", activityMap);
 		log.info("Linked Map: {}", linkedMap);
 	}
 
@@ -648,7 +642,7 @@ public class SkillCalculator extends JPanel
 				}
 
 				// If it doesn't have any activities ignore it in the breakdown.
-				List<Activity> activities = activityMap.get(item);
+				List<Activity> activities = Activity.getByCriticalItem(item);
 				if (activities == null || activities.size() <= 0)
 				{
 					return;
@@ -997,7 +991,6 @@ public class SkillCalculator extends JPanel
 		ignoreMap.clear();
 		categoryMap.clear();
 		criticalMap.clear();
-		activityMap.clear();
 		linkedMap.clear();
 	}
 }

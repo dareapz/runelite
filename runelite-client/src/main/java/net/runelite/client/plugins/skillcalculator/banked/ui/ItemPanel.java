@@ -117,6 +117,7 @@ public class ItemPanel extends JPanel
 		this.setLayout(new GridBagLayout());
 		this.setBorder(PANEL_BORDER);
 		this.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		this.setVisible(this.amount > 0);
 
 		infoContainer = new JPanel();
 		infoContainer.setLayout(new GridBagLayout());
