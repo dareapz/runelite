@@ -171,7 +171,7 @@ public class LootTrackerPanel extends PluginPanel
 		}
 
 		JPanel title = createLootViewTitle(name);
-		lootPanel = new LootPanel(data, UniqueItem.createPositionSetMap(uniques), plugin.config.hideUniques(),  itemManager);
+		lootPanel = new LootPanel(data, UniqueItem.createPositionSetMap(uniques), plugin.config.hideUniques(), plugin.config.itemSortType(), itemManager);
 
 		this.add(title, BorderLayout.NORTH);
 		this.add(wrapContainer(lootPanel), BorderLayout.CENTER);

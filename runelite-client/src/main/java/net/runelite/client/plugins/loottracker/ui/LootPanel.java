@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.loottracker.ItemSortTypes;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
 import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
 import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
@@ -51,6 +52,7 @@ public class LootPanel extends JPanel
 	private Collection<LootRecord> records;
 	private Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap;
 	private boolean hideUniques;
+	private ItemSortTypes sortType;
 	private ItemManager itemManager;
 	private Map<Integer, LootTrackerItemEntry> consolidated;
 
@@ -58,11 +60,12 @@ public class LootPanel extends JPanel
 	private boolean playbackPlaying = false;
 	private boolean cancelPlayback = false;
 
-	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap, boolean hideUnqiues, ItemManager itemManager)
+	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap, boolean hideUnqiues, ItemSortTypes sort, ItemManager itemManager)
 	{
 		this.records = (records == null ? new ArrayList<>() : records);
 		this.uniqueMap = (uniqueMap == null ? new HashMap<>() : uniqueMap);
 		this.hideUniques = hideUnqiues;
+		this.sortType = sort;
 		this.itemManager = itemManager;
 
 		setLayout(new GridBagLayout());
@@ -93,7 +96,23 @@ public class LootPanel extends JPanel
 				@Override
 				public int compare(LootTrackerItemEntry o1, LootTrackerItemEntry o2)
 				{
-					return o1.getName().compareTo(o2.getName());
+					if (sortType.equals(ItemSortTypes.ALPHABETICAL))
+					{
+						return o1.getName().compareTo(o2.getName());
+					}
+					else if (sortType.equals(ItemSortTypes.ITEM_ID))
+					{
+						return o1.getId() - o2.getId();
+					}
+					else if (sortType.equals(ItemSortTypes.VALUE))
+					{
+						return (o1.getTotal() > o2.getTotal() ? -1 : 1);
+					}
+					// Default to Alphabetical
+					else
+					{
+						return o1.getName().compareTo(o2.getName());
+					}
 				}
 			}))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));

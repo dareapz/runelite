@@ -40,5 +40,16 @@ public interface LootTrackerConfig extends Config
 		default boolean hideUniques()
 		{
 			return true;
+			}
+
+		@ConfigItem(
+			position = 0,
+			keyName = "itemSortType",
+			name = "Sort Items by",
+			description = "Sorts items by the requested value inside the UI. (Doesn't effect session/box view)"
+		)
+		default ItemSortTypes itemSortType()
+		{
+			return ItemSortTypes.ALPHABETICAL;
 		}
 }
