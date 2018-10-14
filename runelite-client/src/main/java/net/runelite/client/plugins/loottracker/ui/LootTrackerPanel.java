@@ -24,6 +24,8 @@
  */
 package net.runelite.client.plugins.loottracker.ui;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.LootTrackerPlugin;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
-import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
 import net.runelite.client.plugins.loottracker.data.UniqueItem;
 import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
 import net.runelite.client.ui.ColorScheme;
@@ -103,6 +104,8 @@ public class LootTrackerPanel extends PluginPanel
 
 	private final ItemManager itemManager;
 	private final LootTrackerPlugin plugin;
+
+	private final Map<String, LootTrackerBox> sessionPanelMap = new HashMap<>();
 
 	public LootTrackerPanel(final ItemManager itemManager, LootTrackerPlugin plugin)
 	{
@@ -183,15 +186,14 @@ public class LootTrackerPanel extends PluginPanel
 		currentView = "Session";
 		sessionContainer.removeAll();
 		sessionConstraints.gridy = 0;
+		sessionPanelMap.clear();
 
 		Collection<LootRecord> data = plugin.getSessionData();
 		JPanel title = createLootViewTitle("Session Data");
 
 		for (LootRecord i : data)
 		{
-			LootTrackerBox box = createLootTrackerBox(i);
-			sessionContainer.add(box, sessionConstraints);
-			sessionConstraints.gridy++;
+			addSessionBox(i);
 		}
 
 		this.add(title, BorderLayout.NORTH);
@@ -201,10 +203,25 @@ public class LootTrackerPanel extends PluginPanel
 		this.repaint();
 	}
 
+	private void addSessionBox(LootRecord i)
+	{
+		LootTrackerBox cur = sessionPanelMap.get(i.getName());
+		if (cur != null)
+		{
+			sessionPanelMap.get(i.getName()).combine(i);
+			return;
+		}
+
+		LootTrackerBox box = createLootTrackerBox(i);
+		sessionContainer.add(box, sessionConstraints);
+		sessionConstraints.gridy++;
+		sessionPanelMap.put(i.getName(), box);
+	}
+
 	private LootTrackerBox createLootTrackerBox(LootRecord r)
 	{
 		final String subTitle = r.getLevel() > -1 ? "(lvl-" + r.getLevel() + ")" : "";
-		return new LootTrackerBox(itemManager, r.getName(), subTitle, r.getDrops().toArray(new LootTrackerItemEntry[0]));
+		return new LootTrackerBox(itemManager, r.getName(), subTitle, r);
 	}
 
 	// Title element for Loot breakdown view
@@ -280,7 +297,10 @@ public class LootTrackerPanel extends PluginPanel
 
 		second.add(refresh);
 		second.add(clear);
-		second.add(replay);
+		if (!name.equals("Session Data"))
+		{
+			second.add(replay);
+		}
 
 		title.add(first, BorderLayout.WEST);
 		title.add(second, BorderLayout.EAST);
@@ -357,8 +377,7 @@ public class LootTrackerPanel extends PluginPanel
 		}
 		else if (currentView.equals("Session"))
 		{
-			sessionContainer.add(createLootTrackerBox(r), sessionConstraints);
-			sessionConstraints.gridy++;
+			addSessionBox(r);
 
 			sessionContainer.revalidate();
 			sessionContainer.repaint();
@@ -405,6 +424,9 @@ public class LootTrackerPanel extends PluginPanel
 
 	private void playbackLoot()
 	{
+		if (lootPanel == null)
+			return;
+
 		if (lootPanel.isPlaybackPlaying())
 		{
 			lootPanel.cancelPlayback();
