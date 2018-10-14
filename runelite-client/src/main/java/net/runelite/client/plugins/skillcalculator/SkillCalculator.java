@@ -48,7 +48,6 @@ import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Experience;
-import net.runelite.api.ItemID;
 import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
@@ -447,30 +446,9 @@ public class SkillCalculator extends JPanel
 		}
 		else if (bankMap.size() <= 0)
 		{
-			// Test Data
-			/*
-			bankMap.put(ItemID.TORSTOL, 25);
-			bankMap.put(ItemID.TORSTOL_POTION_UNF, 50);
-			bankMap.put(ItemID.GRIMY_TOADFLAX, 100);
-			bankMap.put(ItemID.TOADFLAX, 100);
-			bankMap.put(ItemID.TOADFLAX_POTION_UNF, 100);
-			bankMap.put(ItemID.GRIMY_MARRENTILL, 100);
-			bankMap.put(ItemID.MARRENTILL, 100);
-			bankMap.put(ItemID.MARRENTILL_POTION_UNF, 100);
-			 */
-			bankMap.put(ItemID.PLANK, 100);
-			bankMap.put(ItemID.LOGS, 100);
-			bankMap.put(ItemID.TEAK_PLANK, 100);
-			bankMap.put(ItemID.TEAK_LOGS, 100);
-
-			bankMap.put(ItemID.GRIMY_MARRENTILL, 100);
-			bankMap.put(ItemID.MARRENTILL, 100);
-			bankMap.put(ItemID.MARRENTILL_POTION_UNF, 100);
-			openBanked(calculatorType);
-			return;
-			//add(new JLabel( "Please visit a bank!", JLabel.CENTER));
-			//revalidate();
-			//repaint();
+			add(new JLabel( "Please visit a bank!", JLabel.CENTER));
+			revalidate();
+			repaint();
 		}
 		else
 		{
