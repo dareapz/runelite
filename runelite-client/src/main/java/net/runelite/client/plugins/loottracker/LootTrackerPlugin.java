@@ -193,7 +193,11 @@ public class LootTrackerPlugin extends Plugin
 	{
 		final NPC npc = npcLootReceived.getNpc();
 		final Collection<ItemStack> items = npcLootReceived.getItems();
-		final String name = npc.getName();
+		String name = npc.getName();
+		if (name.toLowerCase().equals("vet'ion reborn"))
+		{
+			name = "Vet'ion";
+		}
 		final int combat = npc.getCombatLevel();
 		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
 		final LootTrackerItemEntry[] entries = buildEntries(items);
