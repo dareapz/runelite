@@ -133,7 +133,7 @@ class LootTrackerBox extends JPanel
 
 		for (final LootTrackerItemEntry entry : allItems)
 		{
-			totalPrice += entry.getPrice();
+			totalPrice += (entry.getPrice() * entry.getQuantity());
 
 			int quantity = 0;
 			for (final LootTrackerItemEntry i : items)
@@ -148,7 +148,7 @@ class LootTrackerBox extends JPanel
 			if (quantity > 0)
 			{
 				int newQuantity = entry.getQuantity() + quantity;
-				long pricePerItem = entry.getPrice() == 0 ? 0 : (entry.getPrice() / entry.getQuantity());
+				long pricePerItem = entry.getPrice();
 
 				items.add(new LootTrackerItemEntry(entry.getName(), entry.getId(), newQuantity, pricePerItem, false));
 			}
