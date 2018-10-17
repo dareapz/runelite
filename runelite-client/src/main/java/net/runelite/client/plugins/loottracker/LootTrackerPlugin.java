@@ -67,6 +67,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
 import net.runelite.client.plugins.loottracker.data.LootRecordWriter;
 import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
+import net.runelite.client.plugins.loottracker.data.Pet;
 import net.runelite.client.plugins.loottracker.data.UniqueItem;
 import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
 import net.runelite.client.plugins.loottracker.ui.LootTrackerPanel;
@@ -88,6 +89,8 @@ public class LootTrackerPlugin extends Plugin
 	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed ([0-9]+) ([a-z]+) Treasure Trails.");
 	private static final Pattern BOSS_NAME_NUMBER_PATTERN = Pattern.compile("Your (.*) kill count is: ([0-9]*).");
 	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
+	private static final Pattern PET_RECEIVED_PATTERN = Pattern.compile("You have a funny feeling like ");
+	private static final Pattern PET_RECEIVED_INVENTORY_PATTERN = Pattern.compile("You feel something weird sneaking into your backpack.");
 	private static final int THEATRE_OF_BLOOD_REGION = 12867;
 
 	@Inject
@@ -137,6 +140,7 @@ public class LootTrackerPlugin extends Plugin
 	// key = name, value=current killCount
 	private boolean loaded = false;
 	private String currentPlayer;
+	private boolean gotPet = false;
 
 	@Override
 	protected void startUp() throws Exception
@@ -201,6 +205,20 @@ public class LootTrackerPlugin extends Plugin
 		final int combat = npc.getCombatLevel();
 		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
 		final LootTrackerItemEntry[] entries = buildEntries(items);
+
+		if (gotPet)
+		{
+			ItemStack pet = handlePet(name);
+			if (pet == null)
+			{
+				log.warn("Error finding pet for npc name: {}", name);
+			}
+			else
+			{
+				items.add(pet);
+			}
+		}
+
 		LootRecord rec = new LootRecord(npc.getId(), name, combat, killCount, Arrays.asList(entries));
 		lootRecordMultimap.put(name, rec);
 		sessionLootRecordMultimap.put(name, rec);
@@ -362,6 +380,14 @@ public class LootTrackerPlugin extends Plugin
 			int killCount = Integer.valueOf(boss.group(2));
 			killCountMap.put(bossName.toUpperCase(), killCount);
 		}
+
+		// Handle Pet Received Message
+		Matcher pet1 = PET_RECEIVED_PATTERN.matcher(Text.removeTags(chatMessage));
+		Matcher pet2 = PET_RECEIVED_INVENTORY_PATTERN.matcher(Text.removeTags(chatMessage));
+		if (pet1.find() || pet2.find())
+		{
+			gotPet = true;
+		}
 	}
 
 	private LootTrackerItemEntry[] buildEntries(final Collection<ItemStack> itemStacks)
@@ -487,5 +513,29 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		SwingUtilities.invokeLater(() -> panel.updateNames());
+	}
+
+	// Pet Handling
+	private ItemStack handlePet(String name)
+	{
+		gotPet = false;
+
+		int petID = getPetId(name);
+		if (petID == -1)
+		{
+			return null;
+		}
+
+		return new ItemStack(petID, 1);
+	}
+
+	private int getPetId(String name)
+	{
+		Pet pet = Pet.getByBossName(name);
+		if (pet != null)
+		{
+			return pet.getPetID();
+		}
+		return -1;
 	}
 }
