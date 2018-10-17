@@ -30,9 +30,11 @@ import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
@@ -54,7 +56,9 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.NpcLootReceived;
@@ -270,6 +274,15 @@ public class LootTrackerPlugin extends Plugin
 				// Clue Scrolls use same InventoryID as Barrows
 				container = client.getItemContainer(InventoryID.BARROWS_REWARD);
 				break;
+			// Unsired redemption tracking
+			case (WidgetID.DIALOG_SPRITE_GROUP_ID):
+				Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
+				if ("the font consumes the unsired and returns you a reward.".equals(text.getText().toLowerCase()))
+				{
+					Widget sprite = client.getWidget(WidgetInfo.DIALOG_SPRITE);
+					receivedUnsiredLoot(sprite.getItemId());
+				}
+				return;
 			default:
 				return;
 		}
@@ -537,5 +550,36 @@ public class LootTrackerPlugin extends Plugin
 			return pet.getPetID();
 		}
 		return -1;
+	}
+
+	// Handles adding the unsired loot to the tracker
+	private void receivedUnsiredLoot(int itemID)
+	{
+		clientThread.invokeLater(() ->
+		{
+			Collection<LootRecord> data = getDataByName("Abyssal sire");
+			ItemComposition c = itemManager.getItemComposition(itemID);
+			LootTrackerItemEntry itemEntry = new LootTrackerItemEntry(c.getName(), itemID, 1, 0, false);
+
+			log.debug("Received Unsired item: {}", c.getName());
+
+			// Don't have data for sire, create a new record with just this data.
+			if (data == null)
+			{
+				log.debug("No previous Abyssal sire loot, creating new loot record");
+				LootRecord r = new LootRecord(5886, "Abyssal sire", 350, -1, null);
+				r.addDropEntry(itemEntry);
+
+				writer.addData("Abyssal sire", r);
+				return;
+			}
+
+			log.debug("Adding drop to last abyssal sire loot record");
+			// Add data to last kill count
+			List<LootRecord> items = new ArrayList<>(data);
+			LootRecord r = items.get(items.size() - 1);
+			r.addDropEntry(itemEntry);
+			writer.rewriteData("Abyssal sire", items);
+		});
 	}
 }
