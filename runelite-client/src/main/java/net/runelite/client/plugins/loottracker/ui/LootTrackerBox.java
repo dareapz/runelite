@@ -193,6 +193,9 @@ class LootTrackerBox extends JPanel
 		final String name = item.getName();
 		final int quantity = item.getQuantity();
 		final long price = item.getPrice();
-		return name + " x " + quantity + " (" + StackFormatter.quantityToStackSize(price) + ")";
+
+		return "<html>" + name + " x " + StackFormatter.formatNumber(quantity)
+				+ "<br/>Price: " + StackFormatter.quantityToStackSize(price)
+				+ "<br/>Total: " + StackFormatter.quantityToStackSize(quantity * price) +	"</html";
 	}
 }
