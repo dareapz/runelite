@@ -25,10 +25,15 @@
  */
 package net.runelite.client.plugins.menuentryswapper;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,6 +69,13 @@ import org.apache.commons.lang3.ArrayUtils;
 )
 public class MenuEntrySwapperPlugin extends Plugin
 {
+	private static final Splitter COMMA_SPLITTER = Splitter
+		.on(",")
+		.omitEmptyStrings()
+		.trimResults();
+	private List<String> rightClickAttackList = new CopyOnWriteArrayList<>();
+	private static final Pattern removeLevelPattern = Pattern.compile("(.*) \\(level.*\\)");
+
 	private static final String CONFIGURE = "Configure";
 	private static final String SAVE = "Save";
 	private static final String RESET = "Reset";
@@ -135,6 +147,8 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			enableCustomization();
 		}
+
+		rightClickAttackList = COMMA_SPLITTER.splitToList(config.forceRightClickAttack().toLowerCase());
 	}
 
 	@Override
@@ -156,6 +170,11 @@ public class MenuEntrySwapperPlugin extends Plugin
 			{
 				disableCustomization();
 			}
+		}
+
+		if (event.getKey().equals("forceRightClickAttack"))
+		{
+			rightClickAttackList = COMMA_SPLITTER.splitToList(config.forceRightClickAttack());
 		}
 	}
 
@@ -532,6 +551,16 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			swap("use", option, target, true);
 		}
+
+		if (rightClickAttackList.size() > 0 && option.equals("attack"))
+		{
+			Matcher m = removeLevelPattern.matcher(target);
+
+			if (m.matches() && rightClickAttackList.contains(m.group(1).trim()))
+			{
+				moveAttackDown(target, false);
+			}
+		}
 	}
 
 	@Subscribe
@@ -623,6 +652,22 @@ public class MenuEntrySwapperPlugin extends Plugin
 			menuManager.addManagedCustomMenu(FIXED_INVENTORY_TAB_CONFIGURE);
 			menuManager.addManagedCustomMenu(RESIZABLE_BOTTOM_LINE_INVENTORY_TAB_CONFIGURE);
 			menuManager.addManagedCustomMenu(RESIZABLE_INVENTORY_TAB_CONFIGURE);
+		}
+	}
+
+	private void moveAttackDown(String target, boolean strict)
+	{
+		MenuEntry[] entries = client.getMenuEntries();
+
+		int idx = searchIndex(entries, "attack", target, strict);
+
+		if (idx >= 0)
+		{
+			MenuEntry entry = entries[idx];
+			entries[idx] = entries[idx - 1];
+			entries[idx - 1] = entry;
+
+			client.setMenuEntries(entries);
 		}
 	}
 }
