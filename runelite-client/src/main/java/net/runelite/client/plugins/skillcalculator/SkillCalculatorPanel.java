@@ -185,7 +185,7 @@ class SkillCalculatorPanel extends PluginPanel
 		for (CalculatorType calculatorType : CalculatorType.values())
 		{
 			ImageIcon icon = new ImageIcon(iconManager.getSkillImage(calculatorType.getSkill(), true));
-			ComboBoxIconEntry dropdownEntry = new ComboBoxIconEntry(icon, calculatorType.getSkill().getName());
+			ComboBoxIconEntry dropdownEntry = new ComboBoxIconEntry(icon, calculatorType.getSkill().getName(), calculatorType.getSkill());
 			box.addItem(dropdownEntry);
 		}
 
@@ -194,13 +194,11 @@ class SkillCalculatorPanel extends PluginPanel
 			if (e.getStateChange() == ItemEvent.SELECTED)
 			{
 				ComboBoxIconEntry entry = (ComboBoxIconEntry) e.getItem();
-				for (Skill s : Skill.values())
+				Object obj = entry.getObject();
+				if (obj instanceof Skill)
 				{
-					if (s.getName().toUpperCase().equals(entry.getText().toUpperCase()))
-					{
-						currentCalc = CalculatorType.getBySkill(s);
-						selectedTab(currentTab);
-					}
+					currentCalc = CalculatorType.getBySkill((Skill) obj);
+					selectedTab(currentTab);
 				}
 			}
 		});
