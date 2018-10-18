@@ -43,7 +43,7 @@ public interface LootTrackerConfig extends Config
 			}
 
 		@ConfigItem(
-			position = 0,
+			position = 1,
 			keyName = "itemSortType",
 			name = "Sort Items by",
 			description = "Sorts items by the requested value inside the UI. (Doesn't effect session/box view)"
