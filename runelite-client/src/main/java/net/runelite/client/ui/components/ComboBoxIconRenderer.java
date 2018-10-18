@@ -31,6 +31,7 @@ import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
 
+import lombok.Setter;
 import net.runelite.client.ui.ColorScheme;
 
 /**
@@ -39,20 +40,28 @@ import net.runelite.client.ui.ColorScheme;
  */
 public final class ComboBoxIconRenderer extends JLabel implements ListCellRenderer
 {
+	@Setter
 	private String defaultText = "Select an option...";
+	@Setter
+	private Color selectedBackgroundColor = ColorScheme.DARK_GRAY_COLOR;
+	@Setter
+	private Color selectedTextColor = Color.WHITE;
+	@Setter
+	private Color unselectedTextColor = ColorScheme.LIGHT_GRAY_COLOR;
 
 	@Override
 	public Component getListCellRendererComponent(JList list, Object o, int index, boolean isSelected, boolean cellHasFocus)
 	{
 		if (isSelected)
 		{
-			setBackground(ColorScheme.DARK_GRAY_COLOR);
-			setForeground(Color.WHITE);
+			setBackground(selectedBackgroundColor);
+			setForeground(selectedTextColor);
 		}
 		else
 		{
+			// Pull unselected background color from the JList element
 			setBackground(list.getBackground());
-			setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+			setForeground(unselectedTextColor);
 		}
 
 		setBorder(new EmptyBorder(5, 5, 5, 0));
@@ -78,10 +87,5 @@ public final class ComboBoxIconRenderer extends JLabel implements ListCellRender
 		}
 
 		return this;
-	}
-
-	public void setDefaultText(String text)
-	{
-		defaultText = text;
 	}
 }

@@ -25,11 +25,13 @@
 package net.runelite.client.ui.components;
 
 import javax.swing.Icon;
+import lombok.Getter;
 
 /**
  * Used with ComboBoxIconRenderer to render drop down entries of a ComboBox
  * with the icon and text added to it.
  */
+@Getter
 public class ComboBoxIconEntry
 {
 	private Icon icon;
@@ -48,20 +50,4 @@ public class ComboBoxIconEntry
 		this.text = text;
 		this.object = object;
 	}
-
-	public Icon getIcon()
-	{
-		return this.icon;
-	}
-
-	public String getText()
-	{
-		return this.text;
-	}
-
-	public Object getObject()
-	{
-		return this.object;
-	}
-
 }
