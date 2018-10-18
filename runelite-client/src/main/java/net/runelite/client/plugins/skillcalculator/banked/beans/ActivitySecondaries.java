@@ -32,23 +32,20 @@ public enum ActivitySecondaries
 {
 	// Herblore Creations
 	UNFINISHED_POTION(new SecondaryItem(ItemID.VIAL_OF_WATER, 1)),
+	SWAMP_TAR(new SecondaryItem(ItemID.SWAMP_TAR, 15)),
 
 	// Guam
 	ATTACK_POTION(new SecondaryItem(ItemID.EYE_OF_NEWT)),
-	GUAM_TAR(new SecondaryItem(ItemID.GUAM_TAR, 15)),
 	// Marrentil
 	ANTIPOISON(new SecondaryItem(ItemID.UNICORN_HORN_DUST)),
-	MARRENTILL_TAR(new SecondaryItem(ItemID.GUAM_TAR, 15)),
 	// Tarromin
 	STRENGTH_POTION(new SecondaryItem(ItemID.LIMPWURT_ROOT)),
 	SERUM_207(new SecondaryItem(ItemID.ASHES)),
-	TARROMIN_TAR(new SecondaryItem(ItemID.GUAM_TAR, 15)),
 	// Harralander
 	COMPOST_POTION(new SecondaryItem(ItemID.VOLCANIC_ASH)),
 	RESTORE_POTION(new SecondaryItem(ItemID.RED_SPIDERS_EGGS)),
 	ENERGY_POTION(new SecondaryItem(ItemID.CHOCOLATE_DUST)),
 	COMBAT_POTION(new SecondaryItem(ItemID.GOAT_HORN_DUST)),
-	HARRALANDER_TAR(new SecondaryItem(ItemID.GUAM_TAR, 15)),
 	// Ranarr Weed
 	DEFENCE_POTION(new SecondaryItem(ItemID.WHITE_BERRIES)),
 	PRAYER_POTION(new SecondaryItem(ItemID.SNAPE_GRASS)),
@@ -76,7 +73,8 @@ public enum ActivitySecondaries
 	RANGING_POTION(new SecondaryItem(ItemID.WINE_OF_ZAMORAK)),
 	// Torstol
 	ZAMORAK_BREW(new SecondaryItem(ItemID.JANGERBERRIES)),
-	SUPER_COMBAT_POTION(new SecondaryItem(ItemID.SUPER_ATTACK3), new SecondaryItem(ItemID.SUPER_STRENGTH3), new SecondaryItem(ItemID.SUPER_DEFENCE3));
+	SUPER_COMBAT_POTION(new SecondaryItem(ItemID.SUPER_ATTACK3), new SecondaryItem(ItemID.SUPER_STRENGTH3), new SecondaryItem(ItemID.SUPER_DEFENCE3)),
+	ANTIVENOM_PLUS(new SecondaryItem(ItemID.ANTIVENOM4));
 
 	private final SecondaryItem[] items;
 
