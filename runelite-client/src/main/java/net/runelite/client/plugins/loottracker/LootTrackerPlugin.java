@@ -25,17 +25,19 @@
  */
 package net.runelite.client.plugins.loottracker;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,12 +51,15 @@ import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
-import net.runelite.api.SpriteID;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.ConfigChanged;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.events.PlayerLootReceived;
@@ -63,6 +68,13 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.loottracker.data.LootRecord;
+import net.runelite.client.plugins.loottracker.data.LootRecordWriter;
+import net.runelite.client.plugins.loottracker.data.LootTrackerItemEntry;
+import net.runelite.client.plugins.loottracker.data.Pet;
+import net.runelite.client.plugins.loottracker.data.UniqueItem;
+import net.runelite.client.plugins.loottracker.data.UniqueItemWithLinkedId;
+import net.runelite.client.plugins.loottracker.ui.LootTrackerPanel;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
@@ -78,15 +90,12 @@ import net.runelite.client.util.Text;
 public class LootTrackerPlugin extends Plugin
 {
 	// Activity/Event loot handling
-	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed [0-9]+ ([a-z]+) Treasure Trails.");
+	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed ([0-9]+) ([a-z]+) Treasure Trails.");
+	private static final Pattern BOSS_NAME_NUMBER_PATTERN = Pattern.compile("Your (.*) kill count is: ([0-9]*).");
+	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
+	private static final Pattern PET_RECEIVED_PATTERN = Pattern.compile("You have a funny feeling like ");
+	private static final Pattern PET_RECEIVED_INVENTORY_PATTERN = Pattern.compile("You feel something weird sneaking into your backpack.");
 	private static final int THEATRE_OF_BLOOD_REGION = 12867;
-
-	private static final Splitter COMMA_SPLITTER = Splitter
-		.on(",")
-		.omitEmptyStrings()
-		.trimResults();
-
-	private static final Joiner COMMA_JOINER = Joiner.on(",").skipNulls();
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -98,45 +107,13 @@ public class LootTrackerPlugin extends Plugin
 	private SpriteManager spriteManager;
 
 	@Inject
-	private LootTrackerConfig config;
-
-	@Inject
 	private Client client;
 
-	private LootTrackerPanel panel;
-	private NavigationButton navButton;
-	private String eventType;
+	@Inject
+	public LootTrackerConfig config;
 
-	private List<String> ignoredItems = new ArrayList<>();
-
-	private static Collection<ItemStack> stack(Collection<ItemStack> items)
-	{
-		final List<ItemStack> list = new ArrayList<>();
-
-		for (final ItemStack item : items)
-		{
-			int quantity = 0;
-			for (final ItemStack i : list)
-			{
-				if (i.getId() == item.getId())
-				{
-					quantity = i.getQuantity();
-					list.remove(i);
-					break;
-				}
-			}
-			if (quantity > 0)
-			{
-				list.add(new ItemStack(item.getId(), item.getQuantity() + quantity));
-			}
-			else
-			{
-				list.add(item);
-			}
-		}
-
-		return list;
-	}
+	@Inject
+	private ClientThread clientThread;
 
 	@Provides
 	LootTrackerConfig provideConfig(ConfigManager configManager)
@@ -149,17 +126,30 @@ public class LootTrackerPlugin extends Plugin
 	{
 		if (event.getGroup().equals("loottracker"))
 		{
-			ignoredItems = COMMA_SPLITTER.splitToList(config.getIgnoredItems());
-			panel.updateIgnoredRecords();
+			panel.refreshUI();
 		}
 	}
+
+	private LootTrackerPanel panel;
+	private NavigationButton navButton;
+	private String eventType;
+
+	private LootRecordWriter writer;
+
+	private Multimap<String, LootRecord> lootRecordMultimap = ArrayListMultimap.create();
+	private Multimap<String, LootRecord> sessionLootRecordMultimap = ArrayListMultimap.create();
+	private Multimap<String, UniqueItemWithLinkedId> uniques = ArrayListMultimap.create();
+	private Map<String, Integer> killCountMap = new HashMap<>();
+
+	// key = name, value=current killCount
+	private boolean loaded = false;
+	private String currentPlayer;
+	private boolean gotPet = false;
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		ignoredItems = COMMA_SPLITTER.splitToList(config.getIgnoredItems());
-		panel = new LootTrackerPanel(this, itemManager);
-		spriteManager.getSpriteAsync(SpriteID.TAB_INVENTORY, 0, panel::loadHeaderIcon);
+		panel = new LootTrackerPanel(itemManager, this);
 
 		final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "panel_icon.png");
 
@@ -171,6 +161,33 @@ public class LootTrackerPlugin extends Plugin
 			.build();
 
 		clientToolbar.addNavigation(navButton);
+
+		writer = new LootRecordWriter();
+
+		// Create unique item map if player turns it on plugin while logged in
+		if (client.getLocalPlayer() != null)
+		{
+			createUniqueItemMap();
+		}
+	}
+
+	private void createUniqueItemMap()
+	{
+		loaded = true;
+		uniques.clear();
+		for (UniqueItem i : UniqueItem.values())
+		{
+			int linkedID = itemManager.getItemComposition(i.getItemID()).getLinkedNoteId();
+			for (String s : i.getActivities())
+			{
+				uniques.put(s.toUpperCase(), new UniqueItemWithLinkedId(linkedID, i));
+			}
+		}
+	}
+
+	public Collection<UniqueItemWithLinkedId> getUniques(String name)
+	{
+		return uniques.get(name.toUpperCase());
 	}
 
 	@Override
@@ -184,10 +201,33 @@ public class LootTrackerPlugin extends Plugin
 	{
 		final NPC npc = npcLootReceived.getNpc();
 		final Collection<ItemStack> items = npcLootReceived.getItems();
-		final String name = npc.getName();
+		String name = npc.getName();
+		if (name.toLowerCase().equals("vet'ion reborn"))
+		{
+			name = "Vet'ion";
+		}
 		final int combat = npc.getCombatLevel();
-		final LootTrackerItem[] entries = buildEntries(stack(items));
-		SwingUtilities.invokeLater(() -> panel.add(name, combat, entries));
+		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
+		final LootTrackerItemEntry[] entries = buildEntries(items);
+
+		if (gotPet)
+		{
+			ItemStack pet = handlePet(name);
+			if (pet == null)
+			{
+				log.warn("Error finding pet for npc name: {}", name);
+			}
+			else
+			{
+				items.add(pet);
+			}
+		}
+
+		LootRecord rec = new LootRecord(npc.getId(), name, combat, killCount, Arrays.asList(entries));
+		lootRecordMultimap.put(name, rec);
+		sessionLootRecordMultimap.put(name, rec);
+		writer.addData(name, rec);
+		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
 
 	@Subscribe
@@ -197,8 +237,13 @@ public class LootTrackerPlugin extends Plugin
 		final Collection<ItemStack> items = playerLootReceived.getItems();
 		final String name = player.getName();
 		final int combat = player.getCombatLevel();
-		final LootTrackerItem[] entries = buildEntries(stack(items));
-		SwingUtilities.invokeLater(() -> panel.add(name, combat, entries));
+		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
+		final LootTrackerItemEntry[] entries = buildEntries(items);
+		LootRecord rec = new LootRecord(-1, name, combat, killCount, Arrays.asList(entries));
+		lootRecordMultimap.put(name, rec);
+		sessionLootRecordMultimap.put(name, rec);
+		writer.addData(name, rec);
+		SwingUtilities.invokeLater(() -> panel.addLog(rec));
 	}
 
 	@Subscribe
@@ -229,6 +274,15 @@ public class LootTrackerPlugin extends Plugin
 				// Clue Scrolls use same InventoryID as Barrows
 				container = client.getItemContainer(InventoryID.BARROWS_REWARD);
 				break;
+			// Unsired redemption tracking
+			case (WidgetID.DIALOG_SPRITE_GROUP_ID):
+				Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
+				if ("the font consumes the unsired and returns you a reward.".equals(text.getText().toLowerCase()))
+				{
+					Widget sprite = client.getWidget(WidgetInfo.DIALOG_SPRITE);
+					receivedUnsiredLoot(sprite.getItemId());
+				}
+				return;
 			default:
 				return;
 		}
@@ -246,8 +300,13 @@ public class LootTrackerPlugin extends Plugin
 
 		if (!items.isEmpty())
 		{
-			final LootTrackerItem[] entries = buildEntries(stack(items));
-			SwingUtilities.invokeLater(() -> panel.add(eventType, -1, entries));
+			final LootTrackerItemEntry[] entries = buildEntries(items);
+			final int killCount = killCountMap.getOrDefault(eventType.toUpperCase(), -1);
+			LootRecord rec =  new LootRecord(-1, eventType, -1, killCount, Arrays.asList(entries));
+			lootRecordMultimap.put(eventType, rec);
+			sessionLootRecordMultimap.put(eventType, rec);
+			writer.addData(eventType, rec);
+			SwingUtilities.invokeLater(() -> panel.addLog(rec));
 		}
 		else
 		{
@@ -263,11 +322,13 @@ public class LootTrackerPlugin extends Plugin
 			return;
 		}
 
+		String chatMessage = Text.removeTags(event.getMessage());
+
 		// Check if message is for a clue scroll reward
-		final Matcher m = CLUE_SCROLL_PATTERN.matcher(Text.removeTags(event.getMessage()));
+		final Matcher m = CLUE_SCROLL_PATTERN.matcher(chatMessage);
 		if (m.find())
 		{
-			final String type = m.group(1).toLowerCase();
+			final String type = m.group(2).toLowerCase();
 			switch (type)
 			{
 				case "easy":
@@ -286,46 +347,239 @@ public class LootTrackerPlugin extends Plugin
 					eventType = "Clue Scroll (Master)";
 					break;
 			}
+
+
+			int killCount = Integer.valueOf(m.group(1));
+			killCountMap.put(eventType.toUpperCase(), killCount);
+			return;
 		}
-	}
-
-	void toggleItem(String name, boolean ignore)
-	{
-		final Set<String> ignoredItemSet = new HashSet<>(ignoredItems);
-
-		if (ignore)
+		// TODO: Figure out better way to handle Barrows and Raids/Raids 2
+		// Barrows KC
+		if (chatMessage.startsWith("Your Barrows chest count is"))
 		{
-			ignoredItemSet.add(name);
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
+			if (n.find())
+			{
+				killCountMap.put("BARROWS", Integer.valueOf(n.group()));
+				return;
+			}
 		}
-		else
+
+		// Raids KC
+		if (chatMessage.startsWith("Your completed Chambers of Xeric count is"))
 		{
-			ignoredItemSet.remove(name);
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
+			if (n.find())
+			{
+				killCountMap.put("RAIDS", Integer.valueOf(n.group()));
+				return;
+			}
+		}
+		// Raids KC
+		if (chatMessage.startsWith("Your completed Theatre of Blood count is"))
+		{
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
+			if (n.find())
+			{
+				killCountMap.put("THEATRE OF BLOOD", Integer.valueOf(n.group()));
+				return;
+			}
+		}
+		// Handle all other boss
+		Matcher boss = BOSS_NAME_NUMBER_PATTERN.matcher(chatMessage);
+		if (boss.find())
+		{
+			String bossName = boss.group(1);
+			int killCount = Integer.valueOf(boss.group(2));
+			killCountMap.put(bossName.toUpperCase(), killCount);
 		}
 
-		config.setIgnoredItems(COMMA_JOINER.join(ignoredItemSet));
-		panel.updateIgnoredRecords();
+		// Handle Pet Received Message
+		Matcher pet1 = PET_RECEIVED_PATTERN.matcher(Text.removeTags(chatMessage));
+		Matcher pet2 = PET_RECEIVED_INVENTORY_PATTERN.matcher(Text.removeTags(chatMessage));
+		if (pet1.find() || pet2.find())
+		{
+			gotPet = true;
+		}
 	}
 
-	boolean isIgnored(String name)
-	{
-		return ignoredItems.contains(name);
-	}
-
-	private LootTrackerItem[] buildEntries(final Collection<ItemStack> itemStacks)
+	private LootTrackerItemEntry[] buildEntries(final Collection<ItemStack> itemStacks)
 	{
 		return itemStacks.stream().map(itemStack ->
 		{
 			final ItemComposition itemComposition = itemManager.getItemComposition(itemStack.getId());
 			final int realItemId = itemComposition.getNote() != -1 ? itemComposition.getLinkedNoteId() : itemStack.getId();
-			final long price = (long) itemManager.getItemPrice(realItemId) * (long) itemStack.getQuantity();
-			final boolean ignored = ignoredItems.contains(itemComposition.getName());
+			final long price = itemManager.getItemPrice(realItemId);
 
-			return new LootTrackerItem(
-				itemStack.getId(),
+			return new LootTrackerItemEntry(
 				itemComposition.getName(),
+				itemStack.getId(),
 				itemStack.getQuantity(),
 				price,
-				ignored);
-		}).toArray(LootTrackerItem[]::new);
+				itemComposition.isStackable());
+		}).toArray(LootTrackerItemEntry[]::new);
+	}
+
+	public Collection<LootRecord> getData()
+	{
+		return lootRecordMultimap.values();
+	}
+
+	public Collection<LootRecord> getDataByName(String name)
+	{
+		return lootRecordMultimap.get(name);
+	}
+
+	public void refreshData()
+	{
+		// Pull data from files
+		lootRecordMultimap.clear();
+		Collection<LootRecord> recs = writer.loadAllData();
+		for (LootRecord r : recs)
+		{
+			lootRecordMultimap.put(r.getName(), r);
+		}
+	}
+
+	public void refreshDataByName(String name)
+	{
+		lootRecordMultimap.removeAll(name);
+		Collection<LootRecord> recs = writer.loadData(name);
+		lootRecordMultimap.putAll(name, recs);
+	}
+
+	public Collection<LootRecord> getSessionData()
+	{
+		return sessionLootRecordMultimap.values();
+	}
+
+	// Clear all data from this session
+	public void clearData()
+	{
+		sessionLootRecordMultimap.clear();
+	}
+
+	public void clearDataByName(String name)
+	{
+		lootRecordMultimap.removeAll(name);
+		writer.clearData(name);
+	}
+
+	public TreeSet<String> getNames()
+	{
+		return new TreeSet<>(lootRecordMultimap.keySet());
+	}
+
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged c)
+	{
+		switch (c.getGameState())
+		{
+			case CONNECTION_LOST:
+			case HOPPING:
+			case LOADING:
+			case LOGIN_SCREEN:
+			case LOGGING_IN:
+				if (!loaded)
+				{
+					clientThread.invoke(this::createUniqueItemMap);
+				}
+				break;
+			case LOGGED_IN:
+				if (!loaded)
+				{
+					clientThread.invoke(this::createUniqueItemMap);
+				}
+
+				clientThread.invokeLater(() ->
+				{
+					String name = client.getLocalPlayer().getName();
+					if (name != null)
+					{
+						log.debug("Found player name: {}", name);
+						updatePlayerFolder(name);
+						return true;
+					}
+					else
+					{
+						log.debug("Local player name still null");
+						return false;
+					}
+				});
+		}
+	}
+
+	private void updatePlayerFolder(String name)
+	{
+		if (Objects.equals(currentPlayer, name))
+		{
+			return;
+		}
+		currentPlayer = name;
+		writer.updatePlayerFolder(name);
+		lootRecordMultimap.clear();
+		Collection<LootRecord> recs = writer.loadAllData();
+		for (LootRecord r : recs)
+		{
+			lootRecordMultimap.put(r.getName(), r);
+		}
+
+		SwingUtilities.invokeLater(() -> panel.updateNames());
+	}
+
+	// Pet Handling
+	private ItemStack handlePet(String name)
+	{
+		gotPet = false;
+
+		int petID = getPetId(name);
+		if (petID == -1)
+		{
+			return null;
+		}
+
+		return new ItemStack(petID, 1);
+	}
+
+	private int getPetId(String name)
+	{
+		Pet pet = Pet.getByBossName(name);
+		if (pet != null)
+		{
+			return pet.getPetID();
+		}
+		return -1;
+	}
+
+	// Handles adding the unsired loot to the tracker
+	private void receivedUnsiredLoot(int itemID)
+	{
+		clientThread.invokeLater(() ->
+		{
+			Collection<LootRecord> data = getDataByName("Abyssal sire");
+			ItemComposition c = itemManager.getItemComposition(itemID);
+			LootTrackerItemEntry itemEntry = new LootTrackerItemEntry(c.getName(), itemID, 1, 0, false);
+
+			log.debug("Received Unsired item: {}", c.getName());
+
+			// Don't have data for sire, create a new record with just this data.
+			if (data == null)
+			{
+				log.debug("No previous Abyssal sire loot, creating new loot record");
+				LootRecord r = new LootRecord(5886, "Abyssal sire", 350, -1, null);
+				r.addDropEntry(itemEntry);
+
+				writer.addData("Abyssal sire", r);
+				return;
+			}
+
+			log.debug("Adding drop to last abyssal sire loot record");
+			// Add data to last kill count
+			List<LootRecord> items = new ArrayList<>(data);
+			LootRecord r = items.get(items.size() - 1);
+			r.addDropEntry(itemEntry);
+			writer.rewriteData("Abyssal sire", items);
+		});
 	}
 }

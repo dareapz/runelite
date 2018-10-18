@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,7 +22,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package net.runelite.client.plugins.loottracker;
 
 import net.runelite.client.config.Config;
@@ -32,20 +31,25 @@ import net.runelite.client.config.ConfigItem;
 @ConfigGroup("loottracker")
 public interface LootTrackerConfig extends Config
 {
-	@ConfigItem(
-		keyName = "ignoredItems",
-		name = "Ignored items",
-		description = "Configures which items should be ignored when calculating loot prices."
-	)
-	default String getIgnoredItems()
-	{
-		return "";
-	}
+		@ConfigItem(
+			position = 0,
+			keyName = "hideUniques",
+			name = "Hide uniques",
+			description = "Hides unique items from the item breakdown"
+		)
+		default boolean hideUniques()
+		{
+			return true;
+			}
 
-	@ConfigItem(
-		keyName = "ignoredItems",
-		name = "",
-		description = ""
-	)
-	void setIgnoredItems(String key);
+		@ConfigItem(
+			position = 1,
+			keyName = "itemSortType",
+			name = "Sort Items by",
+			description = "Sorts items by the requested value inside the UI. (Doesn't effect session/box view)"
+		)
+		default ItemSortTypes itemSortType()
+		{
+			return ItemSortTypes.ALPHABETICAL;
+		}
 }
