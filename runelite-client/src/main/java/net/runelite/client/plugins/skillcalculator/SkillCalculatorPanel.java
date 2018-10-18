@@ -29,15 +29,26 @@ package net.runelite.client.plugins.skillcalculator;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.ItemEvent;
+import java.util.ArrayList;
+import java.util.Map;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.Client;
+import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.ui.components.ComboBoxIconEntry;
+import net.runelite.client.ui.components.ComboBoxIconRenderer;
 import net.runelite.client.ui.components.materialtabs.MaterialTab;
 import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
@@ -45,14 +56,26 @@ class SkillCalculatorPanel extends PluginPanel
 {
 	private final SkillCalculator uiCalculator;
 	private final SkillIconManager iconManager;
-	private final MaterialTabGroup tabGroup;
+	private final SkillCalculatorConfig config;
 
-	SkillCalculatorPanel(SkillIconManager iconManager, Client client, SpriteManager spriteManager, ItemManager itemManager)
+	private CalculatorType currentCalc;
+	private final MaterialTabGroup tabGroup;
+	private String currentTab;
+	private	ArrayList<String> tabs;
+
+	// Mat Tab Custom Borders
+	private final Border UNSELECTED_BORDER = new EmptyBorder(5, 3, 5, 3);
+	private final Border SELECTED_BORDER = new CompoundBorder(
+		BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.BRAND_ORANGE),
+		BorderFactory.createEmptyBorder(8, 3, 6, 3));
+
+	SkillCalculatorPanel(SkillIconManager iconManager, Client client, SkillCalculatorConfig config, SpriteManager spriteManager, ItemManager itemManager)
 	{
 		super();
 		getScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
 		this.iconManager = iconManager;
+		this.config = config;
 
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		setLayout(new GridBagLayout());
@@ -64,38 +87,155 @@ class SkillCalculatorPanel extends PluginPanel
 		c.gridy = 0;
 
 		tabGroup = new MaterialTabGroup();
-		tabGroup.setLayout(new GridLayout(0, 6, 7, 7));
+		tabGroup.setLayout(new GridLayout(0, 3, 7, 7));
+		tabGroup.setBorder(new EmptyBorder(0, 0, 10, 0));
 
-		addCalculatorButtons();
+		createTabs();
+
+		final JComboBox<ComboBoxIconEntry> skillSelector = createSkillSelector();
 
 		final UICalculatorInputArea uiInput = new UICalculatorInputArea();
 		uiInput.setBorder(new EmptyBorder(15, 0, 15, 0));
 		uiInput.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		uiCalculator = new SkillCalculator(client, uiInput, spriteManager, itemManager);
 
-		add(tabGroup, c);
+		add(skillSelector, c);
 		c.gridy++;
 
 		add(uiInput, c);
+		c.gridy++;
+
+		add(tabGroup, c);
 		c.gridy++;
 
 		add(uiCalculator, c);
 		c.gridy++;
 	}
 
-	private void addCalculatorButtons()
+	// Creates all Panel Tabs
+	private void createTabs()
 	{
-		for (CalculatorType calculatorType : CalculatorType.values())
+		tabGroup.removeAll();
+
+		tabs = new ArrayList<>();
+		tabs.add("Calculator");
+		if (config.showBankedXp())
 		{
-			ImageIcon icon = new ImageIcon(iconManager.getSkillImage(calculatorType.getSkill(), true));
-			MaterialTab tab = new MaterialTab(icon, tabGroup, null);
-			tab.setOnSelectEvent(() ->
+			tabs.add("Banked Xp");
+		}
+
+		// Tab Size
+		tabGroup.setLayout(new GridLayout(0, tabs.size(), 7, 7));
+
+		for (String s : tabs)
+		{
+			MaterialTab matTab = new MaterialTab(s, tabGroup, null);
+
+			matTab.setHorizontalAlignment(SwingUtilities.CENTER);
+
+			// Ensure Background is applied
+			matTab.setOpaque(true);
+			matTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+			// Change the border for less blank space between elements
+			matTab.setUnselectedBorder(UNSELECTED_BORDER);
+			matTab.setSelectedBorder(SELECTED_BORDER);
+
+			// When Clicked
+			matTab.setOnSelectEvent(() ->
 			{
-				uiCalculator.openCalculator(calculatorType);
+				selectedTab(s);
 				return true;
 			});
 
-			tabGroup.addTab(tab);
+			tabGroup.addTab(matTab);
 		}
+		// Select the first tab
+		tabGroup.select(tabGroup.getTab(0));
+	}
+
+	private void selectedTab(String s)
+	{
+		currentTab = s;
+
+		// Only open a panel if a skill is selected
+		if (currentCalc == null)
+			return;
+
+		// Handle switching between the tabs
+		switch (s)
+		{
+			case "Calculator":
+				uiCalculator.openCalculator(currentCalc);
+				break;
+			case "Banked Xp":
+				uiCalculator.openBanked(currentCalc);
+				break;
+		}
+	}
+
+	// Creates the Skill Selection Drop Down
+	private JComboBox<ComboBoxIconEntry> createSkillSelector()
+	{
+		JComboBox<ComboBoxIconEntry> box = new JComboBox<>();
+
+		ComboBoxIconRenderer renderer = new ComboBoxIconRenderer();
+		box.setRenderer(renderer);
+
+		for (CalculatorType calculatorType : CalculatorType.values())
+		{
+			ImageIcon icon = new ImageIcon(iconManager.getSkillImage(calculatorType.getSkill(), true));
+			ComboBoxIconEntry dropdownEntry = new ComboBoxIconEntry(icon, calculatorType.getSkill().getName(), calculatorType.getSkill());
+			box.addItem(dropdownEntry);
+		}
+
+		box.addItemListener(e ->
+		{
+			if (e.getStateChange() == ItemEvent.SELECTED)
+			{
+				ComboBoxIconEntry entry = (ComboBoxIconEntry) e.getItem();
+				Object obj = entry.getObject();
+				if (obj instanceof Skill)
+				{
+					currentCalc = CalculatorType.getBySkill((Skill) obj);
+					selectedTab(currentTab);
+				}
+			}
+		});
+
+		box.setSelectedItem(null);
+
+		return box;
+	}
+
+	// Refresh the current tab
+	void refreshCurrentCalc()
+	{
+		if (currentCalc == null)
+			return;
+
+		selectedTab(currentTab);
+	}
+
+	// Refresh entire panel
+	void refreshPanel()
+	{
+		String oldTab = currentTab;
+
+		// Recreate Tabs (in case of Config change) and selects the first tab
+		createTabs();
+
+		// Reselect old tab if available
+		if (tabs.contains(oldTab))
+			currentTab = oldTab;
+
+		// For some reason this isn't giving it the bottom border but is selecting the correct tab?
+		refreshCurrentCalc();
+	}
+
+	// Wrapper function for updating SkillCalculator's bankMap
+	void updateBankMap(Map<Integer, Integer> bank)
+	{
+		uiCalculator.setBankMap(bank);
 	}
 }
