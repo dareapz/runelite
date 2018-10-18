@@ -620,8 +620,8 @@ public class SkillCalculator extends JPanel
 				}
 
 				// If it doesn't have any activities ignore it in the breakdown.
-				List<Activity> activities = Activity.getByCriticalItem(item);
-				if (activities == null || activities.size() <= 0)
+				List<Activity> activities = Activity.getByCriticalItem(item, currentLevel);
+				if (activities.size() <= 0)
 				{
 					return;
 				}
@@ -764,7 +764,7 @@ public class SkillCalculator extends JPanel
 	}
 
 	// Ignore an item in banked xp calculations
-	private void ignoreItemID(int id)
+	public void ignoreItemID(int id)
 	{
 		ignoreMap.put(id, true);
 

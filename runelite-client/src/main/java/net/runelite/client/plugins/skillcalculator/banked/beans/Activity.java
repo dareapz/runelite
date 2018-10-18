@@ -286,7 +286,7 @@ public enum Activity
 
 	public static ArrayList<Activity> getByCriticalItem(CriticalItem item)
 	{
-		return byCriticalItem.get(item);
+		return byCriticalItem.getOrDefault(item, new ArrayList<>());
 	}
 
 	private static Map<CriticalItem, ArrayList<Activity>> buildItemMap()
@@ -298,5 +298,26 @@ public enum Activity
 		}
 
 		return map;
+	}
+
+	public static ArrayList<Activity> getByCriticalItem(CriticalItem item, int limitLevel)
+	{
+		ArrayList<Activity> activities = new ArrayList<>();
+
+		// -1/0 Turns off limits
+		if (limitLevel <= 0)
+		{
+			limitLevel = 99;
+		}
+
+		for (Activity a : getByCriticalItem(item))
+		{
+			if (a.getLevel() <= limitLevel)
+			{
+				activities.add(a);
+			}
+		}
+
+		return activities;
 	}
 }

@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.MatteBorder;
@@ -192,9 +194,19 @@ public class ItemPanel extends JPanel
 		panel.add(image, BorderLayout.LINE_START);
 		panel.add(uiInfo, BorderLayout.CENTER);
 
+		// Add rightclick ignore to panel
+		JPopupMenu menu = new JPopupMenu("");
+		JMenuItem ignore = new JMenuItem("Ignore Item");
+		ignore.addActionListener(e -> calc.ignoreItemID(item.getItemID()));
+		menu.add(ignore);
+
+		panel.setComponentPopupMenu(menu);
+
 		// Only add button if has activity selection options or linked items
 		List<Activity> activities = Activity.getByCriticalItem(item);
-		if (linkedMap.size() > 1 || (activities != null && activities.size() > 1))
+		// If linked map has 1 item and it isn't this item still show breakdown (cleaned herbs into unfinished)
+		if ( (linkedMap.size() > 1 || (linkedMap.size() == 1 && linkedMap.get(item) == null))
+			|| activities.size() > 1)
 		{
 			panel.add(settingsButton, BorderLayout.LINE_END);
 		}
@@ -253,7 +265,7 @@ public class ItemPanel extends JPanel
 		}
 
 		// Show linked item breakdown, including own items
-		if (linkedMap.size() > 0)
+		if (linkedMap.size() > 1 || (linkedMap.size() == 1 && linkedMap.get(item) == null))
 		{
 			JLabel l = new JLabel("Item Breakdown");
 			l.setBorder(new EmptyBorder(3, 0, 3, 0));
@@ -281,6 +293,14 @@ public class ItemPanel extends JPanel
 				resize.run();
 
 				image.setToolTipText(e.getKey().getComposition().getName());
+
+
+				JPopupMenu menu = new JPopupMenu("");
+				JMenuItem ignore = new JMenuItem("Ignore Item");
+				ignore.addActionListener(event -> calc.ignoreItemID(e.getKey().getItemID()));
+				menu.add(ignore);
+
+				image.setComponentPopupMenu(menu);
 
 				con.add(image, c);
 				c.gridx++;
