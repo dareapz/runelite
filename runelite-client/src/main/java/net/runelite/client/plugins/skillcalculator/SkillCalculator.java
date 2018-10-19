@@ -670,7 +670,7 @@ public class SkillCalculator extends JPanel
 		}
 
 		List<Activity> activities = Activity.getByCriticalItem(i);
-		if (activities != null)
+		if (activities.size() > 0)
 		{
 			Activity selected;
 			if (activities.size() > 1)
