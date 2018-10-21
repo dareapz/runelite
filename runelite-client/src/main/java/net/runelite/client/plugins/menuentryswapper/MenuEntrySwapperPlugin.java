@@ -558,7 +558,7 @@ public class MenuEntrySwapperPlugin extends Plugin
 
 			if (m.matches() && rightClickAttackList.contains(m.group(1).trim()))
 			{
-				moveAttackDown(target, false);
+				moveAttackDown();
 			}
 		}
 	}
@@ -655,19 +655,29 @@ public class MenuEntrySwapperPlugin extends Plugin
 		}
 	}
 
-	private void moveAttackDown(String target, boolean strict)
+	private void moveAttackDown()
 	{
 		MenuEntry[] entries = client.getMenuEntries();
+		int idx = entries.length - 1;
 
-		int idx = searchIndex(entries, "attack", target, strict);
-
-		if (idx >= 0)
+		// Only do stuff if top option is attack
+		if (Text.removeTags(entries[idx].getOption()).toLowerCase().contains("attack"))
 		{
-			MenuEntry entry = entries[idx];
-			entries[idx] = entries[idx - 1];
-			entries[idx - 1] = entry;
+			// Find first non-attack/examine option in list
+			for (int i = idx - 1; i >= 0; i--)
+			{
+				MenuEntry e = entries[i];
+				String opt = Text.removeTags(e.getOption()).toLowerCase();
+				if (!opt.contains("attack") && !opt.contains("examine"))
+				{
+					MenuEntry entry = entries[idx];
+					entries[idx] = entries[i];
+					entries[i] = entry;
 
-			client.setMenuEntries(entries);
+					client.setMenuEntries(entries);
+					return;
+				}
+			}
 		}
 	}
 }
