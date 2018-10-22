@@ -106,13 +106,14 @@ public class LootPanel extends JPanel
 					}
 					else if (sortType.equals(ItemSortTypes.VALUE))
 					{
-						return (o1.getTotal() > o2.getTotal() ? -1 : 1);
+						if (o1.getTotal() != o2.getTotal())
+						{
+							return (o1.getTotal() > o2.getTotal() ? -1 : 1);
+						}
 					}
+
 					// Default to Alphabetical
-					else
-					{
-						return o1.getName().compareTo(o2.getName());
-					}
+					return o1.getName().compareTo(o2.getName());
 				}
 			}))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
