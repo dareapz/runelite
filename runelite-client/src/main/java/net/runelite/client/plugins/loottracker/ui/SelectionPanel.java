@@ -24,6 +24,17 @@
  */
 package net.runelite.client.plugins.loottracker.ui;
 
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.util.ArrayList;
+import java.util.Set;
+import javax.swing.ImageIcon;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import net.runelite.client.game.AsyncBufferedImage;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.loottracker.data.BossTab;
 import net.runelite.client.ui.ColorScheme;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -35,20 +46,24 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.TreeSet;
+import net.runelite.client.ui.components.materialtabs.MaterialTab;
+import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
 public class SelectionPanel extends JPanel
 {
 	private TreeSet<String> names;
 	private LootTrackerPanel parent;
+	private ItemManager itemManager;
 
 	private final static Color BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
 	private final static Color BUTTON_COLOR = ColorScheme.DARKER_GRAY_COLOR;
 	private final static Color BUTTON_HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
 
-	SelectionPanel(TreeSet<String> names, LootTrackerPanel parent)
+	SelectionPanel(TreeSet<String> names, LootTrackerPanel parent, ItemManager itemManager)
 	{
 		this.names = names == null ? new TreeSet<>() : names;
 		this.parent = parent;
+		this.itemManager = itemManager;
 
 		this.setLayout(new GridBagLayout());
 		this.setBackground(BACKGROUND_COLOR);
@@ -65,13 +80,34 @@ public class SelectionPanel extends JPanel
 		c.gridy = 0;
 		c.insets = new Insets(5, 0, 0, 0);
 
+		// Add Session Data name
 		this.add(createNamePanel("Session Data"), c);
 		c.gridy++;
 
+		// Add Boss Categories
+		// Add the bosses tabs, by category, to tabGroup
+		Set<String> categories = BossTab.categories;
+		JPanel container = new JPanel(new GridBagLayout());
+		container.setBorder(new EmptyBorder(0, 0, 10, 0));
+		int oldc = c.gridy;
+		c.gridy = 0;
+		for (String categoryName : categories)
+		{
+			container.add(createTabCategory(categoryName), c);
+			c.gridy++;
+		}
+		c.gridy = oldc;
+		this.add(container, c);
+		c.gridy++;
+
+		// Add all other names
 		for (String name : this.names)
 		{
-			this.add(createNamePanel(name), c);
-			c.gridy++;
+			if (BossTab.getByName(name) == null)
+			{
+				this.add(createNamePanel(name), c);
+				c.gridy++;
+			}
 		}
 	}
 
@@ -114,5 +150,80 @@ public class SelectionPanel extends JPanel
 			this.revalidate();
 			this.repaint();
 		}
+	}
+
+	// Creates all tabs for a specific category
+	private JPanel createTabCategory(String categoryName)
+	{
+		JPanel container = new JPanel();
+		container.setLayout(new GridBagLayout());
+		container.setBorder(new EmptyBorder(0, 5, 0, 5));
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.gridy = 0;
+
+		MaterialTabGroup thisTabGroup = new MaterialTabGroup();
+		thisTabGroup.setLayout(new GridLayout(0, 4, 7, 7));
+		thisTabGroup.setBorder(new EmptyBorder(4, 0, 0, 0));
+
+		JLabel name = new JLabel(categoryName);
+		name.setBorder(new EmptyBorder(8, 0, 0, 0));
+		name.setForeground(Color.WHITE);
+		name.setVerticalAlignment(SwingConstants.CENTER);
+
+		ArrayList<BossTab> categoryTabs = BossTab.getByCategoryName(categoryName);
+		for (BossTab tab : categoryTabs)
+		{
+			// Create tab (with hover effects/text)
+			MaterialTab materialTab = new MaterialTab("", thisTabGroup, null);
+			materialTab.setName(tab.getName());
+			materialTab.setToolTipText(tab.getName());
+			materialTab.setSelectedBorder(new EmptyBorder(0, 0, 0, 0));
+			materialTab.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mouseEntered(MouseEvent e)
+				{
+					materialTab.setBackground(BUTTON_HOVER_COLOR);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent e)
+				{
+					materialTab.setBackground(BUTTON_COLOR);
+				}
+
+				@Override
+				public void mouseClicked(MouseEvent e)
+				{
+					SwingUtilities.invokeLater(() -> parent.showLootView(tab.getName()));
+				}
+			});
+
+			// Attach Icon to the Tab
+			AsyncBufferedImage image = itemManager.getImage(tab.getItemID());
+			Runnable resize = () ->
+			{
+				materialTab.setIcon(new ImageIcon(image.getScaledInstance(35, 35, Image.SCALE_SMOOTH)));
+				materialTab.setOpaque(true);
+				materialTab.setBackground(BUTTON_COLOR);
+				materialTab.setHorizontalAlignment(SwingConstants.CENTER);
+				materialTab.setVerticalAlignment(SwingConstants.CENTER);
+				materialTab.setPreferredSize(new Dimension(35, 35));
+			};
+			image.onChanged(resize);
+			resize.run();
+
+			thisTabGroup.addTab(materialTab);
+		}
+
+		container.add(name, c);
+		c.gridy++;
+		container.add(thisTabGroup, c);
+
+		return container;
 	}
 }

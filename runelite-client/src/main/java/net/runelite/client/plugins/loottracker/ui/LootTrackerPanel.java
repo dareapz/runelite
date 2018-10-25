@@ -140,7 +140,7 @@ public class LootTrackerPanel extends PluginPanel
 		errorPanel.setBorder(new EmptyBorder(10, 25, 10, 25));
 		errorPanel.setContent("Loot Tracker", "Please select the Activity, Player, or NPC you wish to view loot for");
 
-		SelectionPanel selection = new SelectionPanel(plugin.getNames(), this);
+		SelectionPanel selection = new SelectionPanel(plugin.getNames(), this, itemManager);
 
 		this.add(errorPanel, BorderLayout.NORTH);
 		this.add(wrapContainer(selection), BorderLayout.CENTER);
