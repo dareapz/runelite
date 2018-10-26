@@ -104,6 +104,7 @@ class LootTrackerBox extends JPanel
 	void combine(final LootRecord record)
 	{
 		records.add(record);
+		buildItems();
 	}
 
 	/**
@@ -176,6 +177,14 @@ class LootTrackerBox extends JPanel
 		}
 
 		itemContainer.repaint();
+
+		priceLabel.setText(StackFormatter.quantityToStackSize(totalPrice) + " gp");
+		if (records.size() > 1)
+		{
+			subTitleLabel.setText("x " + records.size());
+		}
+
+		repaint();
 	}
 
 	private static String buildToolTip(LootTrackerItemEntry item)
