@@ -88,27 +88,27 @@ public enum UniqueItem
 
 	// Raids Uniques
 	// Mage
-	KODAI_INSIGNIA("Kodai insignia", ItemID.KODAI_INSIGNIA, "Raids", "Mage", 0),
-	ANCESTRAL_HAT("Ancestral hat", ItemID.ANCESTRAL_HAT, "Raids", "Mage", 0),
-	ANCESTRAL_ROBE_TOP("Ancestral robe top", ItemID.ANCESTRAL_ROBE_TOP, "Raids", "Mage", 0),
-	ANCESTRAL_ROBE_BOTTOM("Ancestral robe bottom", ItemID.ANCESTRAL_ROBE_BOTTOM, "Raids", "Mage", 0),
+	KODAI_INSIGNIA("Kodai insignia", ItemID.KODAI_INSIGNIA, "Chambers of Xeric", "Mage", 0),
+	ANCESTRAL_HAT("Ancestral hat", ItemID.ANCESTRAL_HAT, "Chambers of Xeric", "Mage", 0),
+	ANCESTRAL_ROBE_TOP("Ancestral robe top", ItemID.ANCESTRAL_ROBE_TOP, "Chambers of Xeric", "Mage", 0),
+	ANCESTRAL_ROBE_BOTTOM("Ancestral robe bottom", ItemID.ANCESTRAL_ROBE_BOTTOM, "Chambers of Xeric", "Mage", 0),
 	// Range
-	DRAGON_THROWNAXE("Dragon thrownaxe", ItemID.DRAGON_THROWNAXE, "Raids", "Range", 1),
-	DRAGON_HUNTER_CROSSBOW("Dragon hunter crossbow", ItemID.DRAGON_HUNTER_CROSSBOW, "Raids", "Range", 1),
-	TWISTED_BUCKLER("Twisted buckler", ItemID.TWISTED_BUCKLER, "Raids", "Range", 1),
-	TWISTED_BOW("Twisted bow", ItemID.TWISTED_BOW, "Raids", "Range", 1),
+	DRAGON_THROWNAXE("Dragon thrownaxe", ItemID.DRAGON_THROWNAXE, "Chambers of Xeric", "Range", 1),
+	DRAGON_HUNTER_CROSSBOW("Dragon hunter crossbow", ItemID.DRAGON_HUNTER_CROSSBOW, "Chambers of Xeric", "Range", 1),
+	TWISTED_BUCKLER("Twisted buckler", ItemID.TWISTED_BUCKLER, "Chambers of Xeric", "Range", 1),
+	TWISTED_BOW("Twisted bow", ItemID.TWISTED_BOW, "Chambers of Xeric", "Range", 1),
 	// Melee
-	DRAGON_SWORD("Dragon sword", ItemID.DRAGON_SWORD, "Raids", "Melee", 2),
-	DRAGON_CLAWS("Dragon claws", ItemID.DRAGON_CLAWS, "Raids", "Melee", 2),
-	DINHS_BULWARK("Dinh's bulwark", ItemID.DINHS_BULWARK, "Raids", "Melee", 2),
-	ELDER_MAUL("Elder maul", ItemID.ELDER_MAUL_21003, "Raids", "Melee", 2),
+	DRAGON_SWORD("Dragon sword", ItemID.DRAGON_SWORD, "Chambers of Xeric", "Melee", 2),
+	DRAGON_CLAWS("Dragon claws", ItemID.DRAGON_CLAWS, "Chambers of Xeric", "Melee", 2),
+	DINHS_BULWARK("Dinh's bulwark", ItemID.DINHS_BULWARK, "Chambers of Xeric", "Melee", 2),
+	ELDER_MAUL("Elder maul", ItemID.ELDER_MAUL_21003, "Chambers of Xeric", "Melee", 2),
 	// Prayers
-	TORN_PRAYER_SCROLL("Torn prayer scroll", ItemID.TORN_PRAYER_SCROLL, "Raids", "Prayer", 3),
-	ARCANE_PRAYER_SCROLL("Arcane prayer scroll", ItemID.ARCANE_PRAYER_SCROLL, "Raids", "Prayer", 3),
-	DEXTEROUS_PRAYER_SCROLL("Dexterous prayer scroll", ItemID.DEXTEROUS_PRAYER_SCROLL, "Raids", "Prayer", 3),
+	TORN_PRAYER_SCROLL("Torn prayer scroll", ItemID.TORN_PRAYER_SCROLL, "Chambers of Xeric", "Prayer", 3),
+	ARCANE_PRAYER_SCROLL("Arcane prayer scroll", ItemID.ARCANE_PRAYER_SCROLL, "Chambers of Xeric", "Prayer", 3),
+	DEXTEROUS_PRAYER_SCROLL("Dexterous prayer scroll", ItemID.DEXTEROUS_PRAYER_SCROLL, "Chambers of Xeric", "Prayer", 3),
 	// Other
-	DRAGON_HARPOON("Dragon harpoon", ItemID.DRAGON_HARPOON, "Raids", "Other", 4),
-	DARK_RELIC("Dark relic", ItemID.DARK_RELIC, "Raids", "Other", 4),
+	DRAGON_HARPOON("Dragon harpoon", ItemID.DRAGON_HARPOON, "Chambers of Xeric", "Other", 4),
+	DARK_RELIC("Dark relic", ItemID.DARK_RELIC, "Chambers of Xeric", "Other", 4),
 
 	// Raids 2 Unqiues (Theater of Blood)
 	// Weapons / Pet

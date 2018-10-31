@@ -31,8 +31,8 @@ public enum Pet
 	// Other Bosses
 	BABY_MOLE(ItemID.BABY_MOLE, "Giant Mole"),
 	KALPHITE_PRINCESS(ItemID.KALPHITE_PRINCESS, "Kalphite Queen"),
-	OLMLET(ItemID.OLMLET, "Raids"),
-	LIL_ZIK(ItemID.LIL_ZIK, "Raids 2"),
+	OLMLET(ItemID.OLMLET, "Chambers of Xeric"),
+	LIL_ZIK(ItemID.LIL_ZIK, "Theatre of Blood"),
 	PET_DARK_CORE(ItemID.PET_DARK_CORE, "Corporeal Beast"),
 	PET_SNAKELING(ItemID.PET_SNAKELING, "Zulrah"),
 	PET_DAGANNOTH_REX(ItemID.PET_DAGANNOTH_REX, "Dagannoth Rex"),

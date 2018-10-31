@@ -38,7 +38,7 @@ public enum BossTab
 {
 	// Chest Rewards
 	BARROWS("Barrows", ItemID.BARROWS_TELEPORT, "Other"),
-	RAIDS("Raids", ItemID.OLMLET, "Other"),
+	RAIDS("Chambers of Xeric", ItemID.OLMLET, "Other"),
 	RAIDS_2("Theatre of Blood", ItemID.LIL_ZIK, "Other"),
 
 	// Loot received on NPC death
