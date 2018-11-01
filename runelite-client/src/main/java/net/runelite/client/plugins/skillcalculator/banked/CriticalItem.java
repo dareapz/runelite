@@ -123,34 +123,34 @@ public enum CriticalItem
 	OURG_BONES(ItemID.OURG_BONES, "Bones", Skill.PRAYER),
 	SUPERIOR_DRAGON_BONES(ItemID.SUPERIOR_DRAGON_BONES, "Bones", Skill.PRAYER),
 	// Shade Remains (Pyre Logs)
-	LOAR_REMAINS(ItemID.LOAR_REMAINS, "Shades", Skill.PRAYER),
-	PHRIN_REMAINS(ItemID.PHRIN_REMAINS, "Shades", Skill.PRAYER),
-	RIYL_REMAINS(ItemID.RIYL_REMAINS, "Shades", Skill.PRAYER),
-	ASYN_REMAINS(ItemID.ASYN_REMAINS, "Shades", Skill.PRAYER),
-	FIYR_REMAINS(ItemID.FIYR_REMAINS, "Shades", Skill.PRAYER),
+	LOAR_REMAINS(ItemID.LOAR_REMAINS, "Shades", Skill.PRAYER, true),
+	PHRIN_REMAINS(ItemID.PHRIN_REMAINS, "Shades", Skill.PRAYER, true),
+	RIYL_REMAINS(ItemID.RIYL_REMAINS, "Shades", Skill.PRAYER, true),
+	ASYN_REMAINS(ItemID.ASYN_REMAINS, "Shades", Skill.PRAYER, true),
+	FIYR_REMAINS(ItemID.FIYR_REMAINS, "Shades", Skill.PRAYER, true),
 	// Ensouled Heads
-	ENSOULED_GOBLIN_HEAD(ItemID.ENSOULED_GOBLIN_HEAD_13448, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_MONKEY_HEAD(ItemID.ENSOULED_MONKEY_HEAD_13451, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_IMP_HEAD(ItemID.ENSOULED_IMP_HEAD_13454, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_MINOTAUR_HEAD(ItemID.ENSOULED_MINOTAUR_HEAD_13457, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_SCORPION_HEAD(ItemID.ENSOULED_SCORPION_HEAD_13460, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_BEAR_HEAD(ItemID.ENSOULED_BEAR_HEAD_13463, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_UNICORN_HEAD(ItemID.ENSOULED_UNICORN_HEAD_13466, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_DOG_HEAD(ItemID.ENSOULED_DOG_HEAD_13469, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_CHAOS_DRUID_HEAD(ItemID.ENSOULED_CHAOS_DRUID_HEAD_13472, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_GIANT_HEAD(ItemID.ENSOULED_GIANT_HEAD_13475, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_OGRE_HEAD(ItemID.ENSOULED_OGRE_HEAD_13478, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_ELF_HEAD(ItemID.ENSOULED_ELF_HEAD_13481, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_TROLL_HEAD(ItemID.ENSOULED_TROLL_HEAD_13484, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_HORROR_HEAD(ItemID.ENSOULED_HORROR_HEAD_13487, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_KALPHITE_HEAD(ItemID.ENSOULED_KALPHITE_HEAD_13490, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_DAGANNOTH_HEAD(ItemID.ENSOULED_DAGANNOTH_HEAD_13493, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_BLOODVELD_HEAD(ItemID.ENSOULED_BLOODVELD_HEAD_13496, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_TZHAAR_HEAD(ItemID.ENSOULED_TZHAAR_HEAD_13499, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_DEMON_HEAD(ItemID.ENSOULED_DEMON_HEAD_13502, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_AVIANSIE_HEAD(ItemID.ENSOULED_AVIANSIE_HEAD_13505, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_ABYSSAL_HEAD(ItemID.ENSOULED_ABYSSAL_HEAD_13508, "Ensouled Heads", Skill.PRAYER),
-	ENSOULED_DRAGON_HEAD(ItemID.ENSOULED_DRAGON_HEAD_13511, "Ensouled Heads", Skill.PRAYER),
+	ENSOULED_GOBLIN_HEAD(ItemID.ENSOULED_GOBLIN_HEAD_13448, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_MONKEY_HEAD(ItemID.ENSOULED_MONKEY_HEAD_13451, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_IMP_HEAD(ItemID.ENSOULED_IMP_HEAD_13454, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_MINOTAUR_HEAD(ItemID.ENSOULED_MINOTAUR_HEAD_13457, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_SCORPION_HEAD(ItemID.ENSOULED_SCORPION_HEAD_13460, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_BEAR_HEAD(ItemID.ENSOULED_BEAR_HEAD_13463, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_UNICORN_HEAD(ItemID.ENSOULED_UNICORN_HEAD_13466, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_DOG_HEAD(ItemID.ENSOULED_DOG_HEAD_13469, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_CHAOS_DRUID_HEAD(ItemID.ENSOULED_CHAOS_DRUID_HEAD_13472, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_GIANT_HEAD(ItemID.ENSOULED_GIANT_HEAD_13475, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_OGRE_HEAD(ItemID.ENSOULED_OGRE_HEAD_13478, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_ELF_HEAD(ItemID.ENSOULED_ELF_HEAD_13481, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_TROLL_HEAD(ItemID.ENSOULED_TROLL_HEAD_13484, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_HORROR_HEAD(ItemID.ENSOULED_HORROR_HEAD_13487, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_KALPHITE_HEAD(ItemID.ENSOULED_KALPHITE_HEAD_13490, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_DAGANNOTH_HEAD(ItemID.ENSOULED_DAGANNOTH_HEAD_13493, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_BLOODVELD_HEAD(ItemID.ENSOULED_BLOODVELD_HEAD_13496, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_TZHAAR_HEAD(ItemID.ENSOULED_TZHAAR_HEAD_13499, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_DEMON_HEAD(ItemID.ENSOULED_DEMON_HEAD_13502, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_AVIANSIE_HEAD(ItemID.ENSOULED_AVIANSIE_HEAD_13505, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_ABYSSAL_HEAD(ItemID.ENSOULED_ABYSSAL_HEAD_13508, "Ensouled Heads", Skill.PRAYER, true),
+	ENSOULED_DRAGON_HEAD(ItemID.ENSOULED_DRAGON_HEAD_13511, "Ensouled Heads", Skill.PRAYER, true),
 
 	/*
 	 * Cooking Items
@@ -225,16 +225,10 @@ public enum CriticalItem
 	private final int linkedItemId;
 
 	@Getter
-	private ItemComposition composition;
+	private boolean ignoreBonus;
 
-	CriticalItem(int itemID, String category, Skill skill)
-	{
-		this.itemID = itemID;
-		this.category = category;
-		this.skill = skill;
-		this.linkedItemId = -1;
-		this.composition = null;
-	}
+	@Getter
+	private ItemComposition composition;
 
 	CriticalItem(int itemID, String category, Skill skill, int linkedItem)
 	{
@@ -243,6 +237,24 @@ public enum CriticalItem
 		this.skill = skill;
 		this.linkedItemId = linkedItem;
 		this.composition = null;
+		this.ignoreBonus = false;
+	}
+
+	CriticalItem(int itemID, String category, Skill skill)
+	{
+		this(itemID, category, skill, -1);
+	}
+
+	CriticalItem(int itemID, String category, Skill skill, boolean ignoreBonusXp)
+	{
+		this(itemID, category, skill, -1);
+		this.ignoreBonus = ignoreBonusXp;
+	}
+
+	CriticalItem(int itemID, String category, Skill skill, int linkedItemId, boolean ignoreBonusXp)
+	{
+		this(itemID, category, skill, linkedItemId);
+		this.ignoreBonus = ignoreBonusXp;
 	}
 
 	// Return the items that we should be searching for inside the bank by skill

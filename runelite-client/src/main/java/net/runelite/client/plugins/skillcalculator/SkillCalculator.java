@@ -639,7 +639,7 @@ public class SkillCalculator extends JPanel
 			}
 
 			// Determine xp rate for this item
-			double xp = getItemXpRate(item) * xpFactor;
+			double xp = getItemXpRate(item) * (item.isIgnoreBonus() ? 1.0f : xpFactor);
 			int amount = 0;
 			Map<CriticalItem, Integer> links = getLinkedTotalMap(item);
 
@@ -756,7 +756,7 @@ public class SkillCalculator extends JPanel
 		ItemPanel p = panelMap.get(i);
 		if (p != null)
 		{
-			p.updateXp(a.getXp() * xpFactor);
+			p.updateXp(a.getXp() * (i.isIgnoreBonus() ? 1.0f : xpFactor));
 		}
 
 		// Update total banked exp value based on updated panels
