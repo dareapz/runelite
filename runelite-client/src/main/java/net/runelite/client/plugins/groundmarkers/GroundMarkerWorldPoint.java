@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2018, TheLonelyDev <https://github.com/TheLonelyDev>
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,34 +22,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package net.runelite.client.plugins.groundmarkers;
 
 import lombok.Value;
+import net.runelite.api.coords.WorldPoint;
 
 @Value
-public class GroundMarkerPoint
+public class GroundMarkerWorldPoint
 {
-	private int regionId;
-	private int regionX;
-	private int regionY;
-	private int z;
-	private int group;
-
-	@Override
-	public String toString()
-	{
-		return "GroundMarkerPoint(regionId=" + regionId + ",regionX=" + regionX + ",=regionY" + regionY + ",z=" + z + ")";
-	}
-
-	@Override
-	public boolean equals(Object o)
-	{
-		if (!(o instanceof  GroundMarkerPoint))
-		{
-			return false;
-		}
-
-		return o.toString().equals(this.toString());
-	}
+	private GroundMarkerPoint groundMarkerPoint;
+	private WorldPoint worldPoint;
 }

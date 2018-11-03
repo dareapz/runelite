@@ -37,11 +37,41 @@ public interface GroundMarkerConfig extends Config
 {
 	@ConfigItem(
 		keyName = "markerColor",
-		name = "Color of the tile",
-		description = "Configures the color of marked tile"
+		name = "Default Marked tile Color",
+		description = "Configures the default color of marked tiles"
 	)
 	default Color markerColor()
 	{
 		return Color.YELLOW;
+	}
+
+	@ConfigItem(
+		keyName = "markerColor2",
+		name = "Group 2 tile color",
+		description = "Configures the color of the 2nd group of marked tiles"
+	)
+	default Color markerColor2()
+	{
+		return Color.RED;
+	}
+
+	@ConfigItem(
+		keyName = "markerColor3",
+		name = "Group 3 tile color",
+		description = "Configures the color of the 3rd group of marked tiles"
+	)
+	default Color markerColor3()
+	{
+		return Color.BLUE;
+	}
+
+	@ConfigItem(
+		keyName = "markerColor4",
+		name = "Group 4 tile color",
+		description = "Configures the color of the 4th group of marked tiles"
+	)
+	default Color markerColor4()
+	{
+		return Color.GREEN;
 	}
 }

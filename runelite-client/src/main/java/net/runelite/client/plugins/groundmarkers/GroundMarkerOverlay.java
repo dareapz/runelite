@@ -25,6 +25,7 @@
  */
 package net.runelite.client.plugins.groundmarkers;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -60,24 +61,24 @@ public class GroundMarkerOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		List<WorldPoint> points = plugin.getPoints();
-		for (WorldPoint point : points)
+		List<GroundMarkerWorldPoint> points = plugin.getPoints();
+		for (GroundMarkerWorldPoint groundMarkerWorldPoint : points)
 		{
-			if (point.getPlane() != client.getPlane())
-			{
-				continue;
-			}
-
-			drawTile(graphics, point);
+			drawTile(graphics, groundMarkerWorldPoint);
 		}
 
 		return null;
 	}
 
-	private void drawTile(Graphics2D graphics, WorldPoint point)
+	private void drawTile(Graphics2D graphics, GroundMarkerWorldPoint groundMarkerWorldPoint)
 	{
-		WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
+		WorldPoint point = groundMarkerWorldPoint.getWorldPoint();
+		if (point.getPlane() != client.getPlane())
+		{
+			return;
+		}
 
+		WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
 		if (point.distanceTo(playerLocation) >= 32)
 		{
 			return;
@@ -95,6 +96,18 @@ public class GroundMarkerOverlay extends Overlay
 			return;
 		}
 
-		OverlayUtil.renderPolygon(graphics, poly, config.markerColor());
+		Color color = config.markerColor();
+		switch (groundMarkerWorldPoint.getGroundMarkerPoint().getGroup())
+		{
+			case 2:
+				color = config.markerColor2();
+				break;
+			case 3:
+				color = config.markerColor3();
+				break;
+			case 4:
+				color = config.markerColor4();
+		}
+		OverlayUtil.renderPolygon(graphics, poly, color);
 	}
 }

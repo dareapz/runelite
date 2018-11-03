@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -68,6 +70,7 @@ public class GroundMarkerPlugin extends Plugin
 {
 	private static final String CONFIG_GROUP = "groundMarker";
 	private static final String MARK = "Mark tile";
+	private static final Pattern GROUP_MATCHER = Pattern.compile("Mark tile \\(Group (\\d)\\)");
 	private static final String WALK_HERE = "Walk here";
 
 	private static final Gson gson = new Gson();
@@ -77,7 +80,7 @@ public class GroundMarkerPlugin extends Plugin
 	private boolean hotKeyPressed;
 
 	@Getter(AccessLevel.PACKAGE)
-	private final List<WorldPoint> points = new ArrayList<>();
+	private final List<GroundMarkerWorldPoint> points = new ArrayList<>();
 
 	@Inject
 	private Client client;
@@ -137,7 +140,7 @@ public class GroundMarkerPlugin extends Plugin
 			// load points for region
 			log.debug("Loading points for region {}", regionId);
 			Collection<GroundMarkerPoint> regionPoints = getPoints(regionId);
-			Collection<WorldPoint> worldPoints = translateToWorld(regionPoints);
+			Collection<GroundMarkerWorldPoint> worldPoints = translateToWorld(regionPoints);
 			points.addAll(worldPoints);
 		}
 	}
@@ -148,14 +151,14 @@ public class GroundMarkerPlugin extends Plugin
 	 * @param points
 	 * @return
 	 */
-	private Collection<WorldPoint> translateToWorld(Collection<GroundMarkerPoint> points)
+	private Collection<GroundMarkerWorldPoint> translateToWorld(Collection<GroundMarkerPoint> points)
 	{
 		if (points.isEmpty())
 		{
 			return Collections.EMPTY_LIST;
 		}
 
-		List<WorldPoint> worldPoints = new ArrayList<>();
+		List<GroundMarkerWorldPoint> worldPoints = new ArrayList<>();
 		for (GroundMarkerPoint point : points)
 		{
 			int regionId = point.getRegionId();
@@ -172,7 +175,7 @@ public class GroundMarkerPlugin extends Plugin
 
 			if (!client.isInInstancedRegion())
 			{
-				worldPoints.add(worldPoint);
+				worldPoints.add(new GroundMarkerWorldPoint(point, worldPoint));
 				continue;
 			}
 
@@ -193,7 +196,7 @@ public class GroundMarkerPlugin extends Plugin
 							client.getBaseY() + y * CHUNK_SIZE + (worldPoint.getY() & (CHUNK_SIZE - 1)),
 							worldPoint.getPlane());
 						p = rotate(p, rotation);
-						worldPoints.add(p);
+						worldPoints.add(new GroundMarkerWorldPoint(point, p));
 					}
 				}
 			}
@@ -265,13 +268,17 @@ public class GroundMarkerPlugin extends Plugin
 		if (hotKeyPressed && event.getOption().equals(WALK_HERE))
 		{
 			MenuEntry[] menuEntries = client.getMenuEntries();
-			menuEntries = Arrays.copyOf(menuEntries, menuEntries.length + 1);
+			int lastIndex = menuEntries.length;
+			menuEntries = Arrays.copyOf(menuEntries, lastIndex + 4);
 
-			MenuEntry menuEntry = menuEntries[menuEntries.length - 1] = new MenuEntry();
-
-			menuEntry.setOption(MARK);
-			menuEntry.setTarget(event.getTarget());
-			menuEntry.setType(MenuAction.CANCEL.getId());
+			for (int i = 4; i > 0; i--)
+			{
+				MenuEntry menuEntry = menuEntries[lastIndex] = new MenuEntry();
+				menuEntry.setOption(MARK + (i == 1 ? "" : " (Group " + i + ")"));
+				menuEntry.setTarget(event.getTarget());
+				menuEntry.setType(MenuAction.CANCEL.getId());
+				lastIndex++;
+			}
 
 			client.setMenuEntries(menuEntries);
 		}
@@ -280,13 +287,20 @@ public class GroundMarkerPlugin extends Plugin
 	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked event)
 	{
-		if (!event.getMenuOption().equals(MARK))
+		if (!event.getMenuOption().contains(MARK))
 		{
 			return;
 		}
 
+		int group = 1;
+		Matcher m = GROUP_MATCHER.matcher(event.getMenuOption());
+		if (m.matches())
+		{
+			group = Integer.parseInt(m.group(1));
+		}
+
 		Tile target = client.getSelectedSceneTile();
-		markTile(target.getLocalLocation());
+		markTile(target.getLocalLocation(), group);
 	}
 
 	@Override
@@ -304,7 +318,7 @@ public class GroundMarkerPlugin extends Plugin
 	}
 
 
-	protected void markTile(LocalPoint localPoint)
+	protected void markTile(LocalPoint localPoint, int group)
 	{
 		if (localPoint == null)
 		{
@@ -314,13 +328,19 @@ public class GroundMarkerPlugin extends Plugin
 		WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPoint);
 
 		int regionId = worldPoint.getRegionID();
-		GroundMarkerPoint point = new GroundMarkerPoint(regionId, worldPoint.getX() & 0x3f, worldPoint.getY() & 0x3f, client.getPlane());
+		GroundMarkerPoint point = new GroundMarkerPoint(regionId, worldPoint.getX() & 0x3f, worldPoint.getY() & 0x3f, client.getPlane(), group);
 		log.debug("Updating point: {} - {}", point, worldPoint);
 
 		List<GroundMarkerPoint> points = new ArrayList<>(getPoints(regionId));
 		if (points.contains(point))
 		{
+			GroundMarkerPoint old = points.get(points.indexOf(point));
 			points.remove(point);
+
+			if (old.getGroup() != group)
+			{
+				points.add(point);
+			}
 		}
 		else
 		{
