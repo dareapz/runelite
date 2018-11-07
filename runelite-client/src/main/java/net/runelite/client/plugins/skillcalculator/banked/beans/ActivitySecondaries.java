@@ -74,8 +74,16 @@ public enum ActivitySecondaries
 	// Torstol
 	ZAMORAK_BREW(new SecondaryItem(ItemID.JANGERBERRIES)),
 	SUPER_COMBAT_POTION(new SecondaryItem(ItemID.SUPER_ATTACK3), new SecondaryItem(ItemID.SUPER_STRENGTH3), new SecondaryItem(ItemID.SUPER_DEFENCE3)),
-	ANTIVENOM_PLUS(new SecondaryItem(ItemID.ANTIVENOM4));
+	ANTIVENOM_PLUS(new SecondaryItem(ItemID.ANTIVENOM4)),
 
+
+	// Smithing
+	COAL_ORE(new SecondaryItem(ItemID.COAL)),
+	COAL_ORE_2(new SecondaryItem(ItemID.COAL, 2)),
+	COAL_ORE_4(new SecondaryItem(ItemID.COAL, 4)),
+	COAL_ORE_6(new SecondaryItem(ItemID.COAL, 6)),
+	COAL_ORE_8(new SecondaryItem(ItemID.COAL, 8)),
+	;
 	private final SecondaryItem[] items;
 
 	ActivitySecondaries(SecondaryItem... items)

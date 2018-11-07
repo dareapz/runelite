@@ -217,11 +217,22 @@ public enum Activity
 	/*
 	 * Smithing Items
 	 */
-	// TODO: ADD ORES
 
+	// Smelting ores (Furnace)
+	IRON_ORE(ItemID.IRON_BAR, "Iron Bars", Skill.SMITHING, 15, 12.5, CriticalItem.IRON_ORE, ActivitySecondaries.COAL_ORE),
+	STEEL_ORE(ItemID.STEEL_BAR, "Steel Bars", Skill.SMITHING, 30, 17.5, CriticalItem.IRON_ORE, ActivitySecondaries.COAL_ORE_2),
+	SILVER_ORE(ItemID.SILVER_ORE, "Bar", Skill.SMITHING, 20, 13.67, CriticalItem.SILVER_ORE, null),
+	GOLD_ORE(ItemID.GOLD_BAR, "Regular exp", Skill.SMITHING, 40, 22.5, CriticalItem.GOLD_ORE, null),
+	GOLD_ORE_GAUNTLETS(ItemID.GOLDSMITH_GAUNTLETS, "Goldsmith Gauntlets", Skill.SMITHING, 40, 56.2, CriticalItem.GOLD_ORE, null),
+	MITHRIL_ORE(ItemID.IRON_ORE, "Bar", Skill.SMITHING, 50, 30, CriticalItem.MITHRIL_ORE, ActivitySecondaries.COAL_ORE_4),
+	ADAMANTITE_ORE(ItemID.IRON_ORE, "Bar", Skill.SMITHING, 70, 37.5, CriticalItem.ADAMANTITE_ORE, ActivitySecondaries.COAL_ORE_6),
+	RUNITE_ORE(ItemID.IRON_ORE, "Bar", Skill.SMITHING, 85, 50, CriticalItem.RUNITE_ORE, ActivitySecondaries.COAL_ORE_8),
+
+	// Smelting bars (Anvil)
 	BRONZE_BAR(ItemID.BRONZE_BAR, "Bars", Skill.SMITHING, 1, 12.5, CriticalItem.BRONZE_BAR, null),
 	IRON_BAR(ItemID.IRON_BAR, "Bars", Skill.SMITHING, 15, 25.0, CriticalItem.IRON_BAR, null),
-	STEEL_BAR(ItemID.STEEL_BAR, "Bars", Skill.SMITHING, 30, 37.5, CriticalItem.STEEL_BAR, null),
+	STEEL_BAR(ItemID.STEEL_BAR, "Steel Products", Skill.SMITHING, 30, 37.5, CriticalItem.STEEL_BAR, null),
+	CANNONBALLS(ItemID.CANNONBALL, "Cannonballs", Skill.SMITHING, 35, 25.5, CriticalItem.STEEL_BAR, null),
 	MITHRIL_BAR(ItemID.MITHRIL_BAR, "Bars", Skill.SMITHING, 50, 50.0, CriticalItem.MITHRIL_BAR, null),
 	ADAMANTITE_BAR(ItemID.ADAMANTITE_BAR, "Bars", Skill.SMITHING, 70, 62.5, CriticalItem.ADAMANTITE_BAR, null),
 	RUNITE_BAR(ItemID.RUNITE_BAR, "Bars", Skill.SMITHING, 85, 75.0, CriticalItem.RUNITE_BAR, null)
