@@ -609,6 +609,9 @@ public class SkillCalculator extends JPanel
 		// Category Included and Not ignoring this item ID?
 		if (flag && !ignoreFlag)
 		{
+			// Get possible activities limited to current level
+			List<Activity> activities = Activity.getByCriticalItem(item, currentLevel);
+
 			// Check if this should count as another item.
 			if (item.getLinkedItemId() != -1)
 			{
@@ -619,13 +622,6 @@ public class SkillCalculator extends JPanel
 					createItemPanel(linked);
 				}
 
-				// If it doesn't have any activities ignore it in the breakdown.
-				List<Activity> activities = Activity.getByCriticalItem(item, currentLevel);
-				if (activities.size() <= 0)
-				{
-					return;
-				}
-
 				// One activity and rewards no xp ignore.
 				if (activities.size() == 1)
 				{
@@ -634,9 +630,15 @@ public class SkillCalculator extends JPanel
 						return;
 					}
 				}
-
-				// Either this item has multiple activities or the single activity rewards xp, create a panel below.
 			}
+
+			// If it doesn't have any activities ignore it in the breakdown.
+			if (activities.size() <= 0)
+			{
+				return;
+			}
+
+			// Either this item has multiple activities or the single activity rewards xp, create the item panel.
 
 			// Determine xp rate for this item
 			double xp = getItemXpRate(item) * (item.isIgnoreBonus() ? 1.0f : xpFactor);
