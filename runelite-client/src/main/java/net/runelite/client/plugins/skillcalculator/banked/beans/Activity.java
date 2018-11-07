@@ -96,123 +96,123 @@ public enum Activity
 	ZAMORAK_BREW(ItemID.ZAMORAK_BREW4, "Zamorak brew", Skill.HERBLORE, 78, 175, CriticalItem.TORSTOL_POTION_UNF, ActivitySecondaries.ZAMORAK_BREW),
 
 	// Cleaning Grimy Herbs
-	CLEAN_GUAM(ItemID.GUAM_LEAF, "Clean guam", Skill.HERBLORE, 3, 2.5, CriticalItem.GRIMY_GUAM_LEAF, null),
-	CLEAN_MARRENTILL(ItemID.MARRENTILL, "Clean marrentill", Skill.HERBLORE, 5, 3.8, CriticalItem.GRIMY_MARRENTILL, null),
-	CLEAN_TARROMIN(ItemID.TARROMIN, "Clean tarromin", Skill.HERBLORE, 11, 5, CriticalItem.GRIMY_TARROMIN, null),
-	CLEAN_HARRALANDER(ItemID.HARRALANDER, "Clean harralander", Skill.HERBLORE, 20, 6.3, CriticalItem.GRIMY_HARRALANDER, null),
-	CLEAN_RANARR_WEED(ItemID.RANARR_WEED, "Clean ranarr weed", Skill.HERBLORE, 25, 7.5, CriticalItem.GRIMY_RANARR_WEED, null),
-	CLEAN_TOADFLAX(ItemID.TOADFLAX, "Clean toadflax", Skill.HERBLORE, 30, 8, CriticalItem.GRIMY_TOADFLAX, null),
-	CLEAN_IRIT_LEAF(ItemID.IRIT_LEAF, "Clean irit leaf", Skill.HERBLORE, 40, 8.8, CriticalItem.GRIMY_IRIT_LEAF, null),
-	CLEAN_AVANTOE(ItemID.AVANTOE, "Clean avantoe", Skill.HERBLORE, 48, 10, CriticalItem.GRIMY_AVANTOE, null),
-	CLEAN_KWUARM(ItemID.KWUARM, "Clean kwuarm", Skill.HERBLORE, 54, 11.3, CriticalItem.GRIMY_KWUARM, null),
-	CLEAN_SNAPDRAGON(ItemID.SNAPDRAGON, "Clean snapdragon", Skill.HERBLORE, 59, 11.8, CriticalItem.GRIMY_SNAPDRAGON, null),
-	CLEAN_CADANTINE(ItemID.CADANTINE, "Clean cadantine", Skill.HERBLORE, 65, 12.5, CriticalItem.GRIMY_CADANTINE, null),
-	CLEAN_LANTADYME(ItemID.LANTADYME, "Clean lantadyme", Skill.HERBLORE, 67, 13.1, CriticalItem.GRIMY_LANTADYME, null),
-	CLEAN_DWARF_WEED(ItemID.DWARF_WEED, "Clean dwarf weed", Skill.HERBLORE, 70, 13.8, CriticalItem.GRIMY_DWARF_WEED, null),
-	CLEAN_TORSTOL(ItemID.TORSTOL, "Clean torstol", Skill.HERBLORE, 75, 15, CriticalItem.GRIMY_TORSTOL, null),
+	CLEAN_GUAM(ItemID.GUAM_LEAF, "Clean guam", Skill.HERBLORE, 3, 2.5, CriticalItem.GRIMY_GUAM_LEAF),
+	CLEAN_MARRENTILL(ItemID.MARRENTILL, "Clean marrentill", Skill.HERBLORE, 5, 3.8, CriticalItem.GRIMY_MARRENTILL),
+	CLEAN_TARROMIN(ItemID.TARROMIN, "Clean tarromin", Skill.HERBLORE, 11, 5, CriticalItem.GRIMY_TARROMIN),
+	CLEAN_HARRALANDER(ItemID.HARRALANDER, "Clean harralander", Skill.HERBLORE, 20, 6.3, CriticalItem.GRIMY_HARRALANDER),
+	CLEAN_RANARR_WEED(ItemID.RANARR_WEED, "Clean ranarr weed", Skill.HERBLORE, 25, 7.5, CriticalItem.GRIMY_RANARR_WEED),
+	CLEAN_TOADFLAX(ItemID.TOADFLAX, "Clean toadflax", Skill.HERBLORE, 30, 8, CriticalItem.GRIMY_TOADFLAX),
+	CLEAN_IRIT_LEAF(ItemID.IRIT_LEAF, "Clean irit leaf", Skill.HERBLORE, 40, 8.8, CriticalItem.GRIMY_IRIT_LEAF),
+	CLEAN_AVANTOE(ItemID.AVANTOE, "Clean avantoe", Skill.HERBLORE, 48, 10, CriticalItem.GRIMY_AVANTOE),
+	CLEAN_KWUARM(ItemID.KWUARM, "Clean kwuarm", Skill.HERBLORE, 54, 11.3, CriticalItem.GRIMY_KWUARM),
+	CLEAN_SNAPDRAGON(ItemID.SNAPDRAGON, "Clean snapdragon", Skill.HERBLORE, 59, 11.8, CriticalItem.GRIMY_SNAPDRAGON),
+	CLEAN_CADANTINE(ItemID.CADANTINE, "Clean cadantine", Skill.HERBLORE, 65, 12.5, CriticalItem.GRIMY_CADANTINE),
+	CLEAN_LANTADYME(ItemID.LANTADYME, "Clean lantadyme", Skill.HERBLORE, 67, 13.1, CriticalItem.GRIMY_LANTADYME),
+	CLEAN_DWARF_WEED(ItemID.DWARF_WEED, "Clean dwarf weed", Skill.HERBLORE, 70, 13.8, CriticalItem.GRIMY_DWARF_WEED),
+	CLEAN_TORSTOL(ItemID.TORSTOL, "Clean torstol", Skill.HERBLORE, 75, 15, CriticalItem.GRIMY_TORSTOL),
 
 	/**
 	 * Construction Options
 	 */
-	PLANKS(ItemID.PLANK	, "Normal Plank Products", Skill.CONSTRUCTION, 1, 29, CriticalItem.PLANK, null),
-	OAK_PLANKS(ItemID.OAK_PLANK, "Normal Oak Products", Skill.CONSTRUCTION, 1, 60, CriticalItem.OAK_PLANK, null),
-	TEAK_PLANKS(ItemID.TEAK_PLANK, "Normal Teak Products", Skill.CONSTRUCTION, 1, 90, CriticalItem.TEAK_PLANK, null),
-	MYTHICAL_CAPE(ItemID.MYTHICAL_CAPE, "Mythical Cape Rakes", Skill.CONSTRUCTION, 1, 123.33, CriticalItem.TEAK_PLANK, null),
-	MAHOGANY_PLANKS(ItemID.MAHOGANY_PLANK, "Normal Mahogany Products", Skill.CONSTRUCTION, 1, 140, CriticalItem.MAHOGANY_PLANK, null),
+	PLANKS(ItemID.PLANK	, "Normal Plank Products", Skill.CONSTRUCTION, 1, 29, CriticalItem.PLANK),
+	OAK_PLANKS(ItemID.OAK_PLANK, "Normal Oak Products", Skill.CONSTRUCTION, 1, 60, CriticalItem.OAK_PLANK),
+	TEAK_PLANKS(ItemID.TEAK_PLANK, "Normal Teak Products", Skill.CONSTRUCTION, 1, 90, CriticalItem.TEAK_PLANK),
+	MYTHICAL_CAPE(ItemID.MYTHICAL_CAPE, "Mythical Cape Rakes", Skill.CONSTRUCTION, 1, 123.33, CriticalItem.TEAK_PLANK),
+	MAHOGANY_PLANKS(ItemID.MAHOGANY_PLANK, "Normal Mahogany Products", Skill.CONSTRUCTION, 1, 140, CriticalItem.MAHOGANY_PLANK),
 
 	/**
 	 * Prayer Options
 	 */
 
-	BONES(ItemID.BONES, "Bones", Skill.PRAYER, 1, 4.5, CriticalItem.BONES, null),
-	WOLF_BONES(ItemID.WOLF_BONES, "Bones", Skill.PRAYER, 1, 4.5, CriticalItem.WOLF_BONES, null),
-	BURNT_BONES(ItemID.BURNT_BONES, "Bones", Skill.PRAYER, 1, 4.5, CriticalItem.BURNT_BONES, null),
-	MONKEY_BONES(ItemID.MONKEY_BONES, "Bones", Skill.PRAYER, 1, 5.0, CriticalItem.MONKEY_BONES, null),
-	BAT_BONES(ItemID.BAT_BONES, "Bones", Skill.PRAYER, 1, 5.3, CriticalItem.BAT_BONES, null),
-	JOGRE_BONES(ItemID.JOGRE_BONES, "Bones", Skill.PRAYER, 1, 15.0, CriticalItem.JOGRE_BONES, null),
-	BIG_BONES(ItemID.BIG_BONES, "Bones", Skill.PRAYER, 1, 15.0, CriticalItem.BIG_BONES, null),
-	ZOGRE_BONES(ItemID.ZOGRE_BONES, "Bones", Skill.PRAYER, 1, 22.5, CriticalItem.ZOGRE_BONES, null),
-	SHAIKAHAN_BONES(ItemID.SHAIKAHAN_BONES, "Bones", Skill.PRAYER, 1, 25.0, CriticalItem.SHAIKAHAN_BONES, null),
-	BABYDRAGON_BONES(ItemID.BABYDRAGON_BONES, "Bones", Skill.PRAYER, 1, 30.0, CriticalItem.BABYDRAGON_BONES, null),
-	WYVERN_BONES(ItemID.WYVERN_BONES, "Bones", Skill.PRAYER, 1, 72.0, CriticalItem.WYVERN_BONES, null),
-	DRAGON_BONES(ItemID.DRAGON_BONES, "Bones", Skill.PRAYER, 1, 72.0, CriticalItem.DRAGON_BONES, null),
-	FAYRG_BONES(ItemID.FAYRG_BONES, "Bones", Skill.PRAYER, 1, 84.0, CriticalItem.FAYRG_BONES, null),
-	LAVA_DRAGON_BONES(ItemID.LAVA_DRAGON_BONES, "Bones", Skill.PRAYER, 1, 85.0, CriticalItem.LAVA_DRAGON_BONES, null),
-	RAURG_BONES(ItemID.RAURG_BONES, "Bones", Skill.PRAYER, 1, 96.0, CriticalItem.RAURG_BONES, null),
-	DAGANNOTH_BONES(ItemID.DAGANNOTH_BONES, "Bones", Skill.PRAYER, 1, 125.0, CriticalItem.DAGANNOTH_BONES, null),
-	OURG_BONES(ItemID.OURG_BONES, "Bones", Skill.PRAYER, 1, 140.0, CriticalItem.OURG_BONES, null),
-	SUPERIOR_DRAGON_BONES(ItemID.SUPERIOR_DRAGON_BONES, "Bones", Skill.PRAYER, 1, 150.0, CriticalItem.SUPERIOR_DRAGON_BONES, null),
+	BONES(ItemID.BONES, "Bones", Skill.PRAYER, 1, 4.5, CriticalItem.BONES),
+	WOLF_BONES(ItemID.WOLF_BONES, "Bones", Skill.PRAYER, 1, 4.5, CriticalItem.WOLF_BONES),
+	BURNT_BONES(ItemID.BURNT_BONES, "Bones", Skill.PRAYER, 1, 4.5, CriticalItem.BURNT_BONES),
+	MONKEY_BONES(ItemID.MONKEY_BONES, "Bones", Skill.PRAYER, 1, 5.0, CriticalItem.MONKEY_BONES),
+	BAT_BONES(ItemID.BAT_BONES, "Bones", Skill.PRAYER, 1, 5.3, CriticalItem.BAT_BONES),
+	JOGRE_BONES(ItemID.JOGRE_BONES, "Bones", Skill.PRAYER, 1, 15.0, CriticalItem.JOGRE_BONES),
+	BIG_BONES(ItemID.BIG_BONES, "Bones", Skill.PRAYER, 1, 15.0, CriticalItem.BIG_BONES),
+	ZOGRE_BONES(ItemID.ZOGRE_BONES, "Bones", Skill.PRAYER, 1, 22.5, CriticalItem.ZOGRE_BONES),
+	SHAIKAHAN_BONES(ItemID.SHAIKAHAN_BONES, "Bones", Skill.PRAYER, 1, 25.0, CriticalItem.SHAIKAHAN_BONES),
+	BABYDRAGON_BONES(ItemID.BABYDRAGON_BONES, "Bones", Skill.PRAYER, 1, 30.0, CriticalItem.BABYDRAGON_BONES),
+	WYVERN_BONES(ItemID.WYVERN_BONES, "Bones", Skill.PRAYER, 1, 72.0, CriticalItem.WYVERN_BONES),
+	DRAGON_BONES(ItemID.DRAGON_BONES, "Bones", Skill.PRAYER, 1, 72.0, CriticalItem.DRAGON_BONES),
+	FAYRG_BONES(ItemID.FAYRG_BONES, "Bones", Skill.PRAYER, 1, 84.0, CriticalItem.FAYRG_BONES),
+	LAVA_DRAGON_BONES(ItemID.LAVA_DRAGON_BONES, "Bones", Skill.PRAYER, 1, 85.0, CriticalItem.LAVA_DRAGON_BONES),
+	RAURG_BONES(ItemID.RAURG_BONES, "Bones", Skill.PRAYER, 1, 96.0, CriticalItem.RAURG_BONES),
+	DAGANNOTH_BONES(ItemID.DAGANNOTH_BONES, "Bones", Skill.PRAYER, 1, 125.0, CriticalItem.DAGANNOTH_BONES),
+	OURG_BONES(ItemID.OURG_BONES, "Bones", Skill.PRAYER, 1, 140.0, CriticalItem.OURG_BONES),
+	SUPERIOR_DRAGON_BONES(ItemID.SUPERIOR_DRAGON_BONES, "Bones", Skill.PRAYER, 1, 150.0, CriticalItem.SUPERIOR_DRAGON_BONES),
 	// Shade Remains (Pyre Logs)
-	LOAR_REMAINS(ItemID.LOAR_REMAINS, "Shades", Skill.PRAYER, 1, 33.0, CriticalItem.LOAR_REMAINS, null),
-	PHRIN_REMAINS(ItemID.PHRIN_REMAINS, "Shades", Skill.PRAYER, 1, 46.5, CriticalItem.PHRIN_REMAINS, null),
-	RIYL_REMAINS(ItemID.RIYL_REMAINS, "Shades", Skill.PRAYER, 1, 59.5, CriticalItem.RIYL_REMAINS, null),
-	ASYN_REMAINS(ItemID.ASYN_REMAINS, "Shades", Skill.PRAYER, 1, 82.5, CriticalItem.ASYN_REMAINS, null),
-	FIYR_REMAINS(ItemID.FIYR_REMAINS, "Shades", Skill.PRAYER, 1, 84.0, CriticalItem.FIYR_REMAINS, null),
+	LOAR_REMAINS(ItemID.LOAR_REMAINS, "Shades", Skill.PRAYER, 1, 33.0, CriticalItem.LOAR_REMAINS),
+	PHRIN_REMAINS(ItemID.PHRIN_REMAINS, "Shades", Skill.PRAYER, 1, 46.5, CriticalItem.PHRIN_REMAINS),
+	RIYL_REMAINS(ItemID.RIYL_REMAINS, "Shades", Skill.PRAYER, 1, 59.5, CriticalItem.RIYL_REMAINS),
+	ASYN_REMAINS(ItemID.ASYN_REMAINS, "Shades", Skill.PRAYER, 1, 82.5, CriticalItem.ASYN_REMAINS),
+	FIYR_REMAINS(ItemID.FIYR_REMAINS, "Shades", Skill.PRAYER, 1, 84.0, CriticalItem.FIYR_REMAINS),
 	// Ensouled Heads
-	ENSOULED_GOBLIN_HEAD(ItemID.ENSOULED_GOBLIN_HEAD_13448, "Ensouled Heads", Skill.PRAYER, 1, 130.0, CriticalItem.ENSOULED_GOBLIN_HEAD, null),
-	ENSOULED_MONKEY_HEAD(ItemID.ENSOULED_MONKEY_HEAD_13451, "Ensouled Heads", Skill.PRAYER, 1, 182.0, CriticalItem.ENSOULED_MONKEY_HEAD, null),
-	ENSOULED_IMP_HEAD(ItemID.ENSOULED_IMP_HEAD_13454, "Ensouled Heads", Skill.PRAYER, 1, 286.0, CriticalItem.ENSOULED_IMP_HEAD, null),
-	ENSOULED_MINOTAUR_HEAD(ItemID.ENSOULED_MINOTAUR_HEAD_13457, "Ensouled Heads", Skill.PRAYER, 1, 364.0, CriticalItem.ENSOULED_MINOTAUR_HEAD, null),
-	ENSOULED_SCORPION_HEAD(ItemID.ENSOULED_SCORPION_HEAD_13460, "Ensouled Heads", Skill.PRAYER, 1, 454.0, CriticalItem.ENSOULED_SCORPION_HEAD, null),
-	ENSOULED_BEAR_HEAD(ItemID.ENSOULED_BEAR_HEAD_13463, "Ensouled Heads", Skill.PRAYER, 1, 480.0, CriticalItem.ENSOULED_BEAR_HEAD, null),
-	ENSOULED_UNICORN_HEAD(ItemID.ENSOULED_UNICORN_HEAD_13466, "Ensouled Heads", Skill.PRAYER, 1, 494.0, CriticalItem.ENSOULED_UNICORN_HEAD, null),
-	ENSOULED_DOG_HEAD(ItemID.ENSOULED_DOG_HEAD_13469, "Ensouled Heads", Skill.PRAYER, 1, 520.0, CriticalItem.ENSOULED_DOG_HEAD, null),
-	ENSOULED_CHAOS_DRUID_HEAD(ItemID.ENSOULED_CHAOS_DRUID_HEAD_13472, "Ensouled Heads", Skill.PRAYER, 1, 584.0, CriticalItem.ENSOULED_CHAOS_DRUID_HEAD, null),
-	ENSOULED_GIANT_HEAD(ItemID.ENSOULED_GIANT_HEAD_13475, "Ensouled Heads", Skill.PRAYER, 1, 650.0, CriticalItem.ENSOULED_GIANT_HEAD, null),
-	ENSOULED_OGRE_HEAD(ItemID.ENSOULED_OGRE_HEAD_13478, "Ensouled Heads", Skill.PRAYER, 1, 716.0, CriticalItem.ENSOULED_OGRE_HEAD, null),
-	ENSOULED_ELF_HEAD(ItemID.ENSOULED_ELF_HEAD_13481, "Ensouled Heads", Skill.PRAYER, 1, 754.0, CriticalItem.ENSOULED_ELF_HEAD, null),
-	ENSOULED_TROLL_HEAD(ItemID.ENSOULED_TROLL_HEAD_13484, "Ensouled Heads", Skill.PRAYER, 1, 780.0, CriticalItem.ENSOULED_TROLL_HEAD, null),
-	ENSOULED_HORROR_HEAD(ItemID.ENSOULED_HORROR_HEAD_13487, "Ensouled Heads", Skill.PRAYER, 1, 832.0, CriticalItem.ENSOULED_HORROR_HEAD, null),
-	ENSOULED_KALPHITE_HEAD(ItemID.ENSOULED_KALPHITE_HEAD_13490, "Ensouled Heads", Skill.PRAYER, 1, 884.0, CriticalItem.ENSOULED_KALPHITE_HEAD, null),
-	ENSOULED_DAGANNOTH_HEAD(ItemID.ENSOULED_DAGANNOTH_HEAD_13493, "Ensouled Heads", Skill.PRAYER, 1, 936.0, CriticalItem.ENSOULED_DAGANNOTH_HEAD, null),
-	ENSOULED_BLOODVELD_HEAD(ItemID.ENSOULED_BLOODVELD_HEAD_13496, "Ensouled Heads", Skill.PRAYER, 1, 1040.0, CriticalItem.ENSOULED_BLOODVELD_HEAD, null),
-	ENSOULED_TZHAAR_HEAD(ItemID.ENSOULED_TZHAAR_HEAD_13499, "Ensouled Heads", Skill.PRAYER, 1, 1104.0, CriticalItem.ENSOULED_TZHAAR_HEAD, null),
-	ENSOULED_DEMON_HEAD(ItemID.ENSOULED_DEMON_HEAD_13502, "Ensouled Heads", Skill.PRAYER, 1, 1170.0, CriticalItem.ENSOULED_DEMON_HEAD, null),
-	ENSOULED_AVIANSIE_HEAD(ItemID.ENSOULED_AVIANSIE_HEAD_13505, "Ensouled Heads", Skill.PRAYER, 1, 1234.0, CriticalItem.ENSOULED_AVIANSIE_HEAD, null),
-	ENSOULED_ABYSSAL_HEAD(ItemID.ENSOULED_ABYSSAL_HEAD_13508, "Ensouled Heads", Skill.PRAYER, 1, 1300.0, CriticalItem.ENSOULED_ABYSSAL_HEAD, null),
-	ENSOULED_DRAGON_HEAD(ItemID.ENSOULED_DRAGON_HEAD_13511, "Ensouled Heads", Skill.PRAYER, 1, 1560.0, CriticalItem.ENSOULED_DRAGON_HEAD, null),
+	ENSOULED_GOBLIN_HEAD(ItemID.ENSOULED_GOBLIN_HEAD_13448, "Ensouled Heads", Skill.PRAYER, 1, 130.0, CriticalItem.ENSOULED_GOBLIN_HEAD),
+	ENSOULED_MONKEY_HEAD(ItemID.ENSOULED_MONKEY_HEAD_13451, "Ensouled Heads", Skill.PRAYER, 1, 182.0, CriticalItem.ENSOULED_MONKEY_HEAD),
+	ENSOULED_IMP_HEAD(ItemID.ENSOULED_IMP_HEAD_13454, "Ensouled Heads", Skill.PRAYER, 1, 286.0, CriticalItem.ENSOULED_IMP_HEAD),
+	ENSOULED_MINOTAUR_HEAD(ItemID.ENSOULED_MINOTAUR_HEAD_13457, "Ensouled Heads", Skill.PRAYER, 1, 364.0, CriticalItem.ENSOULED_MINOTAUR_HEAD),
+	ENSOULED_SCORPION_HEAD(ItemID.ENSOULED_SCORPION_HEAD_13460, "Ensouled Heads", Skill.PRAYER, 1, 454.0, CriticalItem.ENSOULED_SCORPION_HEAD),
+	ENSOULED_BEAR_HEAD(ItemID.ENSOULED_BEAR_HEAD_13463, "Ensouled Heads", Skill.PRAYER, 1, 480.0, CriticalItem.ENSOULED_BEAR_HEAD),
+	ENSOULED_UNICORN_HEAD(ItemID.ENSOULED_UNICORN_HEAD_13466, "Ensouled Heads", Skill.PRAYER, 1, 494.0, CriticalItem.ENSOULED_UNICORN_HEAD),
+	ENSOULED_DOG_HEAD(ItemID.ENSOULED_DOG_HEAD_13469, "Ensouled Heads", Skill.PRAYER, 1, 520.0, CriticalItem.ENSOULED_DOG_HEAD),
+	ENSOULED_CHAOS_DRUID_HEAD(ItemID.ENSOULED_CHAOS_DRUID_HEAD_13472, "Ensouled Heads", Skill.PRAYER, 1, 584.0, CriticalItem.ENSOULED_CHAOS_DRUID_HEAD),
+	ENSOULED_GIANT_HEAD(ItemID.ENSOULED_GIANT_HEAD_13475, "Ensouled Heads", Skill.PRAYER, 1, 650.0, CriticalItem.ENSOULED_GIANT_HEAD),
+	ENSOULED_OGRE_HEAD(ItemID.ENSOULED_OGRE_HEAD_13478, "Ensouled Heads", Skill.PRAYER, 1, 716.0, CriticalItem.ENSOULED_OGRE_HEAD),
+	ENSOULED_ELF_HEAD(ItemID.ENSOULED_ELF_HEAD_13481, "Ensouled Heads", Skill.PRAYER, 1, 754.0, CriticalItem.ENSOULED_ELF_HEAD),
+	ENSOULED_TROLL_HEAD(ItemID.ENSOULED_TROLL_HEAD_13484, "Ensouled Heads", Skill.PRAYER, 1, 780.0, CriticalItem.ENSOULED_TROLL_HEAD),
+	ENSOULED_HORROR_HEAD(ItemID.ENSOULED_HORROR_HEAD_13487, "Ensouled Heads", Skill.PRAYER, 1, 832.0, CriticalItem.ENSOULED_HORROR_HEAD),
+	ENSOULED_KALPHITE_HEAD(ItemID.ENSOULED_KALPHITE_HEAD_13490, "Ensouled Heads", Skill.PRAYER, 1, 884.0, CriticalItem.ENSOULED_KALPHITE_HEAD),
+	ENSOULED_DAGANNOTH_HEAD(ItemID.ENSOULED_DAGANNOTH_HEAD_13493, "Ensouled Heads", Skill.PRAYER, 1, 936.0, CriticalItem.ENSOULED_DAGANNOTH_HEAD),
+	ENSOULED_BLOODVELD_HEAD(ItemID.ENSOULED_BLOODVELD_HEAD_13496, "Ensouled Heads", Skill.PRAYER, 1, 1040.0, CriticalItem.ENSOULED_BLOODVELD_HEAD),
+	ENSOULED_TZHAAR_HEAD(ItemID.ENSOULED_TZHAAR_HEAD_13499, "Ensouled Heads", Skill.PRAYER, 1, 1104.0, CriticalItem.ENSOULED_TZHAAR_HEAD),
+	ENSOULED_DEMON_HEAD(ItemID.ENSOULED_DEMON_HEAD_13502, "Ensouled Heads", Skill.PRAYER, 1, 1170.0, CriticalItem.ENSOULED_DEMON_HEAD),
+	ENSOULED_AVIANSIE_HEAD(ItemID.ENSOULED_AVIANSIE_HEAD_13505, "Ensouled Heads", Skill.PRAYER, 1, 1234.0, CriticalItem.ENSOULED_AVIANSIE_HEAD),
+	ENSOULED_ABYSSAL_HEAD(ItemID.ENSOULED_ABYSSAL_HEAD_13508, "Ensouled Heads", Skill.PRAYER, 1, 1300.0, CriticalItem.ENSOULED_ABYSSAL_HEAD),
+	ENSOULED_DRAGON_HEAD(ItemID.ENSOULED_DRAGON_HEAD_13511, "Ensouled Heads", Skill.PRAYER, 1, 1560.0, CriticalItem.ENSOULED_DRAGON_HEAD),
 
 
 	/*
 	 * Cooking Items
 	 */
-	RAW_HERRING(ItemID.RAW_HERRING, "Fish", Skill.COOKING, 5, 50.0, CriticalItem.RAW_HERRING, null),
-	RAW_MACKEREL(ItemID.RAW_MACKEREL, "Fish", Skill.COOKING, 10, 60.0, CriticalItem.RAW_MACKEREL, null),
-	RAW_TROUT(ItemID.RAW_TROUT, "Fish", Skill.COOKING, 15, 70.0, CriticalItem.RAW_TROUT, null),
-	RAW_COD(ItemID.RAW_COD, "Fish", Skill.COOKING, 18, 75.0, CriticalItem.RAW_COD, null),
-	RAW_PIKE(ItemID.RAW_PIKE, "Fish", Skill.COOKING, 20, 80.0, CriticalItem.RAW_PIKE, null),
-	RAW_SALMON(ItemID.RAW_SALMON, "Fish", Skill.COOKING, 25, 90.0, CriticalItem.RAW_SALMON, null),
-	RAW_TUNA(ItemID.RAW_TUNA, "Fish", Skill.COOKING, 30, 100.0, CriticalItem.RAW_TUNA, null),
-	RAW_KARAMBWAN(ItemID.RAW_KARAMBWAN, "Fish", Skill.COOKING, 30, 190.0, CriticalItem.RAW_KARAMBWAN, null),
-	RAW_LOBSTER(ItemID.RAW_LOBSTER, "Fish", Skill.COOKING, 40, 120.0, CriticalItem.RAW_LOBSTER, null),
-	RAW_BASS(ItemID.RAW_BASS, "Fish", Skill.COOKING, 43, 130.0, CriticalItem.RAW_BASS, null),
-	RAW_SWORDFISH(ItemID.RAW_SWORDFISH, "Fish", Skill.COOKING, 45, 140.0, CriticalItem.RAW_SWORDFISH, null),
-	RAW_MONKFISH(ItemID.RAW_MONKFISH, "Fish", Skill.COOKING, 62, 150.0, CriticalItem.RAW_MONKFISH, null),
-	RAW_SHARK(ItemID.RAW_SHARK, "Fish", Skill.COOKING, 80, 210.0, CriticalItem.RAW_SHARK, null),
-	RAW_SEA_TURTLE(ItemID.RAW_SEA_TURTLE, "Fish", Skill.COOKING, 82, 211.3, CriticalItem.RAW_SEA_TURTLE, null),
-	RAW_ANGLERFISH(ItemID.RAW_ANGLERFISH, "Fish", Skill.COOKING, 84, 230.0, CriticalItem.RAW_ANGLERFISH, null),
-	RAW_DARK_CRAB(ItemID.RAW_DARK_CRAB, "Fish", Skill.COOKING, 90, 215.0, CriticalItem.RAW_DARK_CRAB, null),
-	RAW_MANTA_RAY(ItemID.RAW_MANTA_RAY, "Fish", Skill.COOKING, 91, 216.2, CriticalItem.RAW_MANTA_RAY, null),
+	RAW_HERRING(ItemID.RAW_HERRING, "Fish", Skill.COOKING, 5, 50.0, CriticalItem.RAW_HERRING),
+	RAW_MACKEREL(ItemID.RAW_MACKEREL, "Fish", Skill.COOKING, 10, 60.0, CriticalItem.RAW_MACKEREL),
+	RAW_TROUT(ItemID.RAW_TROUT, "Fish", Skill.COOKING, 15, 70.0, CriticalItem.RAW_TROUT),
+	RAW_COD(ItemID.RAW_COD, "Fish", Skill.COOKING, 18, 75.0, CriticalItem.RAW_COD),
+	RAW_PIKE(ItemID.RAW_PIKE, "Fish", Skill.COOKING, 20, 80.0, CriticalItem.RAW_PIKE),
+	RAW_SALMON(ItemID.RAW_SALMON, "Fish", Skill.COOKING, 25, 90.0, CriticalItem.RAW_SALMON),
+	RAW_TUNA(ItemID.RAW_TUNA, "Fish", Skill.COOKING, 30, 100.0, CriticalItem.RAW_TUNA),
+	RAW_KARAMBWAN(ItemID.RAW_KARAMBWAN, "Fish", Skill.COOKING, 30, 190.0, CriticalItem.RAW_KARAMBWAN),
+	RAW_LOBSTER(ItemID.RAW_LOBSTER, "Fish", Skill.COOKING, 40, 120.0, CriticalItem.RAW_LOBSTER),
+	RAW_BASS(ItemID.RAW_BASS, "Fish", Skill.COOKING, 43, 130.0, CriticalItem.RAW_BASS),
+	RAW_SWORDFISH(ItemID.RAW_SWORDFISH, "Fish", Skill.COOKING, 45, 140.0, CriticalItem.RAW_SWORDFISH),
+	RAW_MONKFISH(ItemID.RAW_MONKFISH, "Fish", Skill.COOKING, 62, 150.0, CriticalItem.RAW_MONKFISH),
+	RAW_SHARK(ItemID.RAW_SHARK, "Fish", Skill.COOKING, 80, 210.0, CriticalItem.RAW_SHARK),
+	RAW_SEA_TURTLE(ItemID.RAW_SEA_TURTLE, "Fish", Skill.COOKING, 82, 211.3, CriticalItem.RAW_SEA_TURTLE),
+	RAW_ANGLERFISH(ItemID.RAW_ANGLERFISH, "Fish", Skill.COOKING, 84, 230.0, CriticalItem.RAW_ANGLERFISH),
+	RAW_DARK_CRAB(ItemID.RAW_DARK_CRAB, "Fish", Skill.COOKING, 90, 215.0, CriticalItem.RAW_DARK_CRAB),
+	RAW_MANTA_RAY(ItemID.RAW_MANTA_RAY, "Fish", Skill.COOKING, 91, 216.2, CriticalItem.RAW_MANTA_RAY),
 
 	/*
 	 * Crafting Items
 	 */
 	// D'hide/Dragon Leather
-	GREEN_DRAGON_LEATHER(ItemID.GREEN_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 57, 62.0, CriticalItem.GREEN_DRAGON_LEATHER, null),
-	BLUE_DRAGON_LEATHER(ItemID.BLUE_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 66, 70.0, CriticalItem.BLUE_DRAGON_LEATHER, null),
-	RED_DRAGON_LEATHER(ItemID.RED_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 73, 78.0, CriticalItem.RED_DRAGON_LEATHER, null),
-	BLACK_DRAGON_LEATHER(ItemID.BLACK_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 79, 86.0, CriticalItem.BLACK_DRAGON_LEATHER, null),
+	GREEN_DRAGON_LEATHER(ItemID.GREEN_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 57, 62.0, CriticalItem.GREEN_DRAGON_LEATHER),
+	BLUE_DRAGON_LEATHER(ItemID.BLUE_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 66, 70.0, CriticalItem.BLUE_DRAGON_LEATHER),
+	RED_DRAGON_LEATHER(ItemID.RED_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 73, 78.0, CriticalItem.RED_DRAGON_LEATHER),
+	BLACK_DRAGON_LEATHER(ItemID.BLACK_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 79, 86.0, CriticalItem.BLACK_DRAGON_LEATHER),
 	// Uncut Gems
-	UNCUT_OPAL(ItemID.UNCUT_OPAL, "Gems", Skill.CRAFTING, 1, 15.0, CriticalItem.UNCUT_OPAL, null),
-	UNCUT_JADE(ItemID.UNCUT_JADE, "Gems", Skill.CRAFTING, 13, 20.0, CriticalItem.UNCUT_JADE, null),
-	UNCUT_RED_TOPAZ(ItemID.UNCUT_RED_TOPAZ, "Gems", Skill.CRAFTING, 16, 25.0, CriticalItem.UNCUT_RED_TOPAZ, null),
-	UNCUT_SAPPHIRE(ItemID.UNCUT_SAPPHIRE, "Gems", Skill.CRAFTING, 20, 50.0, CriticalItem.UNCUT_SAPPHIRE, null),
-	UNCUT_EMERALD(ItemID.UNCUT_EMERALD, "Gems", Skill.CRAFTING, 27, 67.5, CriticalItem.UNCUT_EMERALD, null),
-	UNCUT_RUBY(ItemID.UNCUT_RUBY, "Gems", Skill.CRAFTING, 34, 85, CriticalItem.UNCUT_RUBY, null),
-	UNCUT_DIAMOND(ItemID.UNCUT_DIAMOND, "Gems", Skill.CRAFTING, 43, 107.5, CriticalItem.UNCUT_DIAMOND, null),
-	UNCUT_DRAGONSTONE(ItemID.UNCUT_DRAGONSTONE, "Gems", Skill.CRAFTING, 55, 137.5, CriticalItem.UNCUT_DRAGONSTONE, null),
-	UNCUT_ONYX(ItemID.UNCUT_ONYX, "Gems", Skill.CRAFTING, 67, 167.5, CriticalItem.UNCUT_ONYX, null),
-	UNCUT_ZENYTE(ItemID.UNCUT_ZENYTE, "Gems", Skill.CRAFTING, 89, 200.0, CriticalItem.UNCUT_ZENYTE, null),
+	UNCUT_OPAL(ItemID.UNCUT_OPAL, "Gems", Skill.CRAFTING, 1, 15.0, CriticalItem.UNCUT_OPAL),
+	UNCUT_JADE(ItemID.UNCUT_JADE, "Gems", Skill.CRAFTING, 13, 20.0, CriticalItem.UNCUT_JADE),
+	UNCUT_RED_TOPAZ(ItemID.UNCUT_RED_TOPAZ, "Gems", Skill.CRAFTING, 16, 25.0, CriticalItem.UNCUT_RED_TOPAZ),
+	UNCUT_SAPPHIRE(ItemID.UNCUT_SAPPHIRE, "Gems", Skill.CRAFTING, 20, 50.0, CriticalItem.UNCUT_SAPPHIRE),
+	UNCUT_EMERALD(ItemID.UNCUT_EMERALD, "Gems", Skill.CRAFTING, 27, 67.5, CriticalItem.UNCUT_EMERALD),
+	UNCUT_RUBY(ItemID.UNCUT_RUBY, "Gems", Skill.CRAFTING, 34, 85, CriticalItem.UNCUT_RUBY),
+	UNCUT_DIAMOND(ItemID.UNCUT_DIAMOND, "Gems", Skill.CRAFTING, 43, 107.5, CriticalItem.UNCUT_DIAMOND),
+	UNCUT_DRAGONSTONE(ItemID.UNCUT_DRAGONSTONE, "Gems", Skill.CRAFTING, 55, 137.5, CriticalItem.UNCUT_DRAGONSTONE),
+	UNCUT_ONYX(ItemID.UNCUT_ONYX, "Gems", Skill.CRAFTING, 67, 167.5, CriticalItem.UNCUT_ONYX),
+	UNCUT_ZENYTE(ItemID.UNCUT_ZENYTE, "Gems", Skill.CRAFTING, 89, 200.0, CriticalItem.UNCUT_ZENYTE),
 
 	/*
 	 * Smithing Items
@@ -221,21 +221,21 @@ public enum Activity
 	// Smelting ores (Furnace)
 	IRON_ORE(ItemID.IRON_BAR, "Iron Bars", Skill.SMITHING, 15, 12.5, CriticalItem.IRON_ORE, ActivitySecondaries.COAL_ORE),
 	STEEL_ORE(ItemID.STEEL_BAR, "Steel Bars", Skill.SMITHING, 30, 17.5, CriticalItem.IRON_ORE, ActivitySecondaries.COAL_ORE_2),
-	SILVER_ORE(ItemID.SILVER_ORE, "Bar", Skill.SMITHING, 20, 13.67, CriticalItem.SILVER_ORE, null),
-	GOLD_ORE(ItemID.GOLD_BAR, "Regular exp", Skill.SMITHING, 40, 22.5, CriticalItem.GOLD_ORE, null),
-	GOLD_ORE_GAUNTLETS(ItemID.GOLDSMITH_GAUNTLETS, "Goldsmith Gauntlets", Skill.SMITHING, 40, 56.2, CriticalItem.GOLD_ORE, null),
+	SILVER_ORE(ItemID.SILVER_ORE, "Bar", Skill.SMITHING, 20, 13.67, CriticalItem.SILVER_ORE),
+	GOLD_ORE(ItemID.GOLD_BAR, "Regular exp", Skill.SMITHING, 40, 22.5, CriticalItem.GOLD_ORE),
+	GOLD_ORE_GAUNTLETS(ItemID.GOLDSMITH_GAUNTLETS, "Goldsmith Gauntlets", Skill.SMITHING, 40, 56.2, CriticalItem.GOLD_ORE),
 	MITHRIL_ORE(ItemID.IRON_ORE, "Bar", Skill.SMITHING, 50, 30, CriticalItem.MITHRIL_ORE, ActivitySecondaries.COAL_ORE_4),
 	ADAMANTITE_ORE(ItemID.IRON_ORE, "Bar", Skill.SMITHING, 70, 37.5, CriticalItem.ADAMANTITE_ORE, ActivitySecondaries.COAL_ORE_6),
 	RUNITE_ORE(ItemID.IRON_ORE, "Bar", Skill.SMITHING, 85, 50, CriticalItem.RUNITE_ORE, ActivitySecondaries.COAL_ORE_8),
 
 	// Smelting bars (Anvil)
-	BRONZE_BAR(ItemID.BRONZE_BAR, "Bars", Skill.SMITHING, 1, 12.5, CriticalItem.BRONZE_BAR, null),
-	IRON_BAR(ItemID.IRON_BAR, "Bars", Skill.SMITHING, 15, 25.0, CriticalItem.IRON_BAR, null),
-	STEEL_BAR(ItemID.STEEL_BAR, "Steel Products", Skill.SMITHING, 30, 37.5, CriticalItem.STEEL_BAR, null),
-	CANNONBALLS(ItemID.CANNONBALL, "Cannonballs", Skill.SMITHING, 35, 25.5, CriticalItem.STEEL_BAR, null),
-	MITHRIL_BAR(ItemID.MITHRIL_BAR, "Bars", Skill.SMITHING, 50, 50.0, CriticalItem.MITHRIL_BAR, null),
-	ADAMANTITE_BAR(ItemID.ADAMANTITE_BAR, "Bars", Skill.SMITHING, 70, 62.5, CriticalItem.ADAMANTITE_BAR, null),
-	RUNITE_BAR(ItemID.RUNITE_BAR, "Bars", Skill.SMITHING, 85, 75.0, CriticalItem.RUNITE_BAR, null)
+	BRONZE_BAR(ItemID.BRONZE_BAR, "Bars", Skill.SMITHING, 1, 12.5, CriticalItem.BRONZE_BAR),
+	IRON_BAR(ItemID.IRON_BAR, "Bars", Skill.SMITHING, 15, 25.0, CriticalItem.IRON_BAR),
+	STEEL_BAR(ItemID.STEEL_BAR, "Steel Products", Skill.SMITHING, 30, 37.5, CriticalItem.STEEL_BAR),
+	CANNONBALLS(ItemID.CANNONBALL, "Cannonballs", Skill.SMITHING, 35, 25.5, CriticalItem.STEEL_BAR),
+	MITHRIL_BAR(ItemID.MITHRIL_BAR, "Bars", Skill.SMITHING, 50, 50.0, CriticalItem.MITHRIL_BAR),
+	ADAMANTITE_BAR(ItemID.ADAMANTITE_BAR, "Bars", Skill.SMITHING, 70, 62.5, CriticalItem.ADAMANTITE_BAR),
+	RUNITE_BAR(ItemID.RUNITE_BAR, "Bars", Skill.SMITHING, 85, 75.0, CriticalItem.RUNITE_BAR)
 
 		;
 
@@ -247,6 +247,18 @@ public enum Activity
 	private final SecondaryItem[] secondaries;
 	private final CriticalItem criticalItem;
 	private final boolean preventLinked;
+
+	Activity(int Icon, String name, Skill skill, int level, double xp, CriticalItem criticalItem)
+	{
+		this.icon = Icon;
+		this.name = name;
+		this.skill = skill;
+		this.level = level;
+		this.xp = xp;
+		this.criticalItem = criticalItem;
+		this.secondaries = new SecondaryItem[0];
+		this.preventLinked = false;
+	}
 
 	Activity(int Icon, String name, Skill skill, int level, double xp, CriticalItem criticalItem, ActivitySecondaries secondaries)
 	{
