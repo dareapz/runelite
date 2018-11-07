@@ -30,7 +30,9 @@ import net.runelite.api.ItemID;
 @Getter
 public enum ActivitySecondaries
 {
-	// Herblore Creations
+	/**
+	 * Herblore
+	 */
 	UNFINISHED_POTION(new SecondaryItem(ItemID.VIAL_OF_WATER, 1)),
 	SWAMP_TAR(new SecondaryItem(ItemID.SWAMP_TAR, 15)),
 
@@ -77,12 +79,24 @@ public enum ActivitySecondaries
 	ANTIVENOM_PLUS(new SecondaryItem(ItemID.ANTIVENOM4)),
 
 
-	// Smithing
+	/**
+	 * Smithing
+	 */
 	COAL_ORE(new SecondaryItem(ItemID.COAL)),
 	COAL_ORE_2(new SecondaryItem(ItemID.COAL, 2)),
 	COAL_ORE_4(new SecondaryItem(ItemID.COAL, 4)),
 	COAL_ORE_6(new SecondaryItem(ItemID.COAL, 6)),
 	COAL_ORE_8(new SecondaryItem(ItemID.COAL, 8)),
+
+	/**
+	 * Crafting
+	 */
+	GOLD_BAR(new SecondaryItem(ItemID.GOLD_BAR)),
+	SILVER_BAR(new SecondaryItem(ItemID.SILVER_BAR)),
+	WATER_ORB(new SecondaryItem(ItemID.WATER_ORB)),
+	EARTH_ORB(new SecondaryItem(ItemID.EARTH_ORB)),
+	FIRE_ORB(new SecondaryItem(ItemID.FIRE_ORB)),
+	AIR_ORB(new SecondaryItem(ItemID.AIR_ORB)),
 	;
 	private final SecondaryItem[] items;
 

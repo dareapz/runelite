@@ -197,6 +197,18 @@ public enum Activity
 	/*
 	 * Crafting Items
 	 */
+	// Spinning
+	BALL_OF_WOOL(ItemID.WOOL, "Misc", Skill.CRAFTING, 1, 2.5, CriticalItem.WOOL),
+	BOW_STRING(ItemID.BOW_STRING, "Misc", Skill.CRAFTING, 1, 15, CriticalItem.FLAX),
+	// Glass Blowing
+	BEER_GLASS(ItemID.BEER_GLASS, "Beer Glass", Skill.CRAFTING, 1, 17.5, CriticalItem.MOLTEN_GLASS),
+	CANDLE_LANTERN(ItemID.CANDLE_LANTERN, "Candle Lantern", Skill.CRAFTING, 4, 19, CriticalItem.MOLTEN_GLASS),
+	OIL_LAMP(ItemID.OIL_LAMP, "Oil Lamp", Skill.CRAFTING, 12, 25, CriticalItem.MOLTEN_GLASS),
+	VIAL(ItemID.VIAL, "Vial", Skill.CRAFTING, 33, 35, CriticalItem.MOLTEN_GLASS),
+	EMPTY_FISHBOWL(ItemID.EMPTY_FISHBOWL, "Empty fishbowl", Skill.CRAFTING, 42, 42.5, CriticalItem.MOLTEN_GLASS),
+	UNPOWERED_ORB(ItemID.UNPOWERED_ORB, "Unpowered orb", Skill.CRAFTING, 46, 52.5, CriticalItem.MOLTEN_GLASS),
+	LANTERN_LENS(ItemID.LANTERN_LENS, "Lantern lens", Skill.CRAFTING, 49, 55, CriticalItem.MOLTEN_GLASS),
+	LIGHT_ORB(ItemID.LIGHT_ORB, "Light orb", Skill.CRAFTING, 87, 70, CriticalItem.MOLTEN_GLASS),
 	// D'hide/Dragon Leather
 	GREEN_DRAGON_LEATHER(ItemID.GREEN_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 57, 62.0, CriticalItem.GREEN_DRAGON_LEATHER),
 	BLUE_DRAGON_LEATHER(ItemID.BLUE_DRAGON_LEATHER, "D'hide", Skill.CRAFTING, 66, 70.0, CriticalItem.BLUE_DRAGON_LEATHER),
@@ -213,7 +225,53 @@ public enum Activity
 	UNCUT_DRAGONSTONE(ItemID.UNCUT_DRAGONSTONE, "Gems", Skill.CRAFTING, 55, 137.5, CriticalItem.UNCUT_DRAGONSTONE),
 	UNCUT_ONYX(ItemID.UNCUT_ONYX, "Gems", Skill.CRAFTING, 67, 167.5, CriticalItem.UNCUT_ONYX),
 	UNCUT_ZENYTE(ItemID.UNCUT_ZENYTE, "Gems", Skill.CRAFTING, 89, 200.0, CriticalItem.UNCUT_ZENYTE),
-
+	// Silver Jewelery
+	OPAL_RING(ItemID.OPAL_RING, "Opal ring", Skill.CRAFTING, 1 , 10, CriticalItem.OPAL, ActivitySecondaries.SILVER_BAR),
+	OPAL_NECKLACE(ItemID.OPAL_NECKLACE, "Opal necklace", Skill.CRAFTING, 16 , 35, CriticalItem.OPAL, ActivitySecondaries.SILVER_BAR),
+	OPAL_BRACELET(ItemID.OPAL_BRACELET, "Opal bracelet", Skill.CRAFTING, 22 , 45, CriticalItem.OPAL, ActivitySecondaries.SILVER_BAR),
+	OPAL_AMULET(ItemID.OPAL_AMULET, "Opal amulet", Skill.CRAFTING, 27 , 55, CriticalItem.OPAL, ActivitySecondaries.SILVER_BAR),
+	JADE_RING(ItemID.JADE_RING, "Jade ring", Skill.CRAFTING, 13 , 32, CriticalItem.JADE, ActivitySecondaries.SILVER_BAR),
+	JADE_NECKLACE(ItemID.JADE_NECKLACE, "Jade necklace", Skill.CRAFTING, 25 , 54, CriticalItem.JADE, ActivitySecondaries.SILVER_BAR),
+	JADE_BRACELET(ItemID.JADE_BRACELET, "Jade bracelet", Skill.CRAFTING, 29 , 60, CriticalItem.JADE, ActivitySecondaries.SILVER_BAR),
+	JADE_AMULET(ItemID.JADE_AMULET, "Jade amulet", Skill.CRAFTING, 34 , 70, CriticalItem.JADE, ActivitySecondaries.SILVER_BAR),
+	TOPAZ_RING(ItemID.TOPAZ_RING, "Topaz ring", Skill.CRAFTING, 16 , 35, CriticalItem.RED_TOPAZ, ActivitySecondaries.SILVER_BAR),
+	TOPAZ_NECKLACE(ItemID.TOPAZ_NECKLACE, "Topaz necklace", Skill.CRAFTING, 32 , 70, CriticalItem.RED_TOPAZ, ActivitySecondaries.SILVER_BAR),
+	TOPAZ_BRACELET(ItemID.TOPAZ_BRACELET, "Topaz bracelet", Skill.CRAFTING, 38 , 75, CriticalItem.RED_TOPAZ, ActivitySecondaries.SILVER_BAR),
+	TOPAZ_AMULET(ItemID.TOPAZ_AMULET, "Topaz amulet", Skill.CRAFTING, 45 , 80, CriticalItem.RED_TOPAZ, ActivitySecondaries.SILVER_BAR),
+	// Gold Jewelery
+	SAPPHIRE_RING(ItemID.SAPPHIRE_RING, "Sapphire ring", Skill.CRAFTING, 20 , 40, CriticalItem.SAPPHIRE, ActivitySecondaries.GOLD_BAR),
+	SAPPHIRE_NECKLACE(ItemID.SAPPHIRE_NECKLACE, "Sapphire necklace", Skill.CRAFTING, 22 , 55, CriticalItem.SAPPHIRE, ActivitySecondaries.GOLD_BAR),
+	SAPPHIRE_BRACELET(ItemID.SAPPHIRE_BRACELET, "Sapphire bracelet", Skill.CRAFTING, 23 , 60, CriticalItem.SAPPHIRE, ActivitySecondaries.GOLD_BAR),
+	SAPPHIRE_AMULET(ItemID.SAPPHIRE_AMULET, "Sapphire amulet", Skill.CRAFTING, 24 , 65, CriticalItem.SAPPHIRE, ActivitySecondaries.GOLD_BAR),
+	EMERALD_RING(ItemID.EMERALD_RING, "Emerald ring", Skill.CRAFTING, 27 , 55, CriticalItem.EMERALD, ActivitySecondaries.GOLD_BAR),
+	EMERALD_NECKLACE(ItemID.EMERALD_NECKLACE, "Emerald necklace", Skill.CRAFTING, 29 , 60, CriticalItem.EMERALD, ActivitySecondaries.GOLD_BAR),
+	EMERALD_BRACELET(ItemID.EMERALD_BRACELET, "Emerald bracelet", Skill.CRAFTING, 30 , 65, CriticalItem.EMERALD, ActivitySecondaries.GOLD_BAR),
+	EMERALD_AMULET(ItemID.EMERALD_AMULET, "Emerald amulet", Skill.CRAFTING, 31 , 70, CriticalItem.EMERALD, ActivitySecondaries.GOLD_BAR),
+	RUBY_RING(ItemID.RUBY_RING, "Ruby ring", Skill.CRAFTING, 34 , 70, CriticalItem.RUBY, ActivitySecondaries.GOLD_BAR),
+	RUBY_NECKLACE(ItemID.RUBY_NECKLACE, "Ruby necklace", Skill.CRAFTING, 40 , 75, CriticalItem.RUBY, ActivitySecondaries.GOLD_BAR),
+	RUBY_BRACELET(ItemID.RUBY_BRACELET, "Ruby bracelet", Skill.CRAFTING, 42 , 80, CriticalItem.RUBY, ActivitySecondaries.GOLD_BAR),
+	RUBY_AMULET(ItemID.RUBY_AMULET, "Ruby amulet", Skill.CRAFTING, 50 , 85, CriticalItem.RUBY, ActivitySecondaries.GOLD_BAR),
+	DIAMOND_RING(ItemID.DIAMOND_RING, "Diamond ring", Skill.CRAFTING, 43 , 85, CriticalItem.DIAMOND, ActivitySecondaries.GOLD_BAR),
+	DIAMOND_NECKLACE(ItemID.DIAMOND_NECKLACE, "Diamond necklace", Skill.CRAFTING, 56 , 90, CriticalItem.DIAMOND, ActivitySecondaries.GOLD_BAR),
+	DIAMOND_BRACELET(ItemID.DIAMOND_BRACELET, "Diamond bracelet", Skill.CRAFTING, 58 , 95, CriticalItem.DIAMOND, ActivitySecondaries.GOLD_BAR),
+	DIAMOND_AMULET(ItemID.DIAMOND_AMULET, "Diamond amulet", Skill.CRAFTING, 70 , 100, CriticalItem.DIAMOND, ActivitySecondaries.GOLD_BAR),
+	DRAGONSTONE_RING(ItemID.DRAGONSTONE_RING, "Dragonstone ring", Skill.CRAFTING, 55 , 100, CriticalItem.DRAGONSTONE, ActivitySecondaries.GOLD_BAR),
+	DRAGON_NECKLACE(ItemID.DRAGON_NECKLACE, "Dragon necklace", Skill.CRAFTING, 72 , 105, CriticalItem.DRAGONSTONE, ActivitySecondaries.GOLD_BAR),
+	DRAGONSTONE_BRACELET(ItemID.DRAGONSTONE_BRACELET, "Dragonstone bracelet", Skill.CRAFTING, 74 , 110, CriticalItem.DRAGONSTONE, ActivitySecondaries.GOLD_BAR),
+	DRAGONSTONE_AMULET(ItemID.DRAGONSTONE_AMULET, "Dragonstone amulet", Skill.CRAFTING, 80 , 150, CriticalItem.DRAGONSTONE, ActivitySecondaries.GOLD_BAR),
+	ONYX_RING(ItemID.ONYX_RING, "Onyx ring", Skill.CRAFTING, 67 , 115, CriticalItem.ONYX, ActivitySecondaries.GOLD_BAR),
+	ONYX_NECKLACE(ItemID.ONYX_NECKLACE, "Onyx necklace", Skill.CRAFTING, 82 , 120, CriticalItem.ONYX, ActivitySecondaries.GOLD_BAR),
+	REGEN_BRACELET(ItemID.REGEN_BRACELET, "Regen bracelet", Skill.CRAFTING, 84 , 125, CriticalItem.ONYX, ActivitySecondaries.GOLD_BAR),
+	ONYX_AMULET(ItemID.ONYX_AMULET, "Onyx amulet", Skill.CRAFTING, 90 , 165, CriticalItem.ONYX, ActivitySecondaries.GOLD_BAR),
+	ZENYTE_RING(ItemID.ZENYTE_RING, "Zenyte ring", Skill.CRAFTING, 89 , 150, CriticalItem.ZENYTE, ActivitySecondaries.GOLD_BAR),
+	ZENYTE_NECKLACE(ItemID.ZENYTE_NECKLACE, "Zenyte necklace", Skill.CRAFTING, 92 , 165, CriticalItem.ZENYTE, ActivitySecondaries.GOLD_BAR),
+	ZENYTE_BRACELET(ItemID.ZENYTE_BRACELET, "Zenyte bracelet", Skill.CRAFTING, 95 , 180, CriticalItem.ZENYTE, ActivitySecondaries.GOLD_BAR),
+	ZENYTE_AMULET(ItemID.ZENYTE_AMULET, "Zenyte amulet", Skill.CRAFTING, 98 , 200 , CriticalItem.ZENYTE, ActivitySecondaries.GOLD_BAR),
+	// Battle Staves
+	WATER_BATTLESTAFF(ItemID.WATER_BATTLESTAFF, "Water battlestaff", Skill.CRAFTING, 54, 100, CriticalItem.BATTLESTAFF, ActivitySecondaries.WATER_ORB),
+	EARTH_BATTLESTAFF(ItemID.EARTH_BATTLESTAFF, "Earth battlestaff", Skill.CRAFTING, 58, 112.5, CriticalItem.BATTLESTAFF, ActivitySecondaries.EARTH_ORB),
+	FIRE_BATTLESTAFF(ItemID.FIRE_BATTLESTAFF, "Fire battlestaff", Skill.CRAFTING, 62, 125, CriticalItem.BATTLESTAFF, ActivitySecondaries.FIRE_ORB),
+	AIR_BATTLESTAFF(ItemID.AIR_BATTLESTAFF, "Air battlestaff", Skill.CRAFTING, 66, 137.5, CriticalItem.BATTLESTAFF, ActivitySecondaries.AIR_ORB),
 	/*
 	 * Smithing Items
 	 */
