@@ -40,7 +40,7 @@ enum CalculatorType
 	CONSTRUCTION(Skill.CONSTRUCTION, "skill_construction.json", true),
 	COOKING(Skill.COOKING, "skill_cooking.json", true),
 	CRAFTING(Skill.CRAFTING, "skill_crafting.json", true),
-	FARMING(Skill.FARMING, "skill_farming.json", false),
+	FARMING(Skill.FARMING, "skill_farming.json", true),
 	FIREMAKING(Skill.FIREMAKING, "skill_firemaking.json", false),
 	FLETCHING(Skill.FLETCHING, "skill_fletching.json", false),
 	FISHING(Skill.FISHING, "skill_fishing.json", false),

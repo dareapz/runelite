@@ -272,6 +272,7 @@ public enum Activity
 	EARTH_BATTLESTAFF(ItemID.EARTH_BATTLESTAFF, "Earth battlestaff", Skill.CRAFTING, 58, 112.5, CriticalItem.BATTLESTAFF, ActivitySecondaries.EARTH_ORB),
 	FIRE_BATTLESTAFF(ItemID.FIRE_BATTLESTAFF, "Fire battlestaff", Skill.CRAFTING, 62, 125, CriticalItem.BATTLESTAFF, ActivitySecondaries.FIRE_ORB),
 	AIR_BATTLESTAFF(ItemID.AIR_BATTLESTAFF, "Air battlestaff", Skill.CRAFTING, 66, 137.5, CriticalItem.BATTLESTAFF, ActivitySecondaries.AIR_ORB),
+
 	/*
 	 * Smithing Items
 	 */
@@ -293,8 +294,27 @@ public enum Activity
 	CANNONBALLS(ItemID.CANNONBALL, "Cannonballs", Skill.SMITHING, 35, 25.5, CriticalItem.STEEL_BAR),
 	MITHRIL_BAR(ItemID.MITHRIL_BAR, "Bars", Skill.SMITHING, 50, 50.0, CriticalItem.MITHRIL_BAR),
 	ADAMANTITE_BAR(ItemID.ADAMANTITE_BAR, "Bars", Skill.SMITHING, 70, 62.5, CriticalItem.ADAMANTITE_BAR),
-	RUNITE_BAR(ItemID.RUNITE_BAR, "Bars", Skill.SMITHING, 85, 75.0, CriticalItem.RUNITE_BAR)
+	RUNITE_BAR(ItemID.RUNITE_BAR, "Bars", Skill.SMITHING, 85, 75.0, CriticalItem.RUNITE_BAR),
 
+	/**
+	 * Farming Items
+	 */
+	ACORN(ItemID.ACORN, "Seeds", Skill.FARMING, 15, 481.3, CriticalItem.ACORN),
+	WILLOW_SEED(ItemID.WILLOW_SEED, "Seeds", Skill.FARMING, 30, 1481.5, CriticalItem.WILLOW_SEED),
+	MAPLE_SEED(ItemID.MAPLE_SEED, "Seeds", Skill.FARMING, 45, 3448.4, CriticalItem.MAPLE_SEED),
+	YEW_SEED(ItemID.YEW_SEED, "Seeds", Skill.FARMING, 60, 7150.9, CriticalItem.YEW_SEED),
+	MAGIC_SEED(ItemID.MAGIC_SEED, "Seeds", Skill.FARMING, 75, 13913.8, CriticalItem.MAGIC_SEED),
+	APPLE_TREE_SEED(ItemID.APPLE_TREE_SEED, "Seeds", Skill.FARMING, 27, 1272.5, CriticalItem.APPLE_TREE_SEED),
+	BANANA_TREE_SEED(ItemID.BANANA_TREE_SEED, "Seeds", Skill.FARMING, 33, 1841.5, CriticalItem.BANANA_TREE_SEED),
+	ORANGE_TREE_SEED(ItemID.ORANGE_TREE_SEED, "Seeds", Skill.FARMING, 39, 2586.7, CriticalItem.ORANGE_TREE_SEED),
+	CURRY_TREE_SEED(ItemID.CURRY_TREE_SEED, "Seeds", Skill.FARMING, 42, 3036.9, CriticalItem.CURRY_TREE_SEED),
+	PINEAPPLE_SEED(ItemID.PINEAPPLE_SEED, "Seeds", Skill.FARMING, 51, 4791.7, CriticalItem.PINEAPPLE_SEED),
+	PAPAYA_TREE_SEED(ItemID.PAPAYA_TREE_SEED, "Seeds", Skill.FARMING, 57, 6380.4, CriticalItem.PAPAYA_TREE_SEED),
+	PALM_TREE_SEED(ItemID.PALM_TREE_SEED, "Seeds", Skill.FARMING, 68, 10509.6, CriticalItem.PALM_TREE_SEED),
+	CALQUAT_TREE_SEED(ItemID.CALQUAT_TREE_SEED, "Seeds", Skill.FARMING, 72, 12516.5, CriticalItem.CALQUAT_TREE_SEED),
+	TEAK_SEED(ItemID.TEAK_SEED, "Seeds", Skill.FARMING, 35, 7325, CriticalItem.TEAK_SEED),
+	MAHOGANY_SEED(ItemID.MAHOGANY_SEED, "Seeds", Skill.FARMING, 55, 15783, CriticalItem.MAHOGANY_SEED),
+	SPIRIT_SEED(ItemID.SPIRIT_SEED, "Seeds", Skill.FARMING, 83, 19500, CriticalItem.SPIRIT_SEED),
 		;
 
 	private final int icon;
