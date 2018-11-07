@@ -145,6 +145,13 @@ public final class AnimationID
 	public static final int CONSTRUCTION = 3676;
 	public static final int SAND_COLLECTION = 895;
 
+	// AOE Attack Animations
+	public static final int THROW_CHINCHOMPA = 7618;
+	public static final int CAST_BURST_BARRAGE = 1979;
+	public static final int SCYTHE_OF_VITUR_ATTACK = 8056;
+	public static final int HALBERD_SPECIAL_ATTACK = 1203;
+	public static final int D2H_SPECIAL_ATTACK = 3157;
+
 	// NPC animations
 	public static final int TZTOK_JAD_MAGIC_ATTACK = 2656;
 	public static final int TZTOK_JAD_RANGE_ATTACK = 2652;
