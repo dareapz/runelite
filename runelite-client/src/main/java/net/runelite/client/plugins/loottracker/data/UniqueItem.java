@@ -101,7 +101,7 @@ public enum UniqueItem
 	DRAGON_SWORD("Dragon sword", ItemID.DRAGON_SWORD, "Chambers of Xeric", "Melee", 2),
 	DRAGON_CLAWS("Dragon claws", ItemID.DRAGON_CLAWS, "Chambers of Xeric", "Melee", 2),
 	DINHS_BULWARK("Dinh's bulwark", ItemID.DINHS_BULWARK, "Chambers of Xeric", "Melee", 2),
-	ELDER_MAUL("Elder maul", ItemID.ELDER_MAUL_21003, "Chambers of Xeric", "Melee", 2),
+	ELDER_MAUL("Elder maul", ItemID.ELDER_MAUL, "Chambers of Xeric", "Melee", 2),
 	// Prayers
 	TORN_PRAYER_SCROLL("Torn prayer scroll", ItemID.TORN_PRAYER_SCROLL, "Chambers of Xeric", "Prayer", 3),
 	ARCANE_PRAYER_SCROLL("Arcane prayer scroll", ItemID.ARCANE_PRAYER_SCROLL, "Chambers of Xeric", "Prayer", 3),
