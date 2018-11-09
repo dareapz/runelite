@@ -277,10 +277,9 @@ public class LootTrackerPlugin extends Plugin
 			// Unsired redemption tracking
 			case (WidgetID.DIALOG_SPRITE_GROUP_ID):
 				Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
-				if ("the font consumes the unsired and returns you a reward.".equals(text.getText().toLowerCase()))
+				if ("you place the unsired into the font of consumption...".equals(text.getText().toLowerCase()))
 				{
-					Widget sprite = client.getWidget(WidgetInfo.DIALOG_SPRITE);
-					receivedUnsiredLoot(sprite.getItemId());
+					checkUnsiredWidget();
 				}
 				return;
 			default:
@@ -580,6 +579,45 @@ public class LootTrackerPlugin extends Plugin
 			LootRecord r = items.get(items.size() - 1);
 			r.addDropEntry(itemEntry);
 			writer.rewriteData("Abyssal sire", items);
+		});
+	}
+
+	private boolean unsiredThreadRunning = false;
+	private int unsiredThreadTries = 0;
+	// Handles checking for unsired loot reclamation
+	private void checkUnsiredWidget()
+	{
+		if (unsiredThreadRunning)
+		{
+			return;
+		}
+		unsiredThreadRunning = true;
+		unsiredThreadTries = 0;
+
+		clientThread.invokeLater(() ->
+		{
+			log.debug("Checking for text widget change...");
+			Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
+			if ("the font consumes the unsired and returns you a reward.".equals(text.getText().toLowerCase()))
+			{
+				Widget sprite = client.getWidget(WidgetInfo.DIALOG_SPRITE);
+				log.debug("Sprite: {}", sprite);
+				log.debug("Sprite Item ID: {}", sprite.getItemId());
+				log.debug("Sprite Model ID: {}", sprite.getModelId());
+				receivedUnsiredLoot(sprite.getItemId());
+				unsiredThreadRunning = false;
+				return true;
+			}
+			else
+			{
+				if (unsiredThreadTries >= 10)
+				{
+					log.debug("Tried 10 times, canceling...");
+					return true;
+				}
+				unsiredThreadTries++;
+				return false;
+			}
 		});
 	}
 }
