@@ -9,6 +9,7 @@ public enum ItemSortTypes
 {
 	ALPHABETICAL("Alphabetical"),
 	ITEM_ID("Item ID"),
+	PRICE("PRICE"),
 	VALUE("Value");
 
 	private final String name;

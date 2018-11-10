@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.ItemSortTypes;
 import net.runelite.client.plugins.loottracker.data.LootRecord;
@@ -47,6 +48,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class LootPanel extends JPanel
 {
 	private Collection<LootRecord> records;
@@ -96,23 +98,31 @@ public class LootPanel extends JPanel
 				@Override
 				public int compare(LootTrackerItemEntry o1, LootTrackerItemEntry o2)
 				{
-					if (sortType.equals(ItemSortTypes.ALPHABETICAL))
+					switch (sortType)
 					{
-						return o1.getName().compareTo(o2.getName());
-					}
-					else if (sortType.equals(ItemSortTypes.ITEM_ID))
-					{
-						return o1.getId() - o2.getId();
-					}
-					else if (sortType.equals(ItemSortTypes.VALUE))
-					{
-						if (o1.getTotal() != o2.getTotal())
-						{
-							return (o1.getTotal() > o2.getTotal() ? -1 : 1);
-						}
+						case ITEM_ID:
+							return o1.getId() - o2.getId();
+						case PRICE:
+							if (o1.getPrice() != o2.getPrice())
+							{
+								return o1.getPrice() > o2.getPrice() ? -1 : 1;
+							}
+							break;
+						case VALUE:
+							if (o1.getTotal() != o2.getTotal())
+							{
+								return o1.getTotal() > o2.getTotal() ? -1 : 1;
+							}
+							break;
+						case ALPHABETICAL:
+							// Handled below
+							break;
+						default:
+							log.warn("Sort Type not being handled correctly, defaulting to alphabetical.");
+							break;
 					}
 
-					// Default to Alphabetical
+					// Default to alphabetical
 					return o1.getName().compareTo(o2.getName());
 				}
 			}))
