@@ -55,6 +55,7 @@ public class LootPanel extends JPanel
 	private Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap;
 	private boolean hideUniques;
 	private ItemSortTypes sortType;
+	private boolean itemBreakdown;
 	private ItemManager itemManager;
 	private Map<Integer, LootTrackerItemEntry> consolidated;
 
@@ -62,12 +63,13 @@ public class LootPanel extends JPanel
 	private boolean playbackPlaying = false;
 	private boolean cancelPlayback = false;
 
-	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap, boolean hideUnqiues, ItemSortTypes sort, ItemManager itemManager)
+	public LootPanel(Collection<LootRecord> records, Map<Integer, Collection<UniqueItemWithLinkedId>> uniqueMap, boolean hideUnqiues, ItemSortTypes sort, boolean itemBreakdown, ItemManager itemManager)
 	{
 		this.records = (records == null ? new ArrayList<>() : records);
 		this.uniqueMap = (uniqueMap == null ? new HashMap<>() : uniqueMap);
 		this.hideUniques = hideUnqiues;
 		this.sortType = sort;
+		this.itemBreakdown = itemBreakdown;
 		this.itemManager = itemManager;
 
 		setLayout(new GridBagLayout());
@@ -175,17 +177,27 @@ public class LootPanel extends JPanel
 		int totalValueIndex = c.gridy;
 		c.gridy++;
 
-		// Loop over each dropped item and create an ItemPanel for it
-		for ( Map.Entry<Integer, LootTrackerItemEntry> entry : this.consolidated.entrySet())
+		if (itemBreakdown)
 		{
-			LootTrackerItemEntry item = entry.getValue();
-			if (!hideUniques || !(hideUniques && uniqueIds.contains(item.getId())))
+			// Loop over each dropped item and create an ItemPanel for it
+			for (Map.Entry<Integer, LootTrackerItemEntry> entry : this.consolidated.entrySet())
 			{
-				ItemPanel p = new ItemPanel(item, itemManager);
-				this.add(p, c);
-				c.gridy++;
+				LootTrackerItemEntry item = entry.getValue();
+				if (!hideUniques || !(hideUniques && uniqueIds.contains(item.getId())))
+				{
+					ItemPanel p = new ItemPanel(item, itemManager);
+					this.add(p, c);
+					c.gridy++;
+				}
+				totalValue = totalValue + item.getTotal();
 			}
-			totalValue = totalValue + item.getTotal();
+		}
+		else
+		{
+			LootGrid grid = new LootGrid(consolidated, hideUniques, uniqueIds, itemManager);
+			totalValue = grid.getTotalValue();
+			this.add(grid, c);
+			c.gridy++;
 		}
 
 		// Only add the total value element if it has something useful to display

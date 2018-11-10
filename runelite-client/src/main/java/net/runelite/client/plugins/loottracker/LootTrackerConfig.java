@@ -52,4 +52,15 @@ public interface LootTrackerConfig extends Config
 		{
 			return ItemSortTypes.ALPHABETICAL;
 		}
+
+		@ConfigItem(
+			position = 2,
+			keyName = "itemBreakdown",
+			name = "Breakdown individual items",
+			description = "Toggles whether the Individual item UI should be used inside npc-specific tabs"
+		)
+		default boolean itemBreakdown()
+		{
+			return true;
+		}
 }
