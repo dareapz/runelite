@@ -369,11 +369,23 @@ public class PerformanceTrackerPlugin extends Plugin
 				configCheck = config.trackTheatreOfBlood();
 				break;
 			case RegionID.THEATRE_OF_BLOOD.LOBBY:
-				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.LOBBY);
-				configCheck = config.trackTheatreOfBlood();
+				if (tobVarbit != 0)
+				{
+					// Only handle lobby if we are in a party
+					handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.LOBBY);
+				}
+				configCheck = false; // Disable overlay while in lobby, going to maiden will re-enable it.
 				break;
 			default:
-				disablePlugin();
+				if (enabled)
+				{
+					// Certain Activities should not reset between region changes
+					if (tobVarbit > 1)
+					{
+						return;
+					}
+					disablePlugin();
+				}
 				return;
 		}
 
@@ -456,8 +468,6 @@ public class PerformanceTrackerPlugin extends Plugin
 	private void submitAttempt()
 	{
 		attempts.add(current);
-		messages.addAll(PerformanceTrackerMessages.tobTotalMessage(attempts));
-
 		current = new Attempt();
 		reset();
 	}
@@ -470,6 +480,11 @@ public class PerformanceTrackerPlugin extends Plugin
 			return;
 		}
 
+		List<String> ms = new ArrayList<>();
+
+		ms.add(PerformanceTrackerMessages.tobRoomMessage(dealt, taken));
+		ms.add(PerformanceTrackerMessages.tobCurrentMessage(current));
+
 		// Went to new room which means last room was completed.
 		switch (act)
 		{
@@ -480,11 +495,14 @@ public class PerformanceTrackerPlugin extends Plugin
 			// Starting Maiden, nothing to show
 			case ActivityInfo.TOB.ACT.MAIDEN:
 				return;
-
+			// Back to lobby, show total stats
+			case ActivityInfo.TOB.ACT.LOBBY:
+				submitAttempt();
+				ms.addAll(PerformanceTrackerMessages.tobTotalMessage(attempts));
+				break;
 		}
 
-		messages.add(PerformanceTrackerMessages.tobRoomMessage(dealt, taken));
-		messages.add(PerformanceTrackerMessages.tobCurrentMessage(current));
+		messages.addAll(ms);
 		log.debug("Starting act {}", act);
 	}
 
@@ -513,17 +531,6 @@ public class PerformanceTrackerPlugin extends Plugin
 					// Starting a new raid
 					hpExp = client.getSkillExperience(Skill.HITPOINTS);
 					current = new Attempt();
-				}
-				else
-				{
-					// Back to just in a party, submit the raid
-					if (!current.isCompleted())
-					{
-						// Didn't finish room, trigger message now.
-						messages.add(PerformanceTrackerMessages.tobRoomMessage(dealt, taken));
-					}
-					messages.add(PerformanceTrackerMessages.tobCurrentMessage(current));
-					submitAttempt();
 				}
 				break;
 			case ActivityInfo.TOB.STATE.INSIDE:
