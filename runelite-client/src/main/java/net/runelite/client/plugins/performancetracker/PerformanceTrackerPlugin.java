@@ -24,6 +24,7 @@
  */
 package net.runelite.client.plugins.performancetracker;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -31,7 +32,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
@@ -43,20 +43,22 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.performancetracker.data.NpcExpModifier;
 import net.runelite.client.plugins.performancetracker.overlays.GenericOverlay;
+import net.runelite.client.plugins.xptracker.XpTrackerPlugin;
+import net.runelite.client.plugins.xptracker.XpWorldType;
 import net.runelite.client.ui.overlay.OverlayManager;
 
 @PluginDescriptor(
 	name = "Performance Tracker",
 	description = "Shows your current performance stats",
-	tags = {"performance", "stats", "tracker", "theatre", "blood", "tob"}
+	tags = {"performance", "stats", "activity", "tracker"}
 )
 @Slf4j
 public class PerformanceTrackerPlugin extends Plugin
 {
 	// For every damage point dealt, 1.33 experience is given to the player's hitpoints (base rate)
 	private static final double HITPOINT_RATIO = 1.33;
+	private static final double DMM_MULTIPLIER_RATIO = 10;
 
 	@Inject
 	private Client client;
@@ -73,14 +75,20 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Inject
 	private PerformanceTrackerConfig config;
 
-	private Actor oldTarget;
+	@Getter
+	private boolean enabled = false;
+	private boolean ignoreLoginTick = false;
 	private int region = 0;
+	private XpWorldType lastWorldType;
+	private boolean playingDeadManMode = false;
+	// Damage Tracking
+	private Actor oldTarget;
 	private double hpExp = 0;
 	// Current stats
 	@Getter
-	private double dealt = 0;
+	private double dealt = -1;
 	@Getter
-	private double taken = 0;
+	private double taken = -1;
 
 	@Provides
 	PerformanceTrackerConfig provideConfig(ConfigManager configManager)
@@ -98,18 +106,39 @@ public class PerformanceTrackerPlugin extends Plugin
 	protected void shutDown()
 	{
 		overlayManager.remove(genericOverlay);
+		dealt = -1;
+		taken = -1;
 	}
 
 	// Determine Region change
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
-		if (event.getGameState() != GameState.LOGGED_IN)
+		switch (event.getGameState())
 		{
-			return;
+			case LOGGED_IN:
+				break;
+			case LOGIN_SCREEN:
+			case HOPPING:
+				ignoreLoginTick = true;
+			default:
+				return;
 		}
 
+		// Check for world type changes
+		XpWorldType type = XpTrackerPlugin.worldSetToType(client.getWorldType());
+		if (lastWorldType != type)
+		{
+			// Reset
+			log.debug("World Type change: {} -> {}",
+				firstNonNull(lastWorldType, "<unknown>"),
+				firstNonNull(type, "<unknown>"));
 
+			lastWorldType = type;
+			playingDeadManMode = type.equals(XpWorldType.DMM) || type.equals(XpWorldType.SDMM);
+		}
+
+		// Region Change
 		int oldRegion = region;
 		region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
 		if (oldRegion != region)
@@ -122,10 +151,20 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Subscribe
 	protected void onExperienceChanged(ExperienceChanged c)
 	{
+		if (!enabled)
+		{
+			return;
+		}
+
 		if (c.getSkill().equals(Skill.HITPOINTS))
 		{
 			double oldExp = hpExp;
 			hpExp = client.getSkillExperience(Skill.HITPOINTS);
+			if (ignoreLoginTick)
+			{
+				// We've updated the stored HP but we need to ignore this XP drop.
+				return;
+			}
 			double diff = hpExp - oldExp;
 			if (diff < 1)
 			{
@@ -143,6 +182,11 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Subscribe
 	protected void onHitsplatApplied(HitsplatApplied e)
 	{
+		if (!enabled)
+		{
+			return;
+		}
+
 		if (e.getActor().equals(client.getLocalPlayer()))
 		{
 			taken += e.getHitsplat().getAmount();
@@ -154,22 +198,54 @@ public class PerformanceTrackerPlugin extends Plugin
 	public void onGameTick(GameTick tick)
 	{
 		oldTarget = client.getLocalPlayer().getInteracting();
+		if (ignoreLoginTick)
+		{
+			ignoreLoginTick = false;
+		}
+	}
+
+	private void reset()
+	{
+		dealt = 0;
+		taken = 0;
+	}
+
+	private void enablePlugin()
+	{
+		// Grab Starting EXP
+		hpExp = client.getSkillExperience(Skill.HITPOINTS);
+		reset();
+
+		enabled = true;
+	}
+
+	private void disablePlugin()
+	{
+		reset();
+
+		enabled = false;
 	}
 
 	/**
-	 * Handles region changes while inside Theatre of Blood
-	 *
+	 * Handles region changes and triggers region-specific functionality
 	 */
 	private void handleRegionChange()
 	{
 		switch (region)
 		{
+			// Edge men for testing
+			case 12342:
+			case 12343:
+			case 12598:
+			case 12599:
+			case 12086:
+			case 12087:
+				enablePlugin();
+				return;
 			// TODO: Add regions here for activity specific tracking
 			default:
+				disablePlugin();
 		}
-
-		dealt = 0;
-		taken = 0;
 	}
 
 	/**
@@ -199,13 +275,18 @@ public class PerformanceTrackerPlugin extends Plugin
 		String targetName = getRealNpcName(target);
 		log.debug("Attacking NPC named: {}", targetName);
 
+
+		if (playingDeadManMode)
+		{
+			damageDealt = damageDealt / DMM_MULTIPLIER_RATIO;
+		}
 		return damageDealt;
 	}
 
 	/**
 	 * Return the NPC name accounting for special use cases
 	 * @param target target NPC
-	 * @return
+	 * @return NPC name adjusted for special internal use cases
 	 */
 	private String getRealNpcName(NPC target)
 	{

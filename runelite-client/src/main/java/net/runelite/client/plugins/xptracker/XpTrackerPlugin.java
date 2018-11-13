@@ -172,7 +172,7 @@ public class XpTrackerPlugin extends Plugin
 		}
 	}
 
-	private XpWorldType worldSetToType(EnumSet<WorldType> types)
+	public static XpWorldType worldSetToType(EnumSet<WorldType> types)
 	{
 		XpWorldType xpType = NORMAL;
 		for (WorldType type : types)

@@ -59,6 +59,11 @@ public class GenericOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
+		if (!plugin.isEnabled())
+		{
+			return null;
+		}
+
 		double o1 = dealt;
 		double o2 = taken;
 
