@@ -27,26 +27,41 @@ package net.runelite.client.plugins.performancetracker;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.Skill;
+import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.ExperienceChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
+import net.runelite.client.plugins.performancetracker.data.Attempt;
+import net.runelite.client.plugins.performancetracker.data.NpcExpModifier;
+import net.runelite.client.plugins.performancetracker.data.RegionID;
 import net.runelite.client.plugins.performancetracker.overlays.GenericOverlay;
 import net.runelite.client.plugins.xptracker.XpTrackerPlugin;
 import net.runelite.client.plugins.xptracker.XpWorldType;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.Text;
 
 @PluginDescriptor(
 	name = "Performance Tracker",
@@ -59,6 +74,9 @@ public class PerformanceTrackerPlugin extends Plugin
 	// For every damage point dealt, 1.33 experience is given to the player's hitpoints (base rate)
 	private static final double HITPOINT_RATIO = 1.33;
 	private static final double DMM_MULTIPLIER_RATIO = 10;
+
+	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###");
+	private static final Pattern DEATH_TEXT = Pattern.compile("You have died. Death count: \\d.");
 
 	@Inject
 	private Client client;
@@ -90,6 +108,14 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Getter
 	private double taken = -1;
 
+	private final List<String> messages = new ArrayList<>();
+
+	// Theatre of Blood
+	private final List<Attempt> attempts = new ArrayList<>();
+	private Attempt current;
+	private int tobVarbit = 0;
+	private boolean isSpectator = false;
+
 	@Provides
 	PerformanceTrackerConfig provideConfig(ConfigManager configManager)
 	{
@@ -108,6 +134,9 @@ public class PerformanceTrackerPlugin extends Plugin
 		overlayManager.remove(genericOverlay);
 		dealt = -1;
 		taken = -1;
+		messages.clear();
+		attempts.clear();
+		tobVarbit = -1;
 	}
 
 	// Determine Region change
@@ -174,7 +203,7 @@ public class PerformanceTrackerPlugin extends Plugin
 
 			// Add damage dealt to the current logs
 			log.debug("Damage Dealt: {} | Exact: {}", Math.round(damageDealt), damageDealt);
-			dealt += damageDealt;
+			handleDamageDealt(damageDealt);
 		}
 	}
 
@@ -189,7 +218,7 @@ public class PerformanceTrackerPlugin extends Plugin
 
 		if (e.getActor().equals(client.getLocalPlayer()))
 		{
-			taken += e.getHitsplat().getAmount();
+			handleDamageTaken(e.getHitsplat().getAmount());
 		}
 	}
 
@@ -204,6 +233,53 @@ public class PerformanceTrackerPlugin extends Plugin
 		}
 	}
 
+	@Subscribe
+	protected void onChatMessage(ChatMessage m)
+	{
+		// Theatre of Blood death check
+		if (!isSpectator && tobVarbit > 1 && m.getType() == ChatMessageType.SERVER)
+		{
+			String message = Text.removeTags(m.getMessage());
+			Matcher match = DEATH_TEXT.matcher(message);
+			if (match.matches())
+			{
+				// Died
+				current.addDeath();
+			}
+		}
+	}
+
+	@Subscribe
+	protected void onVarbitChanged(VarbitChanged e)
+	{
+		// Theatre of Blood Varbit
+		int oldTobVarbit = tobVarbit;
+		tobVarbit = client.getVar(Varbits.THEATRE_OF_BLOOD);
+		if (oldTobVarbit != tobVarbit)
+		{
+			tobVarbitChanged(oldTobVarbit);
+		}
+	}
+
+	private void handleDamageTaken(double damage)
+	{
+		taken += damage;
+		if (config.trackTheatreOfBlood() && tobVarbit > 1)
+		{
+			current.addDamageTaken(damage);
+		}
+	}
+
+	private void handleDamageDealt(double damage)
+	{
+		dealt += damage;
+		if (config.trackTheatreOfBlood() && tobVarbit > 1)
+		{
+			current.addDamageDealt(damage);
+		}
+
+	}
+
 	private void reset()
 	{
 		dealt = 0;
@@ -212,6 +288,11 @@ public class PerformanceTrackerPlugin extends Plugin
 
 	private void enablePlugin()
 	{
+		if (enabled)
+		{
+			return;
+		}
+
 		// Grab Starting EXP
 		hpExp = client.getSkillExperience(Skill.HITPOINTS);
 		reset();
@@ -227,10 +308,28 @@ public class PerformanceTrackerPlugin extends Plugin
 	}
 
 	/**
+	 * Send all queued messages via in-game chat
+	 */
+	private void sendChatMessages()
+	{
+		for (String message : messages)
+		{
+			log.debug("Sending Message: {}", message);
+			chatMessageManager.queue(QueuedMessage.builder()
+				.type(ChatMessageType.GAME)
+				.runeLiteFormattedMessage(message)
+				.build());
+		}
+
+		messages.clear();
+	}
+
+	/**
 	 * Handles region changes and triggers region-specific functionality
 	 */
 	private void handleRegionChange()
 	{
+		boolean configCheck = true;
 		switch (region)
 		{
 			// Edge men for testing
@@ -240,12 +339,56 @@ public class PerformanceTrackerPlugin extends Plugin
 			case 12599:
 			case 12086:
 			case 12087:
-				enablePlugin();
-				return;
-			// TODO: Add regions here for activity specific tracking
+				break;
+			case RegionID.THEATRE_OF_BLOOD.MAIDEN:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.MAIDEN);
+				configCheck = config.trackTheatreOfBlood();
+				break;
+			case RegionID.THEATRE_OF_BLOOD.BLOAT:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.BLOAT);
+				configCheck = config.trackTheatreOfBlood();
+				break;
+			case RegionID.THEATRE_OF_BLOOD.NYLOCAS:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.NYLOCAS);
+				configCheck = config.trackTheatreOfBlood();
+				break;
+			case RegionID.THEATRE_OF_BLOOD.SOTETSEG:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.SOTETSEG);
+				configCheck = config.trackTheatreOfBlood();
+				break;
+			case RegionID.THEATRE_OF_BLOOD.XARPUS:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.XARPUS);
+				configCheck = config.trackTheatreOfBlood();
+				break;
+			case RegionID.THEATRE_OF_BLOOD.VERZIK:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.VERZIK);
+				configCheck = config.trackTheatreOfBlood();
+				break;
+			case RegionID.THEATRE_OF_BLOOD.REWARD:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.REWARD);
+				configCheck = config.trackTheatreOfBlood();
+				break;
+			case RegionID.THEATRE_OF_BLOOD.LOBBY:
+				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.LOBBY);
+				configCheck = config.trackTheatreOfBlood();
+				break;
 			default:
 				disablePlugin();
+				return;
 		}
+
+		// Did they enable the activity for this region?
+		if (configCheck)
+		{
+			enablePlugin();
+		}
+		else if (enabled)
+		{
+			// toggled config mid activity?
+			disablePlugin();
+		}
+
+		sendChatMessages();
 	}
 
 	/**
@@ -275,7 +418,14 @@ public class PerformanceTrackerPlugin extends Plugin
 		String targetName = getRealNpcName(target);
 		log.debug("Attacking NPC named: {}", targetName);
 
+		// Some NPCs have an XP modifier
+		NpcExpModifier m = NpcExpModifier.getByName(targetName);
+		if (m != null)
+		{
+			damageDealt = damageDealt / NpcExpModifier.calculateBonus(m);
+		}
 
+		// DeadMan mode has an XP modifier
 		if (playingDeadManMode)
 		{
 			damageDealt = damageDealt / DMM_MULTIPLIER_RATIO;
@@ -294,9 +444,103 @@ public class PerformanceTrackerPlugin extends Plugin
 
 		switch (name.toUpperCase())
 		{
-			// TODO: Add special cases
+			case "VERZIK":
+				return NpcExpModifier.getNameByNpcId(target.getId());
 			default:
 				return name;
+		}
+	}
+
+
+	/** Theatre of Blood Section **/
+	private void submitAttempt()
+	{
+		attempts.add(current);
+		messages.addAll(PerformanceTrackerMessages.tobTotalMessage(attempts));
+
+		current = new Attempt();
+		reset();
+	}
+
+	// Advancing Room (region change)
+	private void handleTheatreOfBloodAct(int act)
+	{
+		if (isSpectator)
+		{
+			return;
+		}
+
+		// Went to new room which means last room was completed.
+		switch (act)
+		{
+			// Reward Region
+			case ActivityInfo.TOB.ACT.REWARD:
+				current.setCompleted(true);
+				break;
+			// Starting Maiden, nothing to show
+			case ActivityInfo.TOB.ACT.MAIDEN:
+				return;
+
+		}
+
+		messages.add(PerformanceTrackerMessages.tobRoomMessage(dealt, taken));
+		messages.add(PerformanceTrackerMessages.tobCurrentMessage(current));
+		log.debug("Starting act {}", act);
+	}
+
+
+	/**
+	 * Handles changes to the Theatre of Blood Varbit
+	 * @param old previous Theatre of Blood varbit value
+	 */
+	private void tobVarbitChanged(int old)
+	{
+		// TODO: Figure out a way to determine if they are logging back into a raid
+		// 0=default | 1=party | 2=inside/spectator | 3=dead-spectator
+		switch (tobVarbit)
+		{
+			case ActivityInfo.TOB.STATE.DEFAULT:
+				if (old == ActivityInfo.TOB.STATE.INSIDE)
+				{
+					isSpectator = false;
+					return;
+				}
+				current = null;
+				break;
+			case ActivityInfo.TOB.STATE.PARTY:
+				if (old == ActivityInfo.TOB.STATE.DEFAULT)
+				{
+					// Starting a new raid
+					hpExp = client.getSkillExperience(Skill.HITPOINTS);
+					current = new Attempt();
+				}
+				else
+				{
+					// Back to just in a party, submit the raid
+					if (!current.isCompleted())
+					{
+						// Didn't finish room, trigger message now.
+						messages.add(PerformanceTrackerMessages.tobRoomMessage(dealt, taken));
+					}
+					messages.add(PerformanceTrackerMessages.tobCurrentMessage(current));
+					submitAttempt();
+				}
+				break;
+			case ActivityInfo.TOB.STATE.INSIDE:
+				// Inside the Theatre, are they a spectator?
+				if (old == ActivityInfo.TOB.STATE.DEFAULT)
+				{
+					isSpectator = true;
+					return;
+				}
+				break;
+			case ActivityInfo.TOB.STATE.SPECTATING_MEMBER:
+				if (old == ActivityInfo.TOB.STATE.DEFAULT)
+				{
+					log.debug("Logged out and returned to non-existing raid");
+					return;
+				}
+				break;
 		}
 	}
 }

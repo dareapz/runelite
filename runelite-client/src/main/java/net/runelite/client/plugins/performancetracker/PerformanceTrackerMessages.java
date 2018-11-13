@@ -1,0 +1,140 @@
+/*
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package net.runelite.client.plugins.performancetracker;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import net.runelite.client.chat.ChatColorType;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.plugins.performancetracker.data.Attempt;
+
+public class PerformanceTrackerMessages
+{
+	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###");
+
+	// Generic message for all rooms
+	public static String genericMessage(double dealt, double taken)
+	{
+		// EX: Damage Taken: *, Damage Dealt: *
+		return new ChatMessageBuilder()
+			.append(ChatColorType.NORMAL)
+			.append("Damage Taken: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(taken))
+			.append(ChatColorType.NORMAL)
+			.append(", Damage Dealt: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(dealt))
+			.build();
+	}
+
+	public static String prefixGenericMessage(String message, boolean highlight, double dealt, double taken)
+	{
+		// EX: *Damage Taken: *, Damage Dealt: *
+		return new ChatMessageBuilder()
+			.append(highlight ? ChatColorType.HIGHLIGHT : ChatColorType.NORMAL)
+			.append(message)
+			.append(ChatColorType.NORMAL)
+			.append(genericMessage(dealt, taken))
+			.build();
+	}
+
+	private static String deathCountMessage(String prefix, boolean highlight, double dealt, double taken, int deaths)
+	{
+		// EX: *Damage Taken: *, Damage Dealt: *, Death Count: *
+		return new ChatMessageBuilder()
+			.append(prefixGenericMessage(prefix, highlight, dealt, taken))
+			.append(ChatColorType.NORMAL)
+			.append(", Death Count: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(String.valueOf(deaths))
+			.build();
+	}
+
+	// Wrapper for passing Attempts
+	private static String deathCountMessage(String prefix, boolean highlight, Attempt current)
+	{
+		return deathCountMessage(prefix, highlight, current.getDamageDealt(), current.getDamageTaken(), current.getDeathCount());
+	}
+
+	/** Theatre of Blood **/
+	public static String tobRoomMessage(double dealt, double taken)
+	{
+		return prefixGenericMessage("Room Stats: ", true, dealt, taken);
+	}
+
+	public static String tobCurrentMessage(Attempt current)
+	{
+		return deathCountMessage("Current Raid Stats: ", true, current);
+	}
+
+	public static List<String> tobTotalMessage(List<Attempt> attempts)
+	{
+		List<String> messages = new ArrayList<>();
+		int completions = 0, deathCount = 0;
+		double damageTaken = 0, damageDealt = 0;
+		for (Attempt a : attempts)
+		{
+			if (a.isCompleted())
+			{
+				completions++;
+			}
+			deathCount += a.getDeathCount();
+			damageTaken += a.getDamageTaken();
+			damageDealt += a.getDamageDealt();
+		}
+
+		// EX: Session Raid Stats: Attempted: *, Completed: *, (*%)
+		messages.add(new ChatMessageBuilder()
+			.append(ChatColorType.HIGHLIGHT)
+			.append("Session Raid Stats: ")
+			.append(ChatColorType.NORMAL)
+			.append("Attempted: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(String.valueOf(attempts.size()))
+			.append(ChatColorType.NORMAL)
+			.append(", Completed: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(String.valueOf(completions))
+			.append(", (")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format((completions * 100) / attempts.size()))
+			.append("%)")
+			.build());
+
+		// Session Raid Stats with death message
+		messages.add(deathCountMessage("Session Raid Stats: ", true, damageDealt, damageTaken, deathCount));
+
+		return messages;
+	}
+
+	/** Castle Wars **/
+	// TODO: Add castle wars
+	public static String castleWarsMessage(int dealt, int taken)
+	{
+		return prefixGenericMessage("Game Stats: ", true, dealt, taken);
+	}
+}
