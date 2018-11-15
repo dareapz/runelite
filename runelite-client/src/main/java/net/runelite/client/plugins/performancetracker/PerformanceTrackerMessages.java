@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
+import net.runelite.client.plugins.performancetracker.data.stats.CastleWars;
 import net.runelite.client.plugins.performancetracker.data.stats.Performance;
 import net.runelite.client.plugins.performancetracker.data.stats.TheatreOfBlood;
 
@@ -37,55 +39,63 @@ public class PerformanceTrackerMessages
 	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###");
 
 	// Generic message for all rooms
-	public static String genericMessage(double dealt, double taken)
+	public static String genericMessage(Performance a)
 	{
 		// EX: Damage Taken: *, Damage Dealt: *
 		return new ChatMessageBuilder()
 			.append(ChatColorType.NORMAL)
-			.append("Damage Taken: ")
+			.append("Damage dealt: ")
 			.append(ChatColorType.HIGHLIGHT)
-			.append(NUMBER_FORMAT.format(taken))
+			.append(NUMBER_FORMAT.format(a.getDamageDealt()))
 			.append(ChatColorType.NORMAL)
-			.append(", Damage Dealt: ")
+			.append(" (Max: ")
 			.append(ChatColorType.HIGHLIGHT)
-			.append(NUMBER_FORMAT.format(dealt))
+			.append(NUMBER_FORMAT.format(a.getHighestHitDealt()))
+			.append(ChatColorType.NORMAL)
+			.append("), Damage Taken: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(a.getDamageTaken()))
+			.append(ChatColorType.NORMAL)
+			.append(" (Max: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(a.getHighestHitTaken()))
+			.append(ChatColorType.NORMAL)
+			.append(")")
 			.build();
 	}
 
-	public static String prefixGenericMessage(String message, boolean highlight, double dealt, double taken)
+	public static String prefixGenericMessage(String message, boolean highlight, Performance a)
 	{
 		// EX: *Damage Taken: *, Damage Dealt: *
 		return new ChatMessageBuilder()
 			.append(highlight ? ChatColorType.HIGHLIGHT : ChatColorType.NORMAL)
 			.append(message)
 			.append(ChatColorType.NORMAL)
-			.append(genericMessage(dealt, taken))
+			.append(genericMessage(a))
 			.build();
 	}
 
-	private static String deathCountMessage(String prefix, boolean highlight, double dealt, double taken, int deaths)
+	private static String deathCountMessage(String prefix, boolean highlight, Performance a)
 	{
-		// EX: *Damage Taken: *, Damage Dealt: *, Death Count: *
+		return deathCountMessage(prefix, highlight, a, a.getDeathCount());
+	}
+
+	private static String deathCountMessage(String prefix, boolean highlight, Performance a, int deathCount)
+	{
 		return new ChatMessageBuilder()
-			.append(prefixGenericMessage(prefix, highlight, dealt, taken))
+			.append(prefixGenericMessage(prefix, highlight, a))
 			.append(ChatColorType.NORMAL)
 			.append(", Death Count: ")
 			.append(ChatColorType.HIGHLIGHT)
-			.append(String.valueOf(deaths))
+			.append(NUMBER_FORMAT.format(deathCount))
 			.build();
-	}
-
-	// Wrapper for passing Attempts
-	private static String deathCountMessage(String prefix, boolean highlight, Performance current)
-	{
-		return deathCountMessage(prefix, highlight, current.getDamageDealt(), current.getDamageTaken(), current.getDeathCount());
 	}
 
 	/** Theatre of Blood **/
 	public static String tobRoomMessage(Performance current)
 	{
 		TheatreOfBlood a = (TheatreOfBlood) current;
-		return prefixGenericMessage("Room Stats: ", true, a.getRoom().getDamageDealt(), a.getRoom().getDamageTaken());
+		return prefixGenericMessage("Room Stats: ", true, a.getRoom());
 	}
 
 	public static String tobCurrentMessage(Performance current)
@@ -134,15 +144,11 @@ public class PerformanceTrackerMessages
 			.build());
 
 		// Session Raid Stats with death message
-		messages.add(deathCountMessage("Session Raid Stats: ", true, damageDealt, damageTaken, deathCount));
+		Performance p = new Performance();
+		p.addDamageDealt(damageDealt);
+		p.addDamageTaken(damageTaken);
+		messages.add(deathCountMessage("Session Raid Stats: ", true, p, deathCount));
 
 		return messages;
-	}
-
-	/** Castle Wars **/
-	// TODO: Add castle wars
-	public static String castleWarsMessage(int dealt, int taken)
-	{
-		return prefixGenericMessage("Game Stats: ", true, dealt, taken);
 	}
 }

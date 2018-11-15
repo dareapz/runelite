@@ -25,16 +25,17 @@
 package net.runelite.client.plugins.performancetracker.data.stats;
 
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class Performance
 {
 	private double damageTaken = 0;
 	private double damageDealt = 0;
-	@Setter
 	private double secondsSpent = 0;
 	private int deathCount = 0;
+
+	private double highestHitDealt;
+	private double highestHitTaken;
 
 	public void addDeath()
 	{
@@ -44,11 +45,19 @@ public class Performance
 	public void addDamageTaken(double a)
 	{
 		this.damageTaken += a;
+		if (a > highestHitTaken)
+		{
+			highestHitTaken = a;
+		}
 	}
 
 	public void addDamageDealt(double a)
 	{
 		this.damageDealt += a;
+		if (a > highestHitDealt)
+		{
+			highestHitDealt = a;
+		}
 	}
 
 	public void incrementSeconds()
@@ -63,6 +72,8 @@ public class Performance
 			+ ",damageDealt=" + damageDealt
 			+ ",secondsSpent=" + secondsSpent
 			+ ",deathCount=" + deathCount
+			+ ",highestHitDealt=" + highestHitDealt
+			+ ",highestHitTaken=" + highestHitTaken
 			+ ")";
 	}
 }
