@@ -44,6 +44,21 @@ public class GenericOverlay extends Overlay
 
 	private double dealt;
 	private double taken;
+	private double seconds;
+
+	private static String formatSeconds(double seconds)
+	{
+		if (seconds <= 60)
+		{
+			return String.format("%2.0f", seconds);
+		}
+
+		double s = seconds % 3600 % 60;
+		double m = Math.floor(seconds % 3600 / 60);
+		double h = Math.floor(seconds / 3600);
+
+		return h < 1 ? String.format("%2.0f:%02.0f", m, s) : String.format("%2.0f:%02.0f:%02.0f", h, m, s);
+	}
 
 	@Inject
 	GenericOverlay(PerformanceTrackerPlugin plugin)
@@ -54,6 +69,7 @@ public class GenericOverlay extends Overlay
 
 		this.dealt = plugin.getDealt();
 		this.taken = plugin.getTaken();
+		this.seconds = plugin.getSecondsSpent();
 	}
 
 	@Override
@@ -66,12 +82,14 @@ public class GenericOverlay extends Overlay
 
 		double o1 = dealt;
 		double o2 = taken;
+		double o3 = seconds;
 
 		this.dealt = plugin.getDealt();
 		this.taken = plugin.getTaken();
+		this.seconds = plugin.getSecondsSpent();
 
 		// Only recreate the components if necessary
-		if (o1 != dealt || o2 != taken)
+		if (o1 != dealt || o2 != taken || o3 != seconds)
 		{
 			panelComponent.getChildren().clear();
 
@@ -80,10 +98,15 @@ public class GenericOverlay extends Overlay
 			LayoutableRenderableEntity title = TitleComponent.builder().text("Performance Tracker").build();
 			LayoutableRenderableEntity dealt = LineComponent.builder().left("Dmg Dealt").right(String.valueOf((int) Math.round(this.dealt))).build();
 			LayoutableRenderableEntity taken = LineComponent.builder().left("Dmg Taken").right(String.valueOf((int) Math.round(this.taken))).build();
+			LayoutableRenderableEntity timeSpent = LineComponent.builder().left("Time Spent").right(formatSeconds(this.seconds)).build();
+			double dpsValue = Math.round((this.dealt / this.seconds) * 100) / 100.00;
+			LayoutableRenderableEntity dps = LineComponent.builder().left("DPS").right(String.valueOf(dpsValue)).build();
 
 			add(title);
 			add(dealt);
 			add(taken);
+			add(timeSpent);
+			add(dps);
 		}
 
 		return panelComponent.render(graphics);

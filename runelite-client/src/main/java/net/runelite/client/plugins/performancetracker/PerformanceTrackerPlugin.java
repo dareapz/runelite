@@ -28,6 +28,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.text.DecimalFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -60,6 +61,7 @@ import net.runelite.client.plugins.performancetracker.data.RegionID;
 import net.runelite.client.plugins.performancetracker.overlays.GenericOverlay;
 import net.runelite.client.plugins.xptracker.XpTrackerPlugin;
 import net.runelite.client.plugins.xptracker.XpWorldType;
+import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.Text;
 
@@ -107,6 +109,8 @@ public class PerformanceTrackerPlugin extends Plugin
 	private double dealt = -1;
 	@Getter
 	private double taken = -1;
+	@Getter
+	private double secondsSpent = 0;
 
 	private final List<String> messages = new ArrayList<>();
 
@@ -126,6 +130,12 @@ public class PerformanceTrackerPlugin extends Plugin
 	protected void startUp()
 	{
 		overlayManager.add(genericOverlay);
+		if (enabled) // Turned off then back on, act similar to reset?
+		{
+			dealt = 0;
+			taken = 0;
+			secondsSpent = 0;
+		}
 	}
 
 	@Override
@@ -233,6 +243,19 @@ public class PerformanceTrackerPlugin extends Plugin
 		}
 	}
 
+	// Help us calculate damage per second.
+	@Schedule(
+		period = 1,
+		unit = ChronoUnit.SECONDS
+	)
+	public void secondTick()
+	{
+		if (enabled)
+		{
+			secondsSpent += 1;
+		}
+	}
+
 	@Subscribe
 	protected void onChatMessage(ChatMessage m)
 	{
@@ -284,6 +307,7 @@ public class PerformanceTrackerPlugin extends Plugin
 	{
 		dealt = 0;
 		taken = 0;
+		secondsSpent = 0;
 	}
 
 	private void enablePlugin()
