@@ -55,7 +55,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
 import net.runelite.client.plugins.performancetracker.data.NpcExpModifier;
-import net.runelite.client.plugins.performancetracker.data.Performance;
+import net.runelite.client.plugins.performancetracker.data.stats.Performance;
 import net.runelite.client.plugins.performancetracker.data.stats.TheatreOfBlood;
 import net.runelite.client.plugins.performancetracker.overlays.GenericOverlay;
 import net.runelite.client.plugins.xptracker.XpTrackerPlugin;

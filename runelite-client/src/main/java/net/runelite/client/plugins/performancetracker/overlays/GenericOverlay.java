@@ -29,7 +29,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.client.plugins.performancetracker.PerformanceTrackerPlugin;
-import net.runelite.client.plugins.performancetracker.data.Performance;
+import net.runelite.client.plugins.performancetracker.data.stats.Performance;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;

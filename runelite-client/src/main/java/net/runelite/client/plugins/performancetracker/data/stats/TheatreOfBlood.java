@@ -28,7 +28,6 @@ import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
-import net.runelite.client.plugins.performancetracker.data.Performance;
 
 @Getter
 public class TheatreOfBlood extends Performance

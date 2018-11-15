@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
-import net.runelite.client.plugins.performancetracker.data.Performance;
+import net.runelite.client.plugins.performancetracker.data.stats.Performance;
 import net.runelite.client.plugins.performancetracker.data.stats.TheatreOfBlood;
 
 public class PerformanceTrackerMessages
