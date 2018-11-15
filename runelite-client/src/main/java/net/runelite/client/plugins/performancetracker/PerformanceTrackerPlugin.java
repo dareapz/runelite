@@ -47,6 +47,7 @@ import net.runelite.api.events.ExperienceChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.LocalPlayerDeath;
 import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.widgets.Widget;
@@ -295,6 +296,20 @@ public class PerformanceTrackerPlugin extends Plugin
 				// Died
 				current.addDeath();
 			}
+		}
+	}
+
+	@Subscribe
+	protected void onLocalPlayerDeath(LocalPlayerDeath e)
+	{
+		if (enabled)
+		{
+			// Theatre of Blood deaths are handled via chat messages.
+			if (tobVarbit > 1)
+			{
+				return;
+			}
+			current.addDeath();
 		}
 	}
 
