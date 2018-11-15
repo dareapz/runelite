@@ -22,51 +22,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.performancetracker.data;
+package net.runelite.client.plugins.performancetracker.data.stats;
 
-public class ActivityInfo
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class CastleWars extends Performance
 {
-	public static final class TOB
-	{
-		public static final class ACT
-		{
-			public static final int LOBBY = -1;
-			public static final int MAIDEN = 1;
-			public static final int BLOAT = 2;
-			public static final int NYLOCAS = 3;
-			public static final int SOTETSEG = 4;
-			public static final int XARPUS = 5;
-			public static final int VERZIK = 6;
-			public static final int REWARD = 0;
-		}
-
-		public static final class STATE
-		{
-			public static final int DEFAULT = 0;
-			public static final int PARTY = 1;
-			public static final int INSIDE = 2;
-			public static final int SPECTATING_MEMBER = 3;
-		}
-
-		public static class REGION
-		{
-			public static final int LOBBY = 14642;
-			public static final int MAIDEN = 12869;
-			public static final int BLOAT = 13125;
-			public static final int NYLOCAS = 13122;
-			public static final int SOTETSEG = 13123;
-			public static final int XARPUS = 12612;
-			public static final int VERZIK = 12611;
-			public static final int REWARD = 12867;
-		}
-	}
-
-	public static final class CW
-	{
-		public static final class TEAM
-		{
-			public static final int SARA = 1;
-			public static final int ZAM = 2;
-		}
-	}
+	private int team;
+	private int zamScore;
+	private int saraScore;
 }

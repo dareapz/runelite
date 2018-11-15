@@ -38,6 +38,19 @@ public class PerformanceTrackerMessages
 {
 	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###");
 
+	private static String getCwTeamName(int team)
+	{
+		switch (team)
+		{
+			case ActivityInfo.CW.TEAM.SARA:
+				return "Saradomin";
+			case ActivityInfo.CW.TEAM.ZAM:
+				return "Zamorak";
+			default:
+				return "";
+		}
+	}
+
 	// Generic message for all rooms
 	public static String genericMessage(Performance a)
 	{
@@ -148,6 +161,73 @@ public class PerformanceTrackerMessages
 		p.addDamageDealt(damageDealt);
 		p.addDamageTaken(damageTaken);
 		messages.add(deathCountMessage("Session Raid Stats: ", true, p, deathCount));
+
+		return messages;
+	}
+
+	/** Castle Wars **/
+	public static List<String> castleWarsMessage(CastleWars game)
+	{
+		List<String> messages = new ArrayList<>();
+
+		int team = game.getTeam();
+		int scoreDiff;
+		switch (team)
+		{
+			case ActivityInfo.CW.TEAM.SARA:
+				scoreDiff = game.getSaraScore() - game.getZamScore();
+				break;
+			case ActivityInfo.CW.TEAM.ZAM:
+				scoreDiff = game.getSaraScore() - game.getZamScore();
+				break;
+			default:
+				return messages;
+		}
+
+		messages.add(new ChatMessageBuilder()
+			.append(ChatColorType.NORMAL)
+			.append("Castle Wars - Team: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(getCwTeamName(team))
+			.append(ChatColorType.NORMAL)
+			.append(" - ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(scoreDiff == 0 ? "TIE" : scoreDiff > 0 ? "VICTORY" : "DEFEAT")
+			.build());
+
+		messages.add(new ChatMessageBuilder()
+			.append(ChatColorType.NORMAL)
+			.append("Final Score: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(getCwTeamName(ActivityInfo.CW.TEAM.SARA) + ": " + game.getSaraScore())
+			.append(ChatColorType.NORMAL)
+			.append(" - ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(getCwTeamName(ActivityInfo.CW.TEAM.ZAM) + ": " + game.getZamScore())
+			.build());
+
+		messages.add(new ChatMessageBuilder()
+			.append(ChatColorType.NORMAL)
+			.append("Damage dealt: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(game.getDamageDealt()))
+			.append(ChatColorType.NORMAL)
+			.append(" (Max: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(game.getHighestHitDealt()))
+			.append(ChatColorType.NORMAL)
+			.append("), Damage Taken: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(game.getDamageTaken()))
+			.append(ChatColorType.NORMAL)
+			.append(" (Max: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(game.getHighestHitTaken()))
+			.append(ChatColorType.NORMAL)
+			.append("), Death Count: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(NUMBER_FORMAT.format(game.getDeathCount()))
+			.build());
 
 		return messages;
 	}

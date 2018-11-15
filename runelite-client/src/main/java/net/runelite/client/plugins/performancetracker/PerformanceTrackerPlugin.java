@@ -48,6 +48,8 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
@@ -55,6 +57,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
 import net.runelite.client.plugins.performancetracker.data.NpcExpModifier;
+import net.runelite.client.plugins.performancetracker.data.stats.CastleWars;
 import net.runelite.client.plugins.performancetracker.data.stats.Performance;
 import net.runelite.client.plugins.performancetracker.data.stats.TheatreOfBlood;
 import net.runelite.client.plugins.performancetracker.overlays.GenericOverlay;
@@ -112,6 +115,9 @@ public class PerformanceTrackerPlugin extends Plugin
 	// Theatre of Blood
 	private int tobVarbit = 0;
 	private boolean isSpectator = false;
+
+	// Castle Wars
+	private boolean inCastleWarsGame = false;
 
 	@Provides
 	PerformanceTrackerConfig provideConfig(ConfigManager configManager)
@@ -232,6 +238,8 @@ public class PerformanceTrackerPlugin extends Plugin
 		{
 			ignoreLoginTick = false;
 		}
+
+		checkCwGame();
 	}
 
 	// Help us calculate damage per second.
@@ -305,7 +313,6 @@ public class PerformanceTrackerPlugin extends Plugin
 
 		// Grab Starting EXP
 		hpExp = client.getSkillExperience(Skill.HITPOINTS);
-		reset();
 
 		if (current == null)
 		{
@@ -357,9 +364,9 @@ public class PerformanceTrackerPlugin extends Plugin
 				// Maiden means starting a new raid
 				if (config.trackTheatreOfBlood())
 				{
-					enablePlugin();
-					hpExp = client.getSkillExperience(Skill.HITPOINTS);
+					reset();
 					current = new TheatreOfBlood();
+					enablePlugin();
 				}
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.MAIDEN);
 				return;
@@ -399,7 +406,7 @@ public class PerformanceTrackerPlugin extends Plugin
 				if (enabled)
 				{
 					// Certain Activities should not reset between region changes
-					if (tobVarbit > 1)
+					if (tobVarbit > 1 || inCastleWarsGame)
 					{
 						return;
 					}
@@ -574,5 +581,67 @@ public class PerformanceTrackerPlugin extends Plugin
 				}
 				break;
 		}
+	}
+
+
+	/** Castle Wars Section **/
+	// Check for Time Remaining in-game widget.
+	private void checkCwGame()
+	{
+		WidgetInfo info;
+		switch (client.getLocalPlayer().getTeam())
+		{
+			case ActivityInfo.CW.TEAM.SARA:
+				info = WidgetInfo.CW_TIME_REMAINING_SARA;
+				break;
+			case ActivityInfo.CW.TEAM.ZAM:
+				info = WidgetInfo.CW_TIME_REMAINING_ZAM;
+				break;
+			default:
+				return;
+		}
+
+		Widget gameTimeRemaining = client.getWidget(info);
+		boolean old = inCastleWarsGame;
+		inCastleWarsGame = gameTimeRemaining != null && !gameTimeRemaining.isHidden();
+		if (old != inCastleWarsGame)
+		{
+			toggleCastleWarsGame(old);
+		}
+	}
+
+	private void toggleCastleWarsGame(boolean old)
+	{
+		if (!config.trackCastleWars())
+		{
+			return;
+		}
+
+		// Was inside the game
+		if (old)
+		{
+			finishCwGame();
+		}
+		else
+		{
+			reset();
+			CastleWars game = new CastleWars();
+			game.setTeam(client.getLocalPlayer().getTeam());
+			current = game;
+			enablePlugin();
+		}
+	}
+
+	private void finishCwGame()
+	{
+		CastleWars game = (CastleWars) current;
+
+		game.setSaraScore(client.getVar(Varbits.CW_SARA_SCORE));
+		game.setZamScore(client.getVar(Varbits.CW_ZAM_SCORE));
+
+		messages.addAll(PerformanceTrackerMessages.castleWarsMessage(game));
+		submitPerformance();
+		disablePlugin();
+		sendChatMessages();
 	}
 }
