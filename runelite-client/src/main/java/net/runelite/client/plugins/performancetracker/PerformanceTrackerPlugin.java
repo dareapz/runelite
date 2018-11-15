@@ -47,6 +47,7 @@ import net.runelite.api.events.ExperienceChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
@@ -240,6 +241,32 @@ public class PerformanceTrackerPlugin extends Plugin
 		}
 
 		checkCwGame();
+	}
+
+	@Subscribe
+	public void onScriptCallbackEvent(ScriptCallbackEvent e)
+	{
+		final String eventName = e.getEventName();
+
+		// Handles Fake XP drops (Ironman, DMM Cap, 200m xp, etc)
+		if (eventName.equals("fakeXpDrop"))
+		{
+			final int[] intStack = client.getIntStack();
+			final int intStackSize = client.getIntStackSize();
+
+			final int skillId = intStack[intStackSize - 2];
+			final Skill skill = Skill.values()[skillId];
+			if (skill.equals(Skill.HITPOINTS))
+			{
+				final int exp = intStack[intStackSize - 1];
+				double damageDealt = calculateDamageDealt(exp);
+				// Add damage dealt to the current logs
+				log.debug("Fake Exp Damage Dealt: {} | Exact: {}", Math.round(damageDealt), damageDealt);
+				handleDamageDealt(damageDealt);
+			}
+
+			client.setIntStackSize(intStackSize - 2);
+		}
 	}
 
 	// Help us calculate damage per second.
