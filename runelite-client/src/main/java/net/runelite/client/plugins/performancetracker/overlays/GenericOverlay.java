@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.client.plugins.performancetracker.PerformanceTrackerPlugin;
+import net.runelite.client.plugins.performancetracker.data.Performance;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
@@ -41,6 +42,8 @@ public class GenericOverlay extends Overlay
 {
 	private final PerformanceTrackerPlugin plugin;
 	private final PanelComponent panelComponent = new PanelComponent();
+
+	private Performance performance;
 
 	private double dealt;
 	private double taken;
@@ -66,10 +69,7 @@ public class GenericOverlay extends Overlay
 		setPosition(OverlayPosition.TOP_RIGHT);
 		setPriority(OverlayPriority.LOW);
 		this.plugin = plugin;
-
-		this.dealt = plugin.getDealt();
-		this.taken = plugin.getTaken();
-		this.seconds = plugin.getSecondsSpent();
+		this.performance = plugin.getCurrent();
 	}
 
 	@Override
@@ -84,9 +84,11 @@ public class GenericOverlay extends Overlay
 		double o2 = taken;
 		double o3 = seconds;
 
-		this.dealt = plugin.getDealt();
-		this.taken = plugin.getTaken();
-		this.seconds = plugin.getSecondsSpent();
+		this.performance = plugin.getCurrent();
+
+		this.dealt = performance.getDamageDealt();
+		this.taken = performance.getDamageTaken();
+		this.seconds = performance.getSecondsSpent();
 
 		// Only recreate the components if necessary
 		if (o1 != dealt || o2 != taken || o3 != seconds)

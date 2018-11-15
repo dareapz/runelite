@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
-import net.runelite.client.plugins.performancetracker.data.Attempt;
+import net.runelite.client.plugins.performancetracker.data.Performance;
+import net.runelite.client.plugins.performancetracker.data.stats.TheatreOfBlood;
 
 public class PerformanceTrackerMessages
 {
@@ -75,29 +76,36 @@ public class PerformanceTrackerMessages
 	}
 
 	// Wrapper for passing Attempts
-	private static String deathCountMessage(String prefix, boolean highlight, Attempt current)
+	private static String deathCountMessage(String prefix, boolean highlight, Performance current)
 	{
 		return deathCountMessage(prefix, highlight, current.getDamageDealt(), current.getDamageTaken(), current.getDeathCount());
 	}
 
 	/** Theatre of Blood **/
-	public static String tobRoomMessage(double dealt, double taken)
+	public static String tobRoomMessage(Performance current)
 	{
-		return prefixGenericMessage("Room Stats: ", true, dealt, taken);
+		TheatreOfBlood a = (TheatreOfBlood) current;
+		return prefixGenericMessage("Room Stats: ", true, a.getRoom().getDamageDealt(), a.getRoom().getDamageTaken());
 	}
 
-	public static String tobCurrentMessage(Attempt current)
+	public static String tobCurrentMessage(Performance current)
 	{
 		return deathCountMessage("Current Raid Stats: ", true, current);
 	}
 
-	public static List<String> tobTotalMessage(List<Attempt> attempts)
+	public static List<String> tobTotalMessage(List<Performance> attempts)
 	{
 		List<String> messages = new ArrayList<>();
 		int completions = 0, deathCount = 0;
 		double damageTaken = 0, damageDealt = 0;
-		for (Attempt a : attempts)
+		for (Performance attempt : attempts)
 		{
+			if (!(attempt instanceof TheatreOfBlood))
+			{
+				continue;
+			}
+
+			TheatreOfBlood a = (TheatreOfBlood) attempt;
 			if (a.isCompleted())
 			{
 				completions++;

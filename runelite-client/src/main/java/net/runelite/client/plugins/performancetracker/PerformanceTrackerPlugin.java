@@ -27,7 +27,6 @@ package net.runelite.client.plugins.performancetracker;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
-import java.text.DecimalFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,9 +54,10 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
-import net.runelite.client.plugins.performancetracker.data.Attempt;
 import net.runelite.client.plugins.performancetracker.data.NpcExpModifier;
+import net.runelite.client.plugins.performancetracker.data.Performance;
 import net.runelite.client.plugins.performancetracker.data.RegionID;
+import net.runelite.client.plugins.performancetracker.data.stats.TheatreOfBlood;
 import net.runelite.client.plugins.performancetracker.overlays.GenericOverlay;
 import net.runelite.client.plugins.xptracker.XpTrackerPlugin;
 import net.runelite.client.plugins.xptracker.XpWorldType;
@@ -77,7 +77,6 @@ public class PerformanceTrackerPlugin extends Plugin
 	private static final double HITPOINT_RATIO = 1.33;
 	private static final double DMM_MULTIPLIER_RATIO = 10;
 
-	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###");
 	private static final Pattern DEATH_TEXT = Pattern.compile("You have died. Death count: \\d.");
 
 	@Inject
@@ -105,18 +104,13 @@ public class PerformanceTrackerPlugin extends Plugin
 	private Actor oldTarget;
 	private double hpExp = 0;
 	// Current stats
-	@Getter
-	private double dealt = -1;
-	@Getter
-	private double taken = -1;
-	@Getter
-	private double secondsSpent = 0;
 
+	private final List<Performance> performances = new ArrayList<>();
 	private final List<String> messages = new ArrayList<>();
+	@Getter
+	private Performance current;
 
 	// Theatre of Blood
-	private final List<Attempt> attempts = new ArrayList<>();
-	private Attempt current;
 	private int tobVarbit = 0;
 	private boolean isSpectator = false;
 
@@ -130,22 +124,15 @@ public class PerformanceTrackerPlugin extends Plugin
 	protected void startUp()
 	{
 		overlayManager.add(genericOverlay);
-		if (enabled) // Turned off then back on, act similar to reset?
-		{
-			dealt = 0;
-			taken = 0;
-			secondsSpent = 0;
-		}
 	}
 
 	@Override
 	protected void shutDown()
 	{
 		overlayManager.remove(genericOverlay);
-		dealt = -1;
-		taken = -1;
+		disablePlugin();
 		messages.clear();
-		attempts.clear();
+		performances.clear();
 		tobVarbit = -1;
 	}
 
@@ -158,6 +145,11 @@ public class PerformanceTrackerPlugin extends Plugin
 			case LOGGED_IN:
 				break;
 			case LOGIN_SCREEN:
+				if (enabled)
+				{
+					// Disable plugin on logout
+					disablePlugin();
+				}
 			case HOPPING:
 				ignoreLoginTick = true;
 			default:
@@ -252,7 +244,7 @@ public class PerformanceTrackerPlugin extends Plugin
 	{
 		if (enabled)
 		{
-			secondsSpent += 1;
+			current.incrementSeconds();
 		}
 	}
 
@@ -286,28 +278,23 @@ public class PerformanceTrackerPlugin extends Plugin
 
 	private void handleDamageTaken(double damage)
 	{
-		taken += damage;
-		if (config.trackTheatreOfBlood() && tobVarbit > 1)
-		{
-			current.addDamageTaken(damage);
-		}
+		current.addDamageTaken(damage);
 	}
 
 	private void handleDamageDealt(double damage)
 	{
-		dealt += damage;
-		if (config.trackTheatreOfBlood() && tobVarbit > 1)
-		{
-			current.addDamageDealt(damage);
-		}
+		current.addDamageDealt(damage);
+	}
 
+	private void submitPerformance()
+	{
+		performances.add(current);
+		reset();
 	}
 
 	private void reset()
 	{
-		dealt = 0;
-		taken = 0;
-		secondsSpent = 0;
+		current = null;
 	}
 
 	private void enablePlugin()
@@ -321,14 +308,17 @@ public class PerformanceTrackerPlugin extends Plugin
 		hpExp = client.getSkillExperience(Skill.HITPOINTS);
 		reset();
 
+		if (current == null)
+		{
+			current = new Performance();
+		}
 		enabled = true;
 	}
 
 	private void disablePlugin()
 	{
-		reset();
-
 		enabled = false;
+		reset();
 	}
 
 	/**
@@ -365,9 +355,15 @@ public class PerformanceTrackerPlugin extends Plugin
 			case 12087:
 				break;
 			case RegionID.THEATRE_OF_BLOOD.MAIDEN:
+				// Maiden means starting a new raid
+				if (config.trackTheatreOfBlood())
+				{
+					enablePlugin();
+					hpExp = client.getSkillExperience(Skill.HITPOINTS);
+					current = new TheatreOfBlood();
+				}
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.MAIDEN);
-				configCheck = config.trackTheatreOfBlood();
-				break;
+				return;
 			case RegionID.THEATRE_OF_BLOOD.BLOAT:
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.BLOAT);
 				configCheck = config.trackTheatreOfBlood();
@@ -489,13 +485,6 @@ public class PerformanceTrackerPlugin extends Plugin
 
 
 	/** Theatre of Blood Section **/
-	private void submitAttempt()
-	{
-		attempts.add(current);
-		current = new Attempt();
-		reset();
-	}
-
 	// Advancing Room (region change)
 	private void handleTheatreOfBloodAct(int act)
 	{
@@ -504,26 +493,45 @@ public class PerformanceTrackerPlugin extends Plugin
 			return;
 		}
 
-		List<String> ms = new ArrayList<>();
+		if (!(current instanceof TheatreOfBlood))
+		{
+			log.warn("Tried handling ToB Act on non-TheatreOfBlood performance: {} | {}", act, current);
+			return;
+		}
 
-		ms.add(PerformanceTrackerMessages.tobRoomMessage(dealt, taken));
-		ms.add(PerformanceTrackerMessages.tobCurrentMessage(current));
+		TheatreOfBlood tob = (TheatreOfBlood) current;
+
+		List<String> ms = new ArrayList<>();
 
 		// Went to new room which means last room was completed.
 		switch (act)
 		{
 			// Reward Region
 			case ActivityInfo.TOB.ACT.REWARD:
-				current.setCompleted(true);
+				tob.setCompleted(true);
+				// Show verzik room stats upon entering reward room
+				ms.add(PerformanceTrackerMessages.tobRoomMessage(tob));
+				ms.add(PerformanceTrackerMessages.tobCurrentMessage(tob));
 				break;
-			// Starting Maiden, nothing to show
+			// Starting Maiden
 			case ActivityInfo.TOB.ACT.MAIDEN:
-				return;
+				break;
 			// Back to lobby, show total stats
 			case ActivityInfo.TOB.ACT.LOBBY:
-				submitAttempt();
-				ms.addAll(PerformanceTrackerMessages.tobTotalMessage(attempts));
+				// If we didn't complete the raid show the last rooms stats as well
+				if (!tob.isCompleted())
+				{
+					ms.add(PerformanceTrackerMessages.tobRoomMessage(tob));
+					ms.add(PerformanceTrackerMessages.tobCurrentMessage(tob));
+				}
+				submitPerformance();
+				ms.addAll(PerformanceTrackerMessages.tobTotalMessage(performances));
 				break;
+			default:
+				// Between each room display previous stats
+				ms.add(PerformanceTrackerMessages.tobRoomMessage(tob));
+				ms.add(PerformanceTrackerMessages.tobCurrentMessage(tob));
+				tob.nextRoom(act);
 		}
 
 		messages.addAll(ms);
@@ -538,7 +546,6 @@ public class PerformanceTrackerPlugin extends Plugin
 	private void tobVarbitChanged(int old)
 	{
 		// TODO: Figure out a way to determine if they are logging back into a raid
-		// 0=default | 1=party | 2=inside/spectator | 3=dead-spectator
 		switch (tobVarbit)
 		{
 			case ActivityInfo.TOB.STATE.DEFAULT:
@@ -547,15 +554,10 @@ public class PerformanceTrackerPlugin extends Plugin
 					isSpectator = false;
 					return;
 				}
-				current = null;
+				reset();
 				break;
 			case ActivityInfo.TOB.STATE.PARTY:
-				if (old == ActivityInfo.TOB.STATE.DEFAULT)
-				{
-					// Starting a new raid
-					hpExp = client.getSkillExperience(Skill.HITPOINTS);
-					current = new Attempt();
-				}
+				// Joined party, nothing we need to do?
 				break;
 			case ActivityInfo.TOB.STATE.INSIDE:
 				// Inside the Theatre, are they a spectator?

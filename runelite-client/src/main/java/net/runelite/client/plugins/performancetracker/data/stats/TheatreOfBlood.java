@@ -22,42 +22,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.performancetracker.data;
+package net.runelite.client.plugins.performancetracker.data.stats;
 
+import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;
+import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
+import net.runelite.client.plugins.performancetracker.data.Performance;
 
 @Getter
-public class Attempt
+public class TheatreOfBlood extends Performance
 {
 	@Setter
-	private boolean completed;
-	private int deathCount;
-	private double damageTaken;
-	private double damageDealt;
+	private boolean completed = false;
+	private Performance room = new Performance();
+	private HashMap<Integer, Performance> rooms = new HashMap<>();
 
-	public void addDeath()
+	public TheatreOfBlood()
 	{
-		this.deathCount++;
-	}
-
-	public void addDamageTaken(double a)
-	{
-		this.damageTaken += a;
-	}
-
-	public void addDamageDealt(double a)
-	{
-		this.damageDealt += a;
+		this.rooms.put(ActivityInfo.TOB.ACT.MAIDEN, room);
 	}
 
 	@Override
-	public String toString()
+	public void addDamageTaken(double a)
 	{
-		return "Attempt(completed=" + completed
-			+ ",deathCount=" + deathCount
-			+ ",damageTaken=" + damageTaken
-			+ ",damageDealt=" + damageDealt
-			+ ")";
+		super.addDamageTaken(a);
+		room.addDamageTaken(a);
+	}
+
+	@Override
+	public void addDamageDealt(double a)
+	{
+		super.addDamageDealt(a);
+		room.addDamageDealt(a);
+	}
+
+	@Override
+	public void incrementSeconds()
+	{
+		// Stop incrementing seconds counter while inside reward room
+		if (!completed)
+		{
+			super.incrementSeconds();
+		}
+	}
+
+	public void nextRoom(int act)
+	{
+		room = new Performance();
+		rooms.put(act, room);
 	}
 }
