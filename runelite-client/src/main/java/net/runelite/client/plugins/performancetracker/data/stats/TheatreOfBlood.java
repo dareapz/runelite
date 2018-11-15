@@ -63,6 +63,7 @@ public class TheatreOfBlood extends Performance
 		if (!completed)
 		{
 			super.incrementSeconds();
+			room.incrementSeconds();
 		}
 	}
 
