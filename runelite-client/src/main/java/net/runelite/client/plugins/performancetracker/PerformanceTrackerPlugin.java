@@ -466,8 +466,8 @@ public class PerformanceTrackerPlugin extends Plugin
 		double damageDealt = diff / HITPOINT_RATIO;
 
 		// Determine which NPC we attacked.
-		NPC target = (NPC) client.getLocalPlayer().getInteracting();
-		if (target == null)
+		Actor a = client.getLocalPlayer().getInteracting();
+		if (a == null)
 		{
 			// If we are interacting with nothing we may have clicked away at the perfect time
 			// Fall back to the actor we were interacting with last game tick
@@ -476,8 +476,13 @@ public class PerformanceTrackerPlugin extends Plugin
 				log.warn("Couldn't find current or past target...");
 				return damageDealt;
 			}
-			target = (NPC) oldTarget;
+			a = oldTarget;
 		}
+		if (!(a instanceof NPC))
+		{
+			return damageDealt;
+		}
+		NPC target = (NPC) a;
 
 		// Account for NPCs phases by NPC id
 		String targetName = getRealNpcName(target);
