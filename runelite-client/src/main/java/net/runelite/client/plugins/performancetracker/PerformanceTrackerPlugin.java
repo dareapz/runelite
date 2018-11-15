@@ -56,7 +56,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.performancetracker.data.ActivityInfo;
 import net.runelite.client.plugins.performancetracker.data.NpcExpModifier;
 import net.runelite.client.plugins.performancetracker.data.Performance;
-import net.runelite.client.plugins.performancetracker.data.RegionID;
 import net.runelite.client.plugins.performancetracker.data.stats.TheatreOfBlood;
 import net.runelite.client.plugins.performancetracker.overlays.GenericOverlay;
 import net.runelite.client.plugins.xptracker.XpTrackerPlugin;
@@ -354,7 +353,7 @@ public class PerformanceTrackerPlugin extends Plugin
 			case 12086:
 			case 12087:
 				break;
-			case RegionID.THEATRE_OF_BLOOD.MAIDEN:
+			case ActivityInfo.TOB.REGION.MAIDEN:
 				// Maiden means starting a new raid
 				if (config.trackTheatreOfBlood())
 				{
@@ -364,31 +363,31 @@ public class PerformanceTrackerPlugin extends Plugin
 				}
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.MAIDEN);
 				return;
-			case RegionID.THEATRE_OF_BLOOD.BLOAT:
+			case ActivityInfo.TOB.REGION.BLOAT:
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.BLOAT);
 				configCheck = config.trackTheatreOfBlood();
 				break;
-			case RegionID.THEATRE_OF_BLOOD.NYLOCAS:
+			case ActivityInfo.TOB.REGION.NYLOCAS:
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.NYLOCAS);
 				configCheck = config.trackTheatreOfBlood();
 				break;
-			case RegionID.THEATRE_OF_BLOOD.SOTETSEG:
+			case ActivityInfo.TOB.REGION.SOTETSEG:
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.SOTETSEG);
 				configCheck = config.trackTheatreOfBlood();
 				break;
-			case RegionID.THEATRE_OF_BLOOD.XARPUS:
+			case ActivityInfo.TOB.REGION.XARPUS:
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.XARPUS);
 				configCheck = config.trackTheatreOfBlood();
 				break;
-			case RegionID.THEATRE_OF_BLOOD.VERZIK:
+			case ActivityInfo.TOB.REGION.VERZIK:
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.VERZIK);
 				configCheck = config.trackTheatreOfBlood();
 				break;
-			case RegionID.THEATRE_OF_BLOOD.REWARD:
+			case ActivityInfo.TOB.REGION.REWARD:
 				handleTheatreOfBloodAct(ActivityInfo.TOB.ACT.REWARD);
 				configCheck = config.trackTheatreOfBlood();
 				break;
-			case RegionID.THEATRE_OF_BLOOD.LOBBY:
+			case ActivityInfo.TOB.REGION.LOBBY:
 				if (tobVarbit != 0)
 				{
 					// Only handle lobby if we are in a party

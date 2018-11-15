@@ -47,5 +47,17 @@ public class ActivityInfo
 			public static final int INSIDE = 2;
 			public static final int SPECTATING_MEMBER = 3;
 		}
+
+		public static class REGION
+		{
+			public static final int LOBBY = 14642;
+			public static final int MAIDEN = 12869;
+			public static final int BLOAT = 13125;
+			public static final int NYLOCAS = 13122;
+			public static final int SOTETSEG = 13123;
+			public static final int XARPUS = 12612;
+			public static final int VERZIK = 12611;
+			public static final int REWARD = 12867;
+		}
 	}
 }
