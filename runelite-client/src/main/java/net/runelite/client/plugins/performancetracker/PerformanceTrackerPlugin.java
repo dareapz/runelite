@@ -394,14 +394,6 @@ public class PerformanceTrackerPlugin extends Plugin
 		boolean configCheck = true;
 		switch (region)
 		{
-			// Edge men for testing
-			case 12342:
-			case 12343:
-			case 12598:
-			case 12599:
-			case 12086:
-			case 12087:
-				break;
 			case ActivityInfo.TOB.REGION.MAIDEN:
 				// Maiden means starting a new raid
 				if (config.trackTheatreOfBlood())
