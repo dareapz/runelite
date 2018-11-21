@@ -109,15 +109,11 @@ public class StatusOrbsPlugin extends Plugin
 	private static final BufferedImage HEART_DISEASE;
 	private static final BufferedImage HEART_POISON;
 	private static final BufferedImage HEART_VENOM;
-	private static final BufferedImage HEART_POISON_DISEASE;
-	private static final BufferedImage HEART_VENOM_DISEASE;
 	static
 	{
 		HEART_DISEASE = ImageUtil.resizeCanvas(ImageUtil.getResourceStreamFromClass(StatusOrbsPlugin.class, "1067-DISEASE.png"), 26, 26);
 		HEART_POISON = ImageUtil.resizeCanvas(ImageUtil.getResourceStreamFromClass(StatusOrbsPlugin.class, "1067-POISON.png"), 26, 26);
 		HEART_VENOM = ImageUtil.resizeCanvas(ImageUtil.getResourceStreamFromClass(StatusOrbsPlugin.class, "1067-VENOM.png"), 26, 26);
-		HEART_POISON_DISEASE = ImageUtil.resizeCanvas(ImageUtil.getResourceStreamFromClass(StatusOrbsPlugin.class, "1067-POISON-DISEASE.png"), 26, 26);
-		HEART_VENOM_DISEASE = ImageUtil.resizeCanvas(ImageUtil.getResourceStreamFromClass(StatusOrbsPlugin.class, "1067-VENOM-DISEASE.png"), 26, 26);
 	}
 
 	private static final int SPEC_REGEN_TICKS = 50;
@@ -317,16 +313,12 @@ public class StatusOrbsPlugin extends Plugin
 					heart = HEART_DISEASE;
 					break;
 				case POISONED:
+				case POISON_DISEASED:
 					heart = HEART_POISON;
 					break;
 				case VENOMED:
-					heart = HEART_VENOM;
-					break;
-				case POISON_DISEASED:
-					heart = HEART_POISON_DISEASE;
-					break;
 				case VENOM_DISEASED:
-					heart = HEART_VENOM_DISEASE;
+					heart = HEART_VENOM;
 					break;
 				default:
 					log.warn("Unhandled affliction type: {}", currentAffliction);
@@ -446,7 +438,10 @@ public class StatusOrbsPlugin extends Plugin
 
 	/**
 	 * Migrates configs from runenergy and regenmeter to this plugin and deletes the old config values.
+	 *
+	 * This method should be removed after a reasonable amount of time.
 	 */
+	@Deprecated
 	private void migrateConfigs()
 	{
 		// Run Energy
@@ -458,6 +453,15 @@ public class StatusOrbsPlugin extends Plugin
 		migrateConfig("regenmeter", "showWhenNoChange");
 	}
 
+
+	/**
+	 * Wrapper for migrating individual config options
+	 *
+	 * This method should be removed after a reasonable amount of time.
+	 * @param group
+	 * @param key
+	 */
+	@Deprecated
 	private void migrateConfig(String group, String key)
 	{
 		String value = configManager.getConfiguration(group, key);
