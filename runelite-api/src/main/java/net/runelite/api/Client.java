@@ -1574,8 +1574,8 @@ public interface Client extends GameEngine
 	void checkClickbox(Model model, int orientation, int pitchSin, int pitchCos, int yawSin, int yawCos, int x, int y, int z, long hash);
 
 	/**
-	 * Returns the Affliction(s) effecting the local player
+	 * Returns the Afflictions currently affecting the local player
 	 * @return
 	 */
-	Affliction getCurrentAffliction();
+	EnumSet<Affliction> getCurrentAfflictions();
 }

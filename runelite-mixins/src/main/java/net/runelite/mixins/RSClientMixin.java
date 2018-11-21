@@ -1385,16 +1385,25 @@ public abstract class RSClientMixin implements RSClient
 
 	@Inject
 	@Override
-	public Affliction getCurrentAffliction()
+	public EnumSet<Affliction> getCurrentAfflictions()
 	{
+		final EnumSet<Affliction> cur = EnumSet.noneOf(Affliction.class);
+
 		int poison = getVar(VarPlayer.IS_POISONED);
-		boolean isVenomed = poison >= 1000000;
-		boolean isPoisoned = !isVenomed && poison > 0;
-		boolean isDiseased = getVar(VarPlayer.DISEASE_VALUE) > 0;
-		if (isDiseased)
+		if (poison >= 1000000)
 		{
-			return isVenomed ? Affliction.VENOM_DISEASED : isPoisoned ? Affliction.POISON_DISEASED : Affliction.DISEASED;
+			cur.add(Affliction.VENOMED);
 		}
-		return isVenomed ? Affliction.VENOMED : isPoisoned ? Affliction.POISONED : Affliction.NONE;
+		else if (poison > 0)
+		{
+			cur.add(Affliction.POISONED);
+		}
+
+		if (getVar(VarPlayer.DISEASE_VALUE) > 0)
+		{
+			cur.add(Affliction.DISEASED);
+		}
+
+		return cur;
 	}
 }

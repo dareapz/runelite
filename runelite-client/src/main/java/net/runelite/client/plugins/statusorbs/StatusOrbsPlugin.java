@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
+import java.util.EnumSet;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -144,7 +145,7 @@ public class StatusOrbsPlugin extends Plugin
 	private double specialPercentage;
 
 	// HeartDisplay
-	private Affliction currentAffliction;
+	private EnumSet<Affliction> currentAfflictions;
 
 	// RegenMeter
 	private int ticksSinceSpecRegen;
@@ -298,31 +299,29 @@ public class StatusOrbsPlugin extends Plugin
 	 */
 	private void checkHealthIcon()
 	{
-		Affliction old = currentAffliction;
-		currentAffliction = client.getCurrentAffliction();
+		EnumSet<Affliction> old = currentAfflictions;
+		currentAfflictions = client.getCurrentAfflictions();
 
-		if (old != currentAffliction)
+		if (old != currentAfflictions)
 		{
 			BufferedImage heart;
-			switch (currentAffliction)
+			if (currentAfflictions.contains(Affliction.VENOMED))
 			{
-				case NONE:
-					resetHealthIcon();
-					return;
-				case DISEASED:
-					heart = HEART_DISEASE;
-					break;
-				case POISONED:
-				case POISON_DISEASED:
-					heart = HEART_POISON;
-					break;
-				case VENOMED:
-				case VENOM_DISEASED:
-					heart = HEART_VENOM;
-					break;
-				default:
-					log.warn("Unhandled affliction type: {}", currentAffliction);
-					return;
+				heart = HEART_VENOM;
+
+			}
+			else if (currentAfflictions.contains(Affliction.POISONED))
+			{
+				heart = HEART_POISON;
+			}
+			else if (currentAfflictions.contains(Affliction.DISEASED))
+			{
+				heart = HEART_DISEASE;
+			}
+			else
+			{
+				resetHealthIcon();
+				return;
 			}
 
 			client.getWidgetSpriteCache().reset();
@@ -337,9 +336,8 @@ public class StatusOrbsPlugin extends Plugin
 	{
 		client.getWidgetSpriteCache().reset();
 		client.getSpriteOverrides().remove(SpriteID.MINIMAP_ORB_HITPOINTS_ICON);
-		currentAffliction = null;
+		currentAfflictions = null;
 	}
-
 
 	private void setRunOrbText(String text)
 	{
@@ -452,7 +450,6 @@ public class StatusOrbsPlugin extends Plugin
 		migrateConfig("regenmeter", "showSpecial");
 		migrateConfig("regenmeter", "showWhenNoChange");
 	}
-
 
 	/**
 	 * Wrapper for migrating individual config options

@@ -29,19 +29,10 @@ package net.runelite.api;
  */
 public enum Affliction
 {
-	NONE,
-	/**
-	 * Disease from Zogre area
-	 */
-	DISEASED,
 	POISONED,
 	VENOMED,
 	/**
-	 * Poison and Diseased
+	 * Disease from Zogre area
 	 */
-	POISON_DISEASED,
-	/**
-	 * Venom and Diseased
-	 */
-	VENOM_DISEASED
+	DISEASED
 }
