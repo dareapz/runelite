@@ -223,7 +223,10 @@ public class StatusOrbsPlugin extends Plugin
 	private void onVarbitChanged(VarbitChanged e)
 	{
 		// Dynamic HP Heart
-		checkHealthIcon();
+		if (config.dynamicHpHeart())
+		{
+			checkHealthIcon();
+		}
 
 		// RegenMeter
 		boolean isRapidHeal = client.isPrayerActive(Prayer.RAPID_HEAL);
