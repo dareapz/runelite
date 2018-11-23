@@ -25,13 +25,17 @@
 package net.runelite.client.plugins.keptondeath;
 
 import com.google.common.collect.ImmutableMap;
+import lombok.Getter;
 import net.runelite.api.ItemID;
 
 public enum AlwaysLostItem
 {
-	RUNE_POUCH(ItemID.RUNE_POUCH);
+	RUNE_POUCH(ItemID.RUNE_POUCH, true),
+	LOOTING_BAG(ItemID.LOOTING_BAG, false);
 
 	private final int itemID;
+	@Getter
+	private final boolean kept;
 
 	private static final ImmutableMap<Integer, AlwaysLostItem> ID_MAP;
 	static
@@ -44,13 +48,14 @@ public enum AlwaysLostItem
 		ID_MAP = map.build();
 	}
 
-	AlwaysLostItem(int itemID)
+	AlwaysLostItem(int itemID, boolean kept)
 	{
 		this.itemID = itemID;
+		this.kept = kept;
 	}
 
-	public static Boolean check(int itemId)
+	public static AlwaysLostItem getByItemID(int itemID)
 	{
-		return ID_MAP.get(itemId) != null;
+		return ID_MAP.get(itemID);
 	}
 }

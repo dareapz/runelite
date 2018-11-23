@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.Varbits;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
@@ -62,6 +63,8 @@ public class KeptOnDeathPlugin extends Plugin
 	private boolean justOpenedWidget = false;
 	@Getter
 	private boolean widgetVisible = false;
+	@Getter
+	private int wildyLevel = -1;
 
 	@Override
 	protected void startUp()
@@ -83,6 +86,7 @@ public class KeptOnDeathPlugin extends Plugin
 		if (widgetVisible && !old)
 		{
 			justOpenedWidget = true;
+			wildyLevel = getCurrentWildyLevel();
 		}
 	}
 
@@ -92,9 +96,29 @@ public class KeptOnDeathPlugin extends Plugin
 		{
 			return;
 		}
-
 		justOpenedWidget = false;
+
+		// All non tradeable items are lost above 20 wilderness unless one of the 1,3,4 protected items.
+		if (wildyLevel >= 20)
+		{
+			return;
+		}
+
 		Widget info = client.getWidget(WidgetInfo.ITEMS_KEPT_INFORMATION_CONTAINER);
 		info.setText(info.getText() + GREEN_OUTLINE_INFO);
+	}
+
+	private int getCurrentWildyLevel()
+	{
+		if (client.getVar(Varbits.IN_WILDERNESS) != 1)
+		{
+			return -1;
+		}
+
+		int y = client.getLocalPlayer().getWorldLocation().getY();
+
+		int underLevel = ((y - 9920) / 8) + 1;
+		int upperLevel = ((y - 3520) / 8) + 1;
+		return (y > 6400 ? underLevel : upperLevel);
 	}
 }

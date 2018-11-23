@@ -63,6 +63,12 @@ public class KeptOnDeathOverlay extends Overlay
 			return null;
 		}
 
+		// Untradables above level 20 wildy are lost on death
+		if (plugin.getWildyLevel() >= 20)
+		{
+			return null;
+		}
+
 		Widget lost = client.getWidget(WidgetInfo.ITEMS_LOST_ON_DEATH_CONTAINER);
 		if (lost != null)
 		{
@@ -73,13 +79,20 @@ public class KeptOnDeathOverlay extends Overlay
 				if (!itemManager.getItemComposition(t.getItemId()).isTradeable())
 				{
 					// Certain items have a white border which needs a thicker border to be hidden.
-					if (AlwaysLostItem.check(t.getItemId()))
+					AlwaysLostItem item = AlwaysLostItem.getByItemID(t.getItemId());
+					if (item != null)
 					{
-						BufferedImage adjusted = itemManager.getItemOutline(t.getItemId(), t.getItemQuantity(), Color.GREEN, 2);
-						// Do not adjust canvas positions for these items as well
-						graphics.drawImage(adjusted, t.getCanvasLocation().getX(), t.getCanvasLocation().getY(), null);
+						// Some of these items are actually lost on death, like the looting bag.
+						if (item.isKept())
+						{
+							BufferedImage adjusted = itemManager.getItemOutline(t.getItemId(), t.getItemQuantity(), Color.GREEN, 2);
+							// Do not adjust canvas positions for these items as well
+							graphics.drawImage(adjusted, t.getCanvasLocation().getX(), t.getCanvasLocation().getY(), null);
+						}
 						continue;
 					}
+
+					// Non tradeable items are kept on death when not inside the wilderness.
 					BufferedImage adjusted = itemManager.getItemOutline(t.getItemId(), t.getItemQuantity(), Color.GREEN);
 					graphics.drawImage(adjusted, t.getCanvasLocation().getX() + 1, t.getCanvasLocation().getY() + 1, null);
 
