@@ -29,10 +29,15 @@ import com.google.common.collect.Multimap;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -72,7 +77,7 @@ public class CsvWriter
 		File file = new File(OUTPUT_DIR, filename);
 		Collection<Member> data = new ArrayList<>();
 
-		try (BufferedReader br = new BufferedReader(new FileReader(file)))
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)))
 		{
 			String line;
 			while ((line = br.readLine()) != null)
@@ -114,7 +119,7 @@ public class CsvWriter
 		filenames.add(filename);
 		try
 		{
-			BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(output), false));
+			BufferedWriter file = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8));
 			for (Member entry : data)
 			{
 				// Convert entry to JSON
