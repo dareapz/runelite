@@ -27,7 +27,7 @@ package net.runelite.client.plugins.keptondeath;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
+import java.awt.Rectangle;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
@@ -40,6 +40,8 @@ import net.runelite.client.ui.overlay.OverlayPriority;
 
 public class KeptOnDeathOverlay extends Overlay
 {
+	private static final Color UNTRADABLE_COLOR = Color.GREEN;
+
 	private final Client client;
 	private final ItemManager itemManager;
 	private final KeptOnDeathPlugin plugin;
@@ -78,24 +80,20 @@ public class KeptOnDeathOverlay extends Overlay
 				Widget t = children[i];
 				if (!itemManager.getItemComposition(t.getItemId()).isTradeable())
 				{
-					// Certain items have a white border which needs a thicker border to be hidden.
+					// Certain items are always lost on death and have a white outline
 					AlwaysLostItem item = AlwaysLostItem.getByItemID(t.getItemId());
 					if (item != null)
 					{
-						// Some of these items are actually lost on death, like the looting bag.
-						if (item.isKept())
+						// Some of these items are actually lost on death, like the looting bag, so don't add a border.
+						if (!item.isKept())
 						{
-							BufferedImage adjusted = itemManager.getItemOutline(t.getItemId(), t.getItemQuantity(), Color.GREEN, 2);
-							// Do not adjust canvas positions for these items as well
-							graphics.drawImage(adjusted, t.getCanvasLocation().getX(), t.getCanvasLocation().getY(), null);
+							continue;
 						}
-						continue;
 					}
 
-					// Non tradeable items are kept on death when not inside the wilderness.
-					BufferedImage adjusted = itemManager.getItemOutline(t.getItemId(), t.getItemQuantity(), Color.GREEN);
-					graphics.drawImage(adjusted, t.getCanvasLocation().getX() + 1, t.getCanvasLocation().getY() + 1, null);
-
+					Rectangle outline = t.getBounds();
+					graphics.setColor(UNTRADABLE_COLOR);
+					graphics.draw(outline);
 				}
 			}
 
