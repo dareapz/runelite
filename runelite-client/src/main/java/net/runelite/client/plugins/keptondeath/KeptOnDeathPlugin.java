@@ -206,7 +206,7 @@ public class KeptOnDeathPlugin extends Plugin
 
 				ItemComposition c = itemManager.getItemComposition(i.getId());
 				itemWidget.setAction(1, String.format(ACTION_TEXT, c.getName()));
-				if (keepCount > 0 || !c.isTradeable())
+				if (keepCount > 0 || !checkTradeable(i.getId(), c))
 				{
 					keepCount = keepCount < 1 ? 0 : keepCount - 1;
 
@@ -356,5 +356,22 @@ public class KeptOnDeathPlugin extends Plugin
 		Widget kept = client.getWidget(WidgetInfo.ITEMS_KEPT_ON_DEATH_CONTAINER);
 		Widget max = client.getWidget(WidgetInfo.ITEMS_KEPT_MAX);
 		max.setText(String.format(MAX_KEPT_ITEMS_FORMAT, kept.getChildren().length));
+	}
+
+	private boolean checkTradeable(int id, ItemComposition c)
+	{
+		switch (id)
+		{
+			case ItemID.COINS_995:
+			case ItemID.PLATINUM_TOKEN:
+				return true;
+			default:
+				if (ActuallyTradeableItem.check(id))
+				{
+					return true;
+				}
+		}
+
+		return c.isTradeable();
 	}
 }
