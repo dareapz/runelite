@@ -41,6 +41,7 @@ import net.runelite.client.ui.overlay.OverlayPriority;
 public class KeptOnDeathOverlay extends Overlay
 {
 	private static final Color UNTRADABLE_COLOR = Color.GREEN;
+	private static final Color BREAKABLE_COLOR = Color.BLUE;
 
 	private final Client client;
 	private final ItemManager itemManager;
@@ -71,6 +72,9 @@ public class KeptOnDeathOverlay extends Overlay
 			return null;
 		}
 
+		int untradeables = 0;
+		int breakables = 0;
+
 		Widget lost = client.getWidget(WidgetInfo.ITEMS_LOST_ON_DEATH_CONTAINER);
 		if (lost != null)
 		{
@@ -80,6 +84,24 @@ public class KeptOnDeathOverlay extends Overlay
 				Widget t = children[i];
 				if (!itemManager.getItemComposition(t.getItemId()).isTradeable())
 				{
+					Rectangle outline = t.getBounds();
+					graphics.setColor(UNTRADABLE_COLOR);
+
+					// Certain items are turned into broken variants inside the wilderness.
+					if (BrokenOnDeathItem.check(t.getItemId()))
+					{
+						graphics.setColor(BREAKABLE_COLOR);
+						graphics.draw(outline);
+						breakables++;
+						continue;
+					}
+
+					// Ignore all non tradeables in wildy except for the above case(s).
+					if (plugin.getWildyLevel() > 0)
+					{
+						continue;
+					}
+
 					// Certain items are always lost on death and have a white outline
 					AlwaysLostItem item = AlwaysLostItem.getByItemID(t.getItemId());
 					if (item != null)
@@ -91,13 +113,12 @@ public class KeptOnDeathOverlay extends Overlay
 						}
 					}
 
-					Rectangle outline = t.getBounds();
-					graphics.setColor(UNTRADABLE_COLOR);
 					graphics.draw(outline);
+					untradeables++;
 				}
 			}
 
-			plugin.ensureInfoText();
+			plugin.ensureInfoText(untradeables, breakables);
 		}
 
 		return null;

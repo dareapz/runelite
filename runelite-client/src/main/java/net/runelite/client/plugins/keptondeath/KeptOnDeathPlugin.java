@@ -46,7 +46,9 @@ import net.runelite.client.ui.overlay.OverlayManager;
 @Slf4j
 public class KeptOnDeathPlugin extends Plugin
 {
-	private static final String GREEN_OUTLINE_INFO = "<br><br>Items with a <col=00ff00>green outline<col=ff981f> are kept on death in safe zones.";
+	private static final String BORDER_TITLE = "<br><br>Outlined border explanations:";
+	private static final String UNTRADEABLE_INFO = "<br><col=00ff00>Kept in safe zones.<col=ff981f>";
+	private static final String BREAKABLE_INFO = "<br><col=0000ff>Broken in PvP zones.<col=ff981f>";
 
 	@Inject
 	private Client client;
@@ -90,7 +92,7 @@ public class KeptOnDeathPlugin extends Plugin
 		}
 	}
 
-	void ensureInfoText()
+	void ensureInfoText(int untradeable, int breakable)
 	{
 		if (!justOpenedWidget)
 		{
@@ -104,8 +106,22 @@ public class KeptOnDeathPlugin extends Plugin
 			return;
 		}
 
+		String textToAdd = "";
+		if (untradeable > 0)
+		{
+			textToAdd += UNTRADEABLE_INFO;
+		}
+		if (breakable > 0)
+		{
+			textToAdd += BREAKABLE_INFO;
+		}
+		if (textToAdd.length() != 0)
+		{
+			textToAdd = BORDER_TITLE + textToAdd;
+		}
+
 		Widget info = client.getWidget(WidgetInfo.ITEMS_KEPT_INFORMATION_CONTAINER);
-		info.setText(info.getText() + GREEN_OUTLINE_INFO);
+		info.setText(info.getText() + textToAdd);
 	}
 
 	private int getCurrentWildyLevel()
