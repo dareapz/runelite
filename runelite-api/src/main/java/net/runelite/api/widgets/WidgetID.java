@@ -567,7 +567,7 @@ public class WidgetID
 	{
 		static final int POINTS_INFOBOX = 3;
 	}
-
+	
 	static class ExperienceDrop
 	{
 		static final int DROP_1 = 15;

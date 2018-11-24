@@ -758,7 +758,7 @@ public interface Widget
 	void setParentId(int id);
 
 	/**
-	 *	Changes the ID of the widget
+	 * Changes the ID of the widget
 	 */
 	void setId(int id);
 
