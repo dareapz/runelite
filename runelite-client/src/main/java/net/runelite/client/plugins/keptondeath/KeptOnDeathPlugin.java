@@ -25,60 +25,50 @@
 package net.runelite.client.plugins.keptondeath;
 
 import com.google.common.eventbus.Subscribe;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.Varbits;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.widgets.JavaScriptCallback;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.ui.overlay.OverlayManager;
-
 
 @PluginDescriptor(
 	name = "Kept on Death",
-	description = "Displays extra information inside the Items Kept on Death screen"
+	description = "Reworks the Items Kept on Death interface to be more accurate"
 )
 @Slf4j
 public class KeptOnDeathPlugin extends Plugin
 {
-	private static final String BORDER_TITLE = "<br><br>Outlined border explanations:";
-	private static final String UNTRADEABLE_INFO = "<br><col=00ff00>Kept in safe zones.<col=ff981f>";
-	private static final String BREAKABLE_INFO = "<br><col=0000ff>Broken in PvP zones.<col=ff981f>";
+	private static final int MAX_ROW_ITEMS = 8;
+	private static final int STARTING_X = 5;
+	private static final int X_INCREMENT = 40;
+	private static final int STARTING_Y = 25;
+	private static final int Y_INCREMENT = 38;
+
+	private static final String CHANGED_MECHANICS = "<br><br>Untradeable items are kept on death in non-pvp scenarios.";
+	private static final String NON_PVP = "<br><br>If you die you have 1 hour to retrieve your lost items.";
+	private static final String MAX_KEPT_ITEMS_FORMAT = "<col=ffcc33>Max items kept on death :<br><br><col=ffcc33>~ %s ~";
+	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###");
 
 	@Inject
 	private Client client;
 
 	@Inject
-	private KeptOnDeathOverlay overlay;
-
-	@Inject
 	private ItemManager itemManager;
 
-	@Inject
-	private OverlayManager overlayManager;
-
-	private boolean justOpenedWidget = false;
 	@Getter
 	private boolean widgetVisible = false;
-	@Getter
-	private int wildyLevel = -1;
-
-	@Override
-	protected void startUp()
-	{
-		overlayManager.add(overlay);
-	}
-
-	@Override
-	protected void shutDown()
-	{
-		overlayManager.remove(overlay);
-	}
 
 	@Subscribe
 	protected void onGameTick(GameTick t)
@@ -87,41 +77,9 @@ public class KeptOnDeathPlugin extends Plugin
 		widgetVisible = client.getWidget(WidgetInfo.ITEMS_LOST_ON_DEATH_CONTAINER) != null;
 		if (widgetVisible && !old)
 		{
-			justOpenedWidget = true;
-			wildyLevel = getCurrentWildyLevel();
+			reorganizeWidgetItems();
+			updateKeptWidgetInfoText();
 		}
-	}
-
-	void ensureInfoText(int untradeable, int breakable)
-	{
-		if (!justOpenedWidget)
-		{
-			return;
-		}
-		justOpenedWidget = false;
-
-		// All non tradeable items are lost above 20 wilderness unless one of the 1,3,4 protected items.
-		if (wildyLevel >= 20)
-		{
-			return;
-		}
-
-		String textToAdd = "";
-		if (untradeable > 0)
-		{
-			textToAdd += UNTRADEABLE_INFO;
-		}
-		if (breakable > 0)
-		{
-			textToAdd += BREAKABLE_INFO;
-		}
-		if (textToAdd.length() != 0)
-		{
-			textToAdd = BORDER_TITLE + textToAdd;
-		}
-
-		Widget info = client.getWidget(WidgetInfo.ITEMS_KEPT_INFORMATION_CONTAINER);
-		info.setText(info.getText() + textToAdd);
 	}
 
 	private int getCurrentWildyLevel()
@@ -136,5 +94,141 @@ public class KeptOnDeathPlugin extends Plugin
 		int underLevel = ((y - 9920) / 8) + 1;
 		int upperLevel = ((y - 3520) / 8) + 1;
 		return (y > 6400 ? underLevel : upperLevel);
+	}
+
+	private void reorganizeWidgetItems()
+	{
+		int wildyLevel = getCurrentWildyLevel();
+		// Death mechanics aren't changed above 20 wildy since all untradeables are lost on death
+		if (wildyLevel >= 20)
+		{
+			return;
+		}
+
+		Widget lost = client.getWidget(WidgetInfo.ITEMS_LOST_ON_DEATH_CONTAINER);
+		Widget kept = client.getWidget(WidgetInfo.ITEMS_KEPT_ON_DEATH_CONTAINER);
+		if (lost != null && kept != null)
+		{
+			Widget[] children = lost.getDynamicChildren();
+			List<Widget> keptItems = new ArrayList<>(Arrays.asList(kept.getChildren()));
+			List<Widget> lostItems = new ArrayList<>(Arrays.asList(children));
+			for (int i = (children.length - 1); i >= 0; i--)
+			{
+				Widget t = children[i];
+				ItemComposition c = itemManager.getItemComposition(t.getItemId());
+				if (!c.isTradeable())
+				{
+					// Certain items are turned into broken variants inside the wilderness.
+					if (BrokenOnDeathItem.check(t.getItemId()))
+					{
+						t.setOnOpListener((JavaScriptCallback) ev -> fixedItemOpListener(c.getName(), t.getItemQuantity()));
+						keptItems.add(t);
+						lostItems.remove(t);
+						continue;
+					}
+
+					// Ignore all non tradeables in wildy except for the above case(s).
+					if (wildyLevel > 0)
+					{
+						continue;
+					}
+
+					// Certain items are always lost on death and have a white outline
+					AlwaysLostItem item = AlwaysLostItem.getByItemID(t.getItemId());
+					if (item != null)
+					{
+						// Some of these items are actually lost on death, like the looting bag, so don't add a border.
+						if (!item.isKept())
+						{
+							continue;
+						}
+					}
+
+					t.setOnOpListener((JavaScriptCallback) ev -> fixedItemOpListener(c.getName(), t.getItemQuantity()));
+					keptItems.add(t);
+					lostItems.remove(t);
+				}
+			}
+
+			setWidgetChildren(kept, keptItems);
+			if (keptItems.size() > 8)
+			{
+				// Adjust items lost container position if new rows were added to kept items container
+				lost.setOriginalY(lost.getOriginalY() + ((keptItems.size() / 8) * Y_INCREMENT));
+			}
+			setWidgetChildren(lost, lostItems);
+		}
+	}
+
+	/**
+	 * Wrapper for widget.setChildren() to avoid hn[] casting issues
+	 * @param parent Widget to override children
+	 * @param widgets Children to set on parent
+	 */
+	private void setWidgetChildren(Widget parent, List<Widget> widgets)
+	{
+		Widget[] children = parent.getChildren();
+		// If add flag is false override existing children by starting at 0
+		Widget[] itemsArray = Arrays.copyOf(children, widgets.size());
+
+		int parentId = parent.getId();
+		int startingIndex = 0;
+		for (Widget w : widgets)
+		{
+			int originalX = STARTING_X + ((startingIndex % MAX_ROW_ITEMS) * X_INCREMENT);
+			int originalY = STARTING_Y + ((startingIndex / MAX_ROW_ITEMS) * Y_INCREMENT);
+
+			w.setParentId(parentId);
+			w.setId(parentId);
+			w.setIndex(startingIndex);
+
+			w.setOriginalX(originalX);
+			w.setOriginalY(originalY);
+			w.revalidate();
+
+			itemsArray[startingIndex] = w;
+			startingIndex++;
+		}
+
+		parent.setChildren(itemsArray);
+		parent.revalidate();
+	}
+
+	private void updateKeptWidgetInfoText()
+	{
+		String textToAdd = CHANGED_MECHANICS;
+
+		if (getCurrentWildyLevel() < 1)
+		{
+			textToAdd += NON_PVP;
+		}
+
+		Widget info = client.getWidget(WidgetInfo.ITEMS_KEPT_INFORMATION_CONTAINER);
+		info.setText(info.getText() + textToAdd);
+
+		// Update Items lost total value
+		Widget lost = client.getWidget(WidgetInfo.ITEMS_LOST_ON_DEATH_CONTAINER);
+		int total = 0;
+		for (Widget w : lost.getChildren())
+		{
+			if (w.getItemId() == -1)
+			{
+				continue;
+			}
+			total += itemManager.getItemPrice(w.getItemId());
+		}
+		Widget lostValue = client.getWidget(WidgetInfo.ITEMS_LOST_VALUE);
+		lostValue.setText(NUMBER_FORMAT.format(total) + " gp");
+
+
+		// Update Max items kept
+		Widget kept = client.getWidget(WidgetInfo.ITEMS_KEPT_ON_DEATH_CONTAINER);
+		Widget max = client.getWidget(WidgetInfo.ITEMS_KEPT_MAX);
+		max.setText(String.format(MAX_KEPT_ITEMS_FORMAT, kept.getChildren().length));
+	}
+
+	private void fixedItemOpListener(String name, int quantity)
+	{
+		client.runScript(1603, 1, quantity, name);
 	}
 }

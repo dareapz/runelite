@@ -751,4 +751,19 @@ public interface Widget
 	 * Sets if the rectangle is filled or just stroked
 	 */
 	void setFilled(boolean filled);
+
+	/**
+	 * Changes the parent ID for the widget
+	 */
+	void setParentId(int id);
+
+	/**
+	 *	Changes the ID of the widget
+	 */
+	void setId(int id);
+
+	/**
+	 * Sets the index of this element
+	 */
+	void setIndex(int index);
 }

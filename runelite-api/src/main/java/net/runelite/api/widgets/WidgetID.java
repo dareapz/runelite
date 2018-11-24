@@ -739,6 +739,8 @@ public class WidgetID
 	{
 		static final int KEPT_ITEMS_CONTAINER = 18;
 		static final int LOST_ITEMS_CONTAINER = 21;
+		static final int LOST_ITEMS_VALUE = 23;
 		static final int INFORMATION_CONTAINER = 29;
+		static final int MAX_ITEMS_KEPT_ON_DEATH = 30;
 	}
 }
