@@ -416,19 +416,4 @@ public class ItemManager
 			return null;
 		}
 	}
-
-	/**
-	 * Create an item outline with a specific color and border size
-	 *
-	 * @param itemId item id
-	 * @param itemQuantity item quantity
-	 * @param outlineColor outline color
-	 * @param border border size
-	 * @return image
-	 */
-	public BufferedImage getItemOutline(final int itemId, final int itemQuantity, final Color outlineColor, final int border)
-	{
-		final SpritePixels itemSprite = client.createItemSprite(itemId, itemQuantity, border, 0, 0, true, 710);
-		return itemSprite.toBufferedOutline(outlineColor);
-	}
 }
