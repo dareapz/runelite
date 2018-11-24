@@ -766,4 +766,9 @@ public interface Widget
 	 * Sets the index of this element
 	 */
 	void setIndex(int index);
+
+	/**
+	 * Seems like this needs to set to true when creating new widgets
+	 */
+	void setIsIf3(boolean isIf3);
 }
