@@ -32,6 +32,7 @@ import javax.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.plugins.PluginManager;
+import net.runelite.client.plugins.telemetry.TelemetryPlugin;
 import net.runelite.http.api.telemetry.TelemetryClient;
 import net.runelite.http.api.telemetry.TelemetryData;
 

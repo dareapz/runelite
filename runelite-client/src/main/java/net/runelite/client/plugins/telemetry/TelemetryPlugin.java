@@ -37,6 +37,7 @@ import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.TelemetryManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.telemetry.data.NpcLootTelemetry;
 import net.runelite.client.plugins.telemetry.data.NpcSpawnedTelemetry;
 
 @PluginDescriptor(
@@ -46,6 +47,8 @@ import net.runelite.client.plugins.telemetry.data.NpcSpawnedTelemetry;
 @Slf4j
 public class TelemetryPlugin extends Plugin
 {
+	private static final int MAX_SPAWN_TILE_RANGE = 10;
+
 	private boolean ignoreTick;
 	private int tickCount;
 
@@ -70,7 +73,7 @@ public class TelemetryPlugin extends Plugin
 				ignoreTick = true;
 				telemetryManager.flush();
 				break;
-			case LOGGING_IN:
+			case LOADING:
 				ignoreTick = true;
 				break;
 		}
@@ -90,17 +93,21 @@ public class TelemetryPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onNpcLootReceived(final NpcLootReceived npcLootReceived)
+	public void onNpcLootReceived(final NpcLootReceived e)
 	{
-		telemetryManager.submit(npcLootReceived);
+		telemetryManager.submit(new NpcLootTelemetry(e.getNpc().getId(), e.getItems()));
 	}
 
 	@Subscribe
 	public void onNpcSpawned(final NpcSpawned npcSpawned)
 	{
 		NPC n = npcSpawned.getNpc();
+		if (n.getId() == -1)
+		{
+			return;
+		}
 
-		if (client.getLocalPlayer().getWorldLocation().distanceTo(n.getWorldLocation()) >= 10 || !ignoreTick)
+		if (client.getLocalPlayer().getWorldLocation().distanceTo(n.getWorldLocation()) <= MAX_SPAWN_TILE_RANGE && !ignoreTick)
 		{
 			telemetryManager.submit(new NpcSpawnedTelemetry(n.getId(), n.getWorldLocation()));
 		}
