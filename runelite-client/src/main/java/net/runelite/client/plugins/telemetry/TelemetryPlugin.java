@@ -27,6 +27,8 @@ package net.runelite.client.plugins.telemetry;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
@@ -39,6 +41,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.telemetry.data.NpcLootTelemetry;
 import net.runelite.client.plugins.telemetry.data.NpcSpawnedTelemetry;
+import net.runelite.client.task.Schedule;
 
 @PluginDescriptor(
 	name = "Telemetry Plugin",
@@ -48,6 +51,8 @@ import net.runelite.client.plugins.telemetry.data.NpcSpawnedTelemetry;
 public class TelemetryPlugin extends Plugin
 {
 	private static final int MAX_SPAWN_TILE_RANGE = 10;
+	// 5 Minute in Milliseconds
+	private static final int TIME_EXPIRE_PERIOD = 5 * 60 * 1000;
 
 	private boolean ignoreTick;
 	private int tickCount;
@@ -112,5 +117,24 @@ public class TelemetryPlugin extends Plugin
 			telemetryManager.submit(new NpcSpawnedTelemetry(n.getId(), n.getWorldLocation()));
 		}
 
+	}
+
+	@Schedule(
+		unit = ChronoUnit.MINUTES,
+		period = 1
+	)
+	public void checkFlush()
+	{
+		Date expires = telemetryManager.getLastSubmitDate();
+		if (expires == null)
+		{
+			return;
+		}
+
+		long expireTime = expires.getTime() + TIME_EXPIRE_PERIOD;
+		if (new Date().getTime() >= expireTime)
+		{
+			telemetryManager.flush();
+		}
 	}
 }
