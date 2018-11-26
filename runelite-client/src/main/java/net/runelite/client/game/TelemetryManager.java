@@ -60,7 +60,7 @@ public class TelemetryManager
 		if (pluginManager.isPluginEnabled(TelemetryPlugin.class))
 		{
 			log.info("Telemetry data is disabled.");
-			queue.clear();
+			clear();
 			return;
 		}
 
@@ -75,12 +75,12 @@ public class TelemetryManager
 
 	public void clear()
 	{
+		lastSubmitDate = null;
 		queue.clear();
 	}
 
 	public void flush()
 	{
-		lastSubmitDate = null;
 		if (pluginManager.isPluginEnabled(TelemetryPlugin.class))
 		{
 			if (queue.size() == 0)
@@ -90,7 +90,7 @@ public class TelemetryManager
 			}
 
 			List<TelemetryData> data = new ArrayList<>(queue);
-			queue.clear();
+			clear();
 
 			log.info("Flushing queued Telemetry data: {}", data);
 			telemetryClient.submit(data);
