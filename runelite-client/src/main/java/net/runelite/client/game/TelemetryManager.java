@@ -30,28 +30,28 @@ import java.util.Date;
 import java.util.List;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.plugins.PluginManager;
 import net.runelite.http.api.telemetry.TelemetryClient;
 import net.runelite.http.api.telemetry.TelemetryData;
 import net.runelite.http.api.telemetry.TelemetryType;
-import net.runelite.client.config.RuneLiteConfig;
 
 @Singleton
 @Slf4j
 public class TelemetryManager
 {
-	private final RuneLiteConfig config;
+	private final PluginManager pluginManager;
 	private final TelemetryClient telemetryClient = new TelemetryClient();
 	private List<TelemetryData> queue = new ArrayList<>();
 
 	@Inject
-	private TelemetryManager(RuneLiteConfig config)
+	private TelemetryManager(PluginManager pluginManager)
 	{
-		this.config = config;
+		this.pluginManager = pluginManager;
 	}
 
 	public void submit(TelemetryType type, Object data)
 	{
-		if (!config.telemtryData())
+		if (pluginManager.isPluginEnabled(TelemetryPlugin.class))
 		{
 			log.info("Telemetry data is disabled.");
 			queue.clear();
@@ -62,16 +62,22 @@ public class TelemetryManager
 		queue.add(new TelemetryData(new Date(), type, data));
 		if (queue.size() >= 2)
 		{
-			query();
+			flush();
 		}
 	}
 
-	private void query()
+	private void clear()
+	{
+		queue.clear();
+	}
+
+	public void flush()
 	{
 		List<TelemetryData> data = new ArrayList<>(queue);
 		queue.clear();
 
-		log.info("Submitted queued Telemetry data: {}", data);
+		log.info("Flushing queued Telemetry data: {}", data);
 		telemetryClient.submit(data);
+		log.info("Telemetry data flushed!");
 	}
 }

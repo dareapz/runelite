@@ -261,15 +261,4 @@ public interface RuneLiteConfig extends Config
 	{
 		return 35;
 	}
-
-	@ConfigItem(
-		keyName = "telemtryData",
-		name = "Enable Telemtry Data",
-		description = "Configures if Telemtry data should be enabled",
-		position = 40
-	)
-	default boolean telemtryData()
-	{
-		return true;
-	}
 }
