@@ -25,9 +25,11 @@
 
 package net.runelite.client.plugins.telemetry;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.TelemetryManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -48,5 +50,11 @@ public class TelemetryPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		telemetryManager.clear();
+	}
+
+	@Subscribe
+	public void onNpcLootReceived(final NpcLootReceived npcLootReceived)
+	{
+		telemetryManager.submit(npcLootReceived);
 	}
 }
