@@ -32,14 +32,6 @@ import net.runelite.client.game.ItemStack;
 @Data
 public class NpcLootReceived
 {
-	private transient final NPC npc;
-	private final int npcID;
+	private final NPC npc;
 	private final Collection<ItemStack> items;
-
-	public NpcLootReceived(NPC npc, Collection<ItemStack> items)
-	{
-		this.npc = npc;
-		this.npcID = npc.getId();
-		this.items = items;
-	}
 }
