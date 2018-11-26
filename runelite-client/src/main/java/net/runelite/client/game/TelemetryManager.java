@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.http.api.telemetry.TelemetryClient;
 import net.runelite.http.api.telemetry.TelemetryData;
-import net.runelite.http.api.telemetry.TelemetryType;
 
 @Singleton
 @Slf4j
@@ -55,7 +54,7 @@ public class TelemetryManager
 		this.pluginManager = pluginManager;
 	}
 
-	public void submit(TelemetryType type, Object data)
+	public void submit(Object data)
 	{
 		if (pluginManager.isPluginEnabled(TelemetryPlugin.class))
 		{
@@ -64,9 +63,11 @@ public class TelemetryManager
 			return;
 		}
 
-		log.info("Received {} Telemetry data: {}", type, data);
 		lastSubmitDate = new Date();
-		queue.add(new TelemetryData(lastSubmitDate, type, data));
+		TelemetryData d = new TelemetryData(lastSubmitDate, data);
+		log.info("Received Telemetry data: {}",  d);
+		queue.add(d);
+
 		if (queue.size() >= MAX_QUEUE_SIZE)
 		{
 			flush();
