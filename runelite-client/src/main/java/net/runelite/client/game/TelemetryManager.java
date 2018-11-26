@@ -72,6 +72,6 @@ public class TelemetryManager
 		queue.clear();
 
 		log.info("Submitted queued Telemetry data: {}", data);
-		telemetryClient.submitQueue(data);
+		telemetryClient.submit(data);
 	}
 }

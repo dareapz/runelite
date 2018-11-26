@@ -38,12 +38,7 @@ public class TelemetryClient
 {
 	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-	public void submitQueue(List<TelemetryData> data)
-	{
-		submit(data);
-	}
-
-	private void submit(List<TelemetryData> data)
+	public void submit(List<TelemetryData> data)
 	{
 		log.info("Submitting Queue: {}", data);
 		log.info("Data as JSON: {}", RuneLiteAPI.GSON.toJson(data));
