@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,24 +22,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.events;
+package net.runelite.http.api.telemetry;
 
-import java.util.Collection;
-import lombok.Data;
-import net.runelite.api.NPC;
-import net.runelite.client.game.ItemStack;
-
-@Data
-public class NpcLootReceived
+public enum TelemetryType
 {
-	private transient final NPC npc;
-	private final int npcID;
-	private final Collection<ItemStack> items;
-
-	public NpcLootReceived(NPC npc, Collection<ItemStack> items)
-	{
-		this.npc = npc;
-		this.npcID = npc.getId();
-		this.items = items;
-	}
+	MONSTER_DROP,
+	MOVEMENT,
+	SKILLING,
+	NPC_SPAWNS,
+	OTHER
 }

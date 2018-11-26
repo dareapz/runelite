@@ -44,6 +44,7 @@ public class RuneLiteAPI
 
 	private static final String BASE = "https://api.runelite.net/runelite-";
 	private static final String WSBASE = "wss://api.runelite.net/runelite-";
+	private static final String TELEMETRY_BASE = "https://telemetry.runelite.net/runelite-";
 	private static final Properties properties = new Properties();
 	private static String version;
 	private static int rsVersion;
@@ -93,4 +94,8 @@ public class RuneLiteAPI
 		return rsVersion;
 	}
 
+	public static HttpUrl getTelemetryBase()
+	{
+		return HttpUrl.parse(TELEMETRY_BASE + getVersion());
+	}
 }

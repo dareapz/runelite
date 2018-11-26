@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,24 +22,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.events;
+package net.runelite.client.game;
 
-import java.util.Collection;
-import lombok.Data;
-import net.runelite.api.NPC;
-import net.runelite.client.game.ItemStack;
+import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.http.api.telemetry.TelemetryClient;
+import net.runelite.http.api.telemetry.TelemetryData;
+import net.runelite.http.api.telemetry.TelemetryType;
+import net.runelite.client.config.RuneLiteConfig;
 
-@Data
-public class NpcLootReceived
+@Singleton
+@Slf4j
+public class TelemetryManager
 {
-	private transient final NPC npc;
-	private final int npcID;
-	private final Collection<ItemStack> items;
+	private final RuneLiteConfig config;
+	private final TelemetryClient telemetryClient = new TelemetryClient();
+	private List<TelemetryData> queue = new ArrayList<>();
 
-	public NpcLootReceived(NPC npc, Collection<ItemStack> items)
+	@Inject
+	private TelemetryManager(RuneLiteConfig config)
 	{
-		this.npc = npc;
-		this.npcID = npc.getId();
-		this.items = items;
+		this.config = config;
+	}
+
+	public void submit(TelemetryType type, Object data)
+	{
+		if (!config.telemtryData())
+		{
+			log.info("Telemetry data is disabled.");
+			queue.clear();
+			return;
+		}
+
+		log.info("Received {} Telemetry data: {}", type, data);
+		queue.add(new TelemetryData(new Date(), type, data));
+		if (queue.size() >= 2)
+		{
+			query();
+		}
+	}
+
+	private void query()
+	{
+		List<TelemetryData> data = new ArrayList<>(queue);
+		queue.clear();
+
+		log.info("Submitted queued Telemetry data: {}", data);
+		telemetryClient.submitQueue(data);
 	}
 }

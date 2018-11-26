@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,24 +22,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.events;
+package net.runelite.http.api.telemetry;
 
-import java.util.Collection;
-import lombok.Data;
-import net.runelite.api.NPC;
-import net.runelite.client.game.ItemStack;
+import java.io.IOException;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.http.api.RuneLiteAPI;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
-@Data
-public class NpcLootReceived
+@Slf4j
+public class TelemetryClient
 {
-	private transient final NPC npc;
-	private final int npcID;
-	private final Collection<ItemStack> items;
+	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-	public NpcLootReceived(NPC npc, Collection<ItemStack> items)
+	public void submitQueue(List<TelemetryData> data)
 	{
-		this.npc = npc;
-		this.npcID = npc.getId();
-		this.items = items;
+		submit(data);
+	}
+
+	private void submit(List<TelemetryData> data)
+	{
+		log.info("Submitting Queue: {}", data);
+		log.info("Data as JSON: {}", RuneLiteAPI.GSON.toJson(data));
+		Request r = new Request.Builder()
+			.url(RuneLiteAPI.getTelemetryBase())
+			.post(RequestBody.create(JSON, RuneLiteAPI.GSON.toJson(data)))
+			.build();
+
+		log.info("Submitting Request: {}", r.toString());
+		try (Response response = RuneLiteAPI.CLIENT.newCall(r).execute())
+		{
+			if (response.isSuccessful())
+			{
+				log.info("Successfully sent telemetry data");
+			}
+			else
+			{
+				log.debug("Error sending telemetry data to URI: {}", RuneLiteAPI.getTelemetryBase());
+				log.debug(response.body().toString());
+			}
+		}
+		catch (IOException e)
+		{
+			log.debug("IOException: {}", e.getMessage());
+		}
 	}
 }
