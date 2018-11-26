@@ -56,7 +56,7 @@ public class TelemetryManager
 
 	public void submit(Object data)
 	{
-		if (pluginManager.isPluginEnabled(TelemetryPlugin.class))
+		if (!pluginManager.isPluginEnabled(TelemetryPlugin.class))
 		{
 			log.info("Telemetry data is disabled.");
 			clear();
