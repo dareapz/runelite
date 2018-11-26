@@ -29,10 +29,15 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.NPC;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.NpcSpawned;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.TelemetryManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.telemetry.data.NpcSpawnedTelemetry;
 
 @PluginDescriptor(
 	name = "Telemetry Plugin"
@@ -40,6 +45,9 @@ import net.runelite.client.plugins.PluginDescriptor;
 @Slf4j
 public class TelemetryPlugin extends Plugin
 {
+	private boolean ignoreTick;
+	private int tickCount;
+
 	@Inject
 	private Client client;
 
@@ -53,8 +61,45 @@ public class TelemetryPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		switch (event.getGameState())
+		{
+			case LOGIN_SCREEN:
+			case LOGGING_IN:
+				ignoreTick = true;
+				break;
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick tick)
+	{
+		if (ignoreTick && tickCount < 1)
+		{
+			tickCount++;
+			return;
+		}
+
+		tickCount = 0;
+		ignoreTick = false;
+	}
+
+	@Subscribe
 	public void onNpcLootReceived(final NpcLootReceived npcLootReceived)
 	{
 		telemetryManager.submit(npcLootReceived);
+	}
+
+	@Subscribe
+	public void onNpcSpawned(final NpcSpawned npcSpawned)
+	{
+		NPC n = npcSpawned.getNpc();
+
+		if (client.getLocalPlayer().getWorldLocation().distanceTo(n.getWorldLocation()) >= 10 || !ignoreTick)
+		{
+			telemetryManager.submit(new NpcSpawnedTelemetry(n.getId(), n.getWorldLocation()));
+		}
+
 	}
 }
