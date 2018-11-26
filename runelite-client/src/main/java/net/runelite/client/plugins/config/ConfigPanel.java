@@ -229,7 +229,7 @@ public class ConfigPanel extends PluginPanel
 			final Plugin plugin = listItem.getPlugin();
 			if (plugin != null)
 			{
-				listItem.setPluginEnabled(pluginManager.isPluginEnabled(plugin));
+				listItem.setPluginEnabled(pluginManager.isPluginEnabled(plugin.getClass()));
 			}
 		});
 

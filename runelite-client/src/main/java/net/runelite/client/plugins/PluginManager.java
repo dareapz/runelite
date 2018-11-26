@@ -301,7 +301,7 @@ public class PluginManager
 
 	public synchronized boolean startPlugin(Plugin plugin) throws PluginInstantiationException
 	{
-		if (activePlugins.contains(plugin) || !isPluginEnabled(plugin))
+		if (activePlugins.contains(plugin) || !isPluginEnabled(plugin.getClass()))
 		{
 			return false;
 		}
@@ -347,7 +347,7 @@ public class PluginManager
 
 	public synchronized boolean stopPlugin(Plugin plugin) throws PluginInstantiationException
 	{
-		if (!activePlugins.contains(plugin) || isPluginEnabled(plugin))
+		if (!activePlugins.contains(plugin) || isPluginEnabled(plugin.getClass()))
 		{
 			return false;
 		}
@@ -390,9 +390,9 @@ public class PluginManager
 		configManager.setConfiguration(runeliteGroupName, keyName, String.valueOf(enabled));
 	}
 
-	public boolean isPluginEnabled(Plugin plugin)
+	public boolean isPluginEnabled(Class plugin)
 	{
-		final String keyName = plugin.getClass().getSimpleName().toLowerCase();
+		final String keyName = plugin.getSimpleName().toLowerCase();
 		final String value = configManager.getConfiguration(runeliteGroupName, keyName);
 
 		if (value != null)
