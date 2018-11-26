@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Singleton;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.http.api.telemetry.TelemetryClient;
@@ -39,9 +40,14 @@ import net.runelite.http.api.telemetry.TelemetryType;
 @Slf4j
 public class TelemetryManager
 {
+	private static final int MAX_QUEUE_SIZE = 50;
+
 	private final PluginManager pluginManager;
 	private final TelemetryClient telemetryClient = new TelemetryClient();
 	private List<TelemetryData> queue = new ArrayList<>();
+
+	@Getter
+	private Date lastSubmitDate = null;
 
 	@Inject
 	private TelemetryManager(PluginManager pluginManager)
@@ -59,25 +65,36 @@ public class TelemetryManager
 		}
 
 		log.info("Received {} Telemetry data: {}", type, data);
-		queue.add(new TelemetryData(new Date(), type, data));
-		if (queue.size() >= 2)
+		lastSubmitDate = new Date();
+		queue.add(new TelemetryData(lastSubmitDate, type, data));
+		if (queue.size() >= MAX_QUEUE_SIZE)
 		{
 			flush();
 		}
 	}
 
-	private void clear()
+	public void clear()
 	{
 		queue.clear();
 	}
 
 	public void flush()
 	{
-		List<TelemetryData> data = new ArrayList<>(queue);
-		queue.clear();
+		lastSubmitDate = null;
+		if (pluginManager.isPluginEnabled(TelemetryPlugin.class))
+		{
+			if (queue.size() == 0)
+			{
+				log.warn("Tried flushing empty queue");
+				return;
+			}
 
-		log.info("Flushing queued Telemetry data: {}", data);
-		telemetryClient.submit(data);
-		log.info("Telemetry data flushed!");
+			List<TelemetryData> data = new ArrayList<>(queue);
+			queue.clear();
+
+			log.info("Flushing queued Telemetry data: {}", data);
+			telemetryClient.submit(data);
+			log.info("Telemetry data flushed!");
+		}
 	}
 }
