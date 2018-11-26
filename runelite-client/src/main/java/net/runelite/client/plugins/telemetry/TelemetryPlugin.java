@@ -40,7 +40,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.telemetry.data.NpcSpawnedTelemetry;
 
 @PluginDescriptor(
-	name = "Telemetry Plugin"
+	name = "Telemetry Plugin",
+	enabledByDefault = false
 )
 @Slf4j
 public class TelemetryPlugin extends Plugin
