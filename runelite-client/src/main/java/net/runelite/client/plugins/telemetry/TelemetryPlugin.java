@@ -66,6 +66,9 @@ public class TelemetryPlugin extends Plugin
 		switch (event.getGameState())
 		{
 			case LOGIN_SCREEN:
+				ignoreTick = true;
+				telemetryManager.flush();
+				break;
 			case LOGGING_IN:
 				ignoreTick = true;
 				break;
