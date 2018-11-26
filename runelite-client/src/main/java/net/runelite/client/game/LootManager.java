@@ -46,7 +46,6 @@ import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
 import net.runelite.api.Player;
 import net.runelite.api.Tile;
-import net.runelite.http.api.telemetry.TelemetryType;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.AnimationChanged;
@@ -69,18 +68,16 @@ public class LootManager
 
 	private final EventBus eventBus;
 	private final Client client;
-	private final TelemetryManager telemetryManager;
 	private final ListMultimap<Integer, ItemStack> itemSpawns = ArrayListMultimap.create();
 	private final Set<LocalPoint> killPoints = new HashSet<>();
 	private WorldPoint playerLocationLastTick;
 	private WorldPoint krakenPlayerLocation;
 
 	@Inject
-	private LootManager(EventBus eventBus, Client client, TelemetryManager telemetryManager)
+	private LootManager(EventBus eventBus, Client client)
 	{
 		this.eventBus = eventBus;
 		this.client = client;
-		this.telemetryManager = telemetryManager;
 	}
 
 	@Subscribe
@@ -261,7 +258,6 @@ public class LootManager
 
 		killPoints.add(location);
 		eventBus.post(new NpcLootReceived(npc, allItems));
-		telemetryManager.submit(TelemetryType.MONSTER_DROP, new NpcLootReceived(npc, allItems));
 	}
 
 	private WorldPoint getDropLocation(NPC npc, WorldPoint worldLocation)
